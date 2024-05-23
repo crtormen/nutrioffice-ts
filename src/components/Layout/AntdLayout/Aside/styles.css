@@ -1,0 +1,23 @@
+.sider__title {
+  color: white;
+  text-decoration: none;
+  h1 {
+    margin: 0;
+  }
+  height: 32px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 16px;
+}
+
+.sider__logo {
+  text-align: center;
+  /* background-image: url('/images/logo-80px.png');
+  background-size: cover; */
+}
+
+.sider {
+  overflow: "auto";
+  height: "100vh";
+  position: "fixed";
+  left: 0;
+}

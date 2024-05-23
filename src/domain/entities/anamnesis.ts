@@ -1,0 +1,29 @@
+export interface IAnamnesis {
+  objetivos?: string[];
+  suplementos?: string;
+  usa_suplemento?: string;
+  atividades?: string;
+  fumante?: string;
+  bebida?: string;
+  patologias?: string;
+  medicamentos?: string;
+  intestino?: string;
+  alergias?: string;
+  horarios_fome?: string[];
+  horas_sono?: string;
+  agua?: string;
+  sono?: string[];
+  estresse?: string;
+  infancia?: string;
+  emocional?: string[];
+  gestante?: string;
+  anticoncepcional?: string;
+  idade_anti?: string;
+  tpm?: string;
+  flacidez?: string;
+  celulite?: string;
+  queda_cabelo?: string;
+  unhas?: string;
+  libido?: string;
+  calvicie?: string;
+}
