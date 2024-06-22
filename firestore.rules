@@ -2,7 +2,42 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{document=**} {
-      allow read, write: if request.auth.uid != null;
+      allow read, write: if false;
+    }
+    match /users/{user=**} {
+    	allow read, write: if isSignedIn();
+    }
+    match /users/{userId}/{userData=**} {
+    	allow read, write: if isOwner(userId);
+    }
+    match /users/{userId}/{userData=**} {
+    	allow read, write: if isOwner(userId) || isContributor(userId);
+    }
+    
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+    	return request.auth.uid == userId
+    }
+    
+    function getRole() {
+      return request.auth.token.role;
+    }
+    
+    function getContributors(uid) {
+    	return get(/databases/$(database)/documents/users/$(uid)/contributors).data;
+    }
+    
+    function isContributor(uid) {
+    	let contributesTo = request.auth.token.contributesTo;
+    	return (
+      	getRole() == "COLLABORATOR" && 
+        contributesTo == uid && 
+        request.auth.uid in getContributors(contributesTo)
+        ) ? true : false;
     }
   }
 }

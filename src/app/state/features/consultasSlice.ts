@@ -1,11 +1,13 @@
-import { IConsulta } from "@/domain/entities";
-import { firestoreApi } from "../firestoreApi";
-import { ConsultasService } from "@/app/services/ConsultasService";
 import { createSelector } from "@reduxjs/toolkit";
 
+import { ConsultasService } from "@/app/services/ConsultasService";
+import { IConsulta } from "@/domain/entities";
+
+import { firestoreApi } from "../firestoreApi";
+
 type args = {
-  uid: string;
-  customerId: string;
+  uid?: string;
+  customerId?: string;
 };
 
 export const consultasSlice = firestoreApi
@@ -23,9 +25,9 @@ export const consultasSlice = firestoreApi
           try {
             const querySnapshot = await ConsultasService(
               uid,
-              customerId
+              customerId,
             )?.getAllOnce();
-            let consultas: IConsulta[] = [];
+            const consultas: IConsulta[] = [];
 
             querySnapshot?.forEach((doc) => {
               consultas.push({
@@ -50,5 +52,5 @@ export const { useFetchConsultasQuery } = consultasSlice;
 export const selectLastConsulta = (uid: string, customerId: string) =>
   createSelector(
     consultasSlice.endpoints.fetchConsultas.select({ uid, customerId }),
-    ({ data: consultas }) => (consultas ? consultas[0] : undefined)
+    ({ data: consultas }) => (consultas ? consultas[0] : undefined),
   );

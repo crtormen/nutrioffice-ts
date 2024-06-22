@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import { CustomerData } from "../columns";
-import { useAuth } from "@/infra/firebase";
+
 import { useFetchCustomersQuery } from "@/app/state/features/customersSlice";
+import { useAuth } from "@/infra/firebase";
+
+import { CustomerData } from "../columns";
 
 export const useFillCustomerTable = () => {
   const [customers, setCustomers] = useState<CustomerData[] | undefined>([]);
-  const auth = useAuth();
-  const uid = auth.user?.uid;
+  const { dbUid } = useAuth();
 
-  const result = useFetchCustomersQuery(uid);
+  const result = useFetchCustomersQuery(dbUid);
 
   useEffect(() => {
     const setTableData = (): CustomerData[] | undefined => {

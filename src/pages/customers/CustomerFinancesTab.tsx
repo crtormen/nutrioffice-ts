@@ -1,6 +1,6 @@
-import { CustomerFinancesTable } from "@/components/Finances/CustomerFinancesTable";
-import React from "react";
 import { useParams } from "react-router-dom";
+
+import { CustomerFinancesTable } from "@/components/Finances/CustomerFinancesTable";
 
 const CustomerFinancesTab = () => {
   const { id } = useParams();

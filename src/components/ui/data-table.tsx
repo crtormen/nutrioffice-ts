@@ -1,15 +1,19 @@
-import React, { useState } from 'react'
 import {
   ColumnDef,
   ColumnFiltersState,
-  SortingState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  SortingState,
   useReactTable,
-} from '@tanstack/react-table'
+} from "@tanstack/react-table";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Pagination,
   PaginationContent,
@@ -18,7 +22,7 @@ import {
   PaginationLink,
   // PaginationNext,
   // PaginationPrevious,
-} from '@/components/ui/pagination'
+} from "@/components/ui/pagination";
 import {
   Table,
   TableBody,
@@ -26,16 +30,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+} from "@/components/ui/table";
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
-  filterField?: string
-  filterPlaceholder?: string
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  filterField?: string;
+  filterPlaceholder?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -44,10 +45,10 @@ export function DataTable<TData, TValue>({
   filterField,
   filterPlaceholder,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [rowSelection, setRowSelection] = useState({})
-  let shifted = false
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [rowSelection, setRowSelection] = useState({});
+  let shifted = false;
 
   const table = useReactTable({
     data,
@@ -64,14 +65,14 @@ export function DataTable<TData, TValue>({
       columnFilters,
       rowSelection,
     },
-  })
+  });
 
-  const pageNumbers: number[] = []
-  const maxPageNum = 5
-  const pageNumLimit = Math.floor(maxPageNum / 2) // Current page should be in the middle if possible
+  const pageNumbers: number[] = [];
+  const maxPageNum = 5;
+  const pageNumLimit = Math.floor(maxPageNum / 2); // Current page should be in the middle if possible
 
   for (let i = 1; i <= table.getPageCount(); i++) {
-    pageNumbers.push(i)
+    pageNumbers.push(i);
   }
 
   const activePages = pageNumbers.slice(
@@ -80,7 +81,7 @@ export function DataTable<TData, TValue>({
       table.getState().pagination.pageIndex + pageNumLimit + 1,
       pageNumbers.length,
     ),
-  )
+  );
 
   const renderPageNumbers = () => {
     const pageNumbersRendered = activePages.map((pageNumber, i) => (
@@ -92,7 +93,7 @@ export function DataTable<TData, TValue>({
           {pageNumber}
         </PaginationLink>
       </PaginationItem>
-    ))
+    ));
 
     // Add ellipsis at the start if necessary
     if (activePages[0] > 1 && !shifted) {
@@ -106,8 +107,8 @@ export function DataTable<TData, TValue>({
           key="ellipsis-start"
           onClick={() => table.setPageIndex(activePages[0] - 1)}
         />,
-      )
-      shifted = true
+      );
+      shifted = true;
     }
 
     // Add ellipsis at the end if necessary
@@ -126,11 +127,11 @@ export function DataTable<TData, TValue>({
             {table.getPageCount()}
           </PaginationLink>
         </PaginationItem>,
-      )
+      );
     }
 
-    return pageNumbersRendered
-  }
+    return pageNumbersRendered;
+  };
 
   return (
     <div>
@@ -139,7 +140,7 @@ export function DataTable<TData, TValue>({
           <Input
             placeholder={`Filtrar por ${filterPlaceholder}...`}
             value={
-              (table.getColumn(filterField)?.getFilterValue() as string) ?? ''
+              (table.getColumn(filterField)?.getFilterValue() as string) ?? ""
             }
             onChange={(event) =>
               table.getColumn(filterField)?.setFilterValue(event.target.value)
@@ -171,7 +172,7 @@ export function DataTable<TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
+                  data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -242,5 +243,5 @@ export function DataTable<TData, TValue>({
         // </div>
       )}
     </div>
-  )
+  );
 }

@@ -1,11 +1,12 @@
-import React from 'react'
-import CustomersTable from '@/components/Customers/CustomersTable'
-import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Plus } from "lucide-react";
+import React from "react";
+import { useNavigate } from "react-router-dom";
+
+import CustomersTable from "@/components/Customers/CustomersTable";
+import { Button } from "@/components/ui/button";
 
 const CustomersPage: React.FC = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <div className="flex-col space-y-8 p-8 md:flex">
@@ -14,8 +15,8 @@ const CustomersPage: React.FC = () => {
           <div className="flex items-center gap-3">
             <h2 className="text-3xl font-bold tracking-tight">Clientes</h2>
             <Button
-              className="inline-flex items-center gap-1.5 text-xs bg-primary text-white rounded-full px-1.5 py-1"
-              onClick={() => navigate('create')}
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-1.5 py-1 text-xs text-white"
+              onClick={() => navigate("create")}
             >
               <Plus className="size-3" />
               Novo Cliente
@@ -28,7 +29,7 @@ const CustomersPage: React.FC = () => {
         <CustomersTable />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CustomersPage
+export default CustomersPage;

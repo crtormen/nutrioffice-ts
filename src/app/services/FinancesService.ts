@@ -1,58 +1,55 @@
-import { IFinance, IFinanceFirebase, IPayment } from '@/domain/entities'
-import { DatabaseService, createCollection } from './DatabaseService'
 import {
-  query,
   DocumentData,
   PartialWithFieldValue,
+  query,
   QueryDocumentSnapshot,
   SnapshotOptions,
-} from 'firebase/firestore'
-import { dateInString } from '@/lib/utils'
+} from "firebase/firestore";
+
+import { IFinance, IFinanceFirebase, IPayment } from "@/domain/entities";
+import { dateInString } from "@/lib/utils";
+
+import { createCollectionRef, DatabaseService } from "./DatabaseService";
 
 const FinancesCollection = (uid: string, customerId: string) => {
   return uid
-    ? createCollection<IFinanceFirebase>(
-        'users/' + uid + '/customers/' + customerId + '/finances',
+    ? createCollectionRef<IFinanceFirebase>(
+        "users/" + uid + "/customers/" + customerId + "/finances",
       )
-    : null
-}
+    : null;
+};
 
 export const FinancesService = (uid: string, customerId: string) => {
-  const collection = FinancesCollection(uid, customerId)
-  if (!collection) return
+  const collection = FinancesCollection(uid, customerId);
+  if (!collection) return;
 
-  const financesService = new DatabaseService<IFinanceFirebase, IFinance>(
-    collection,
-  )
+  const financesService = new DatabaseService<IFinanceFirebase>(collection);
 
   financesService.query = query(
     collection.withConverter({
-      toFirestore({
-        id,
-        ...data
-      }: PartialWithFieldValue<IFinance>): DocumentData {
-        return data
+      toFirestore({ ...data }: PartialWithFieldValue<IFinance>): DocumentData {
+        return data;
       },
       fromFirestore(
         snapshot: QueryDocumentSnapshot<IFinanceFirebase>,
         options: SnapshotOptions,
       ): IFinance {
-        const data = snapshot.data(options)
+        const data = snapshot.data(options);
         const payments: IPayment[] | undefined = data.payments
           ? data.payments.map((payment) => ({
               ...payment,
               createdAt: dateInString(payment.createdAt),
             }))
-          : undefined
+          : undefined;
         const returnData = {
           id: snapshot.id,
           ...data,
           createdAt: dateInString(data.createdAt),
           payments,
-        }
-        return returnData
+        };
+        return returnData;
       },
     }),
-  )
-  return financesService
-}
+  );
+  return financesService;
+};

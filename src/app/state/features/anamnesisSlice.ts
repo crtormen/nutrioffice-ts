@@ -1,11 +1,19 @@
-import { IAnamnesis } from "@/domain/entities";
-import { firestoreApi } from "../firestoreApi";
-import { AnamnesisService } from "@/app/services/AnamnesisService";
 import { createSelector } from "@reduxjs/toolkit";
 
-type args = {
-  uid: string;
-  customerId: string;
+import { AnamnesisService } from "@/app/services/AnamnesisService";
+import { IAnamnesis } from "@/domain/entities";
+
+import { firestoreApi } from "../firestoreApi";
+
+type queryArgs = {
+  uid?: string;
+  customerId?: string;
+};
+
+type mutationArgs = {
+  uid?: string;
+  customerId?: string;
+  newAnamnesis?: IAnamnesis;
 };
 
 export const anamnesisSlice = firestoreApi
@@ -14,7 +22,7 @@ export const anamnesisSlice = firestoreApi
   })
   .injectEndpoints({
     endpoints: (builder) => ({
-      fetchAnamnesis: builder.query<IAnamnesis[], args>({
+      fetchAnamnesis: builder.query<IAnamnesis[], queryArgs>({
         providesTags: ["Anamnesis"],
         keepUnusedDataFor: 3600,
         queryFn: async ({ uid, customerId }) => {
@@ -23,9 +31,9 @@ export const anamnesisSlice = firestoreApi
           try {
             const querySnapshot = await AnamnesisService(
               uid,
-              customerId
+              customerId,
             )?.getAllOnce();
-            let anamnesis: IAnamnesis[] = [];
+            const anamnesis: IAnamnesis[] = [];
 
             querySnapshot?.forEach((doc) => {
               anamnesis.push(doc.data());
@@ -39,13 +47,27 @@ export const anamnesisSlice = firestoreApi
           }
         },
       }),
+      addAnamnesis: builder.mutation<IAnamnesis, mutationArgs>({
+        queryFn: async ({ uid, customerId, newAnamnesis }) => {
+          if (!uid || !customerId || !newAnamnesis)
+            return { error: "Args not provided" };
+
+          try {
+            await AnamnesisService(uid, customerId)?.addOne(newAnamnesis);
+            return { data: newAnamnesis };
+          } catch (err: unknown) {
+            return { error: err };
+          }
+        },
+      }),
     }),
   });
 
-export const { useFetchAnamnesisQuery } = anamnesisSlice;
+export const { useFetchAnamnesisQuery, useAddAnamnesisMutation } =
+  anamnesisSlice;
 
-export const selectAnamnesis = (uid: string, customerId: string) =>
+export const selectAnamnesis = (uid?: string, customerId?: string) =>
   createSelector(
     anamnesisSlice.endpoints.fetchAnamnesis.select({ uid, customerId }),
-    ({ data: anamnesis }) => (anamnesis ? anamnesis[0] : undefined)
+    ({ data: anamnesis }) => (anamnesis ? anamnesis[0] : undefined),
   );

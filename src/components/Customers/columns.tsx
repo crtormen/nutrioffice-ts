@@ -1,8 +1,9 @@
-import { EntityId } from '@reduxjs/toolkit'
-import { ColumnDef } from '@tanstack/react-table'
-import { Link } from 'react-router-dom'
-import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { EntityId } from "@reduxjs/toolkit";
+import { ColumnDef } from "@tanstack/react-table";
+import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { Link } from "react-router-dom";
+
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,48 +11,48 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 
 export type CustomerData = {
-  id: EntityId
-  name: string | undefined
-  email: string | undefined
-  credits: number | undefined
-}
+  id: EntityId | undefined;
+  name: string | undefined;
+  email: string | undefined;
+  credits: number | undefined;
+};
 
 export const columns: ColumnDef<CustomerData>[] = [
   {
-    accessorKey: 'name',
+    accessorKey: "name",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          <div className="text-right flex">
+          <div className="flex text-right">
             Nome
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         </Button>
-      )
+      );
     },
     cell: ({ row }) => {
-      const customer = row.original
+      const customer = row.original;
       return (
         <div className="text-left font-medium">
-          <Link to={`/customers/${customer.id}`}>{row.getValue('name')}</Link>
+          <Link to={`/customers/${customer.id}`}>{row.getValue("name")}</Link>
         </div>
-      )
+      );
     },
   },
   {
-    accessorKey: 'email',
-    header: 'Email',
+    accessorKey: "email",
+    header: "Email",
   },
   {
-    id: 'actions',
+    id: "actions",
     cell: ({ row }) => {
-      const customer = row.original
+      const customer = row.original;
 
       return (
         <DropdownMenu>
@@ -65,7 +66,7 @@ export const columns: ColumnDef<CustomerData>[] = [
             <DropdownMenuLabel>Ações</DropdownMenuLabel>
             <DropdownMenuItem
               onClick={() =>
-                navigator.clipboard.writeText(customer.id.toString())
+                navigator.clipboard.writeText(customer.id!.toString())
               }
             >
               Copiar ID do cliente
@@ -75,7 +76,7 @@ export const columns: ColumnDef<CustomerData>[] = [
             <DropdownMenuItem>Ver Pagamentos</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
-]
+];

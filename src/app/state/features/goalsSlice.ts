@@ -1,7 +1,9 @@
-import { IGoal } from "@/domain/entities";
-import { firestoreApi } from "../firestoreApi";
-import { GoalsService } from "@/app/services/GoalsService";
 import { createSelector } from "@reduxjs/toolkit";
+
+import { GoalsService } from "@/app/services/GoalsService";
+import { IGoal } from "@/domain/entities";
+
+import { firestoreApi } from "../firestoreApi";
 
 type args = {
   uid: string;
@@ -23,9 +25,9 @@ export const goalsSlice = firestoreApi
           try {
             const querySnapshot = await GoalsService(
               uid,
-              customerId
+              customerId,
             )?.getAllOnce();
-            let goals: IGoal[] = [];
+            const goals: IGoal[] = [];
 
             querySnapshot?.forEach((doc) => {
               goals.push({
@@ -50,5 +52,5 @@ export const { useFetchGoalsQuery } = goalsSlice;
 export const selectGoals = (uid: string, customerId: string) =>
   createSelector(
     goalsSlice.endpoints.fetchGoals.select({ uid, customerId }),
-    ({ data: goals }) => (goals ? goals[0] : undefined)
+    ({ data: goals }) => (goals ? goals[0] : undefined),
   );

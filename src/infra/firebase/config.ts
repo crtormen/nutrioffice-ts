@@ -1,27 +1,22 @@
-import { initializeApp, FirebaseApp } from "firebase/app";
+import { FirebaseApp, initializeApp } from "firebase/app";
+import { Auth, connectAuthEmulator, getAuth } from "firebase/auth";
 import {
-  Auth,
-  connectAuthEmulator,
-  getAuth,
-  onAuthStateChanged,
-} from "firebase/auth";
-import {
-  FirebaseStorage,
-  connectStorageEmulator,
-  getStorage,
-} from "firebase/storage";
-import {
-  getFirestore,
-  collection,
-  Firestore,
   connectFirestoreEmulator,
+  Firestore,
+  getFirestore,
 } from "firebase/firestore";
 import {
-  getFunctions,
-  Functions,
   connectFunctionsEmulator,
+  Functions,
+  getFunctions,
 } from "firebase/functions";
-import { AuthProvider, firebaseAuthProvider } from "./auth";
+import {
+  connectStorageEmulator,
+  FirebaseStorage,
+  getStorage,
+} from "firebase/storage";
+
+import { AuthProvider } from "./auth";
 
 // const config = {
 //   apiKey: import.meta.env.VITE_API_KEY,
@@ -53,6 +48,7 @@ export interface FirebaseServerProps {
 }
 
 export class FirebaseServer implements Server {
+  // eslint-disable-next-line no-use-before-define
   private static instance: FirebaseServer; // Singleton
   private db!: Firestore;
   private auth!: Auth;
@@ -69,7 +65,7 @@ export class FirebaseServer implements Server {
 
   static init() {
     if (!FirebaseServer.instance) {
-      FirebaseServer.instance = new FirebaseServer(); //init singleton
+      FirebaseServer.instance = new FirebaseServer(); // init singleton
 
       const app: FirebaseApp = initializeApp(config);
       FirebaseServer.instance.db = getFirestore(app);
@@ -77,24 +73,25 @@ export class FirebaseServer implements Server {
       FirebaseServer.instance.functions = getFunctions(app);
       FirebaseServer.instance.storage = getStorage(app);
 
+      console.log("location.hostname: ", location.hostname);
       if (location.hostname === "localhost") {
         connectFirestoreEmulator(FirebaseServer.instance.db, "localhost", 8080);
         connectAuthEmulator(FirebaseServer.instance.auth, "localhost:9099");
         connectStorageEmulator(
           FirebaseServer.instance.storage,
           "localhost",
-          9199
+          9199,
         );
         connectFunctionsEmulator(
           FirebaseServer.instance.functions,
           "localhost",
-          5001
+          5001,
         );
         console.log("Emulator connected");
       }
     } else {
       console.error(
-        "FATAL ERROR: You should only call init() once, because this is a singleton."
+        "FATAL ERROR: You should only call init() once, because this is a singleton.",
       );
     }
   }

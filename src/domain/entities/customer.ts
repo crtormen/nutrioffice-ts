@@ -1,5 +1,5 @@
-import { Timestamp } from "firebase/firestore";
 import { EntityId } from "@reduxjs/toolkit";
+import { Timestamp } from "firebase/firestore";
 
 export interface IAddress {
   cep: string;
@@ -30,10 +30,10 @@ export interface ICustomerFirebase {
   instagram?: string;
   cameBy?: string;
 }
-//adicionar estado civil
+// adicionar estado civil
 
 export interface ICustomer {
-  id: EntityId;
+  id?: EntityId;
   name?: string;
   email?: string;
   cpf?: string;

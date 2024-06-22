@@ -9,6 +9,8 @@ export const firestoreApi = createApi({
     "Anamnesis",
     "Avaliacoes",
     "Goals",
+    "User",
+    "Settings",
   ],
   endpoints: () => ({}),
 });

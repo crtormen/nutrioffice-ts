@@ -1,16 +1,18 @@
-import { useFillCustomerTable } from './hooks'
-import { columns } from './columns'
-import { DataTable } from '@/components/ui/data-table'
-import { Loader2 } from 'lucide-react'
+import { Loader2 } from "lucide-react";
+
+import { DataTable } from "@/components/ui/data-table";
+
+import { columns } from "./columns";
+import { useFillCustomerTable } from "./hooks";
 
 const CustomersTable = () => {
   const {
     customers,
     result: { isLoading },
-  } = useFillCustomerTable()
+  } = useFillCustomerTable();
 
   return isLoading ? (
-    <Loader2 className="size-8 animate-spin text-zinc-500 items-center mx-auto" />
+    <Loader2 className="mx-auto size-8 animate-spin items-center text-zinc-500" />
   ) : (
     customers && (
       <DataTable
@@ -20,6 +22,6 @@ const CustomersTable = () => {
         filterPlaceholder="nome"
       />
     )
-  )
-}
-export default CustomersTable
+  );
+};
+export default CustomersTable;

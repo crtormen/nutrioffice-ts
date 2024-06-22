@@ -1,14 +1,14 @@
 import CompositionChart from "@/components/Results/CompositionChart";
+import CompositionInfo from "@/components/Results/CompositionInfo";
+import GoalsCard from "@/components/Results/GoalsCard";
+import ResultsCard from "@/components/Results/ResultsCard";
 import {
   Card,
   CardContent,
-  CardDescription,
+  // CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import ResultsCard from "@/components/Results/ResultsCard";
-import CompositionInfo from "@/components/Results/CompositionInfo";
-import GoalsCard from "@/components/Results/GoalsCard";
 
 const CustomerResultsTab = () => {
   return (
@@ -20,7 +20,7 @@ const CustomerResultsTab = () => {
         <CardHeader>
           <CardTitle>Composição Corporal Atual</CardTitle>
         </CardHeader>
-        <CardContent className="pl-2 flex flex-col">
+        <CardContent className="flex flex-col pl-2">
           <CompositionChart />
           <CompositionInfo />
         </CardContent>
@@ -29,20 +29,20 @@ const CustomerResultsTab = () => {
         <CardHeader>
           <CardTitle>Metas</CardTitle>
         </CardHeader>
-        <CardContent className="pl-2 flex flex-col">
+        <CardContent className="flex flex-col pl-2">
           <GoalsCard />
         </CardContent>
       </Card>
     </div>
   );
-  //gerar pdf
-  //botões metas
-  //grafico de resultados
-  //grafico de avaliações
-  //estatísticas de metas
-  //tabela de resultados
-  //tabela de dobras
-  //tabela de medidas
+  // gerar pdf
+  // botões metas
+  // grafico de resultados
+  // grafico de avaliações
+  // estatísticas de metas
+  // tabela de resultados
+  // tabela de dobras
+  // tabela de medidas
 };
 
 export default CustomerResultsTab;
