@@ -17,6 +17,7 @@ const PreferencesTab = () => {
   return (
     <div>
       <h2>Preferências</h2>
+
       <Button onClick={handleResetSettings} variant="ghost">
         Resetar configurações
       </Button>

@@ -10,7 +10,10 @@ export const useGetAnamnesisData = (customerId: string | undefined) => {
   const auth = useAuth();
   const uid = auth.user?.uid;
 
-  useFetchAnamnesisQuery({ uid, customerId });
+  useFetchAnamnesisQuery({
+    uid,
+    customerId,
+  });
   const selector = selectAnamnesis(uid, customerId);
   const anamnesisData: IAnamnesis | undefined = useAppSelector(selector);
 

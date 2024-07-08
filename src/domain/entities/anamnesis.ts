@@ -1,4 +1,5 @@
 export type IAnamnesis = Record<string, string | string[]>;
+
 //   objetivos?: string;
 //   suplementos?: string;
 //   usa_suplemento?: string;

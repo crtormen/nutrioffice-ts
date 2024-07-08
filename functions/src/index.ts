@@ -34,7 +34,7 @@ export interface IUser {
 // Create a user on firebsase authentication from a client-side function call
 export const createAuthUser = onCall(async (request) => {
   const user: IUser = request.data;
-  // Check whether the user already exists, if so, update it, otherwise, create a new one.
+  // Check whether the user already exists. If so, update it, otherwise, create a new one.
   return admin
     .auth()
     .getUserByEmail(user.email!)
@@ -135,7 +135,12 @@ export const onCreateFirestoreUserLoadDefaultSettings = onDocumentCreated(
     const user: IUser = snapshot.data();
     const isAdmin = user.roles?.ability === "PROFESSIONAL";
 
-    const userSettingsRef = db.doc("/users/" + userId + "/settings/default");
+    const userDefaultSettingsRef = db.doc(
+      "/users/" + userId + "/settings/default",
+    );
+    const userCustomSettingsRef = db.doc(
+      "/users/" + userId + "/settings/custom",
+    );
     const settingsRef = isAdmin
       ? db.doc("/settings/professional")
       : db.doc("/settings/contributor");
@@ -146,7 +151,8 @@ export const onCreateFirestoreUserLoadDefaultSettings = onDocumentCreated(
         const settingsDoc = await t.get(settingsRef);
         const defaultSettings = settingsDoc.data();
 
-        t.create(userSettingsRef, defaultSettings);
+        t.create(userDefaultSettingsRef, defaultSettings);
+        t.create(userCustomSettingsRef, {});
       });
       functions.logger.info("Default settings loaded to user " + userId);
     } catch (err) {
@@ -199,8 +205,10 @@ export const setDefaultSettingsOnFirestore = onRequest(
     // create default settings document
     const settingsRef = getFirestore().collection("/settings");
     const professionalRef = settingsRef.doc("professional");
+    const contributorRef = settingsRef.doc("contributor");
     try {
       const result = await professionalRef.set(anamnesisFields);
+      await contributorRef.set({});
       response.send(
         "Anamnesis Collection successfully written.\n" + JSON.stringify(result),
       );

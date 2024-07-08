@@ -5,6 +5,13 @@ import { IAllSettings, ISettings } from "@/domain/entities";
 
 import { firestoreApi } from "../firestoreApi";
 
+type mutationArgs = {
+  uid?: string;
+  type: string;
+  setting: ISettings;
+  merge?: boolean;
+};
+
 export const settingsSlice = firestoreApi
   .enhanceEndpoints({
     addTagTypes: ["Settings"],
@@ -37,37 +44,13 @@ export const settingsSlice = firestoreApi
           }
         },
       }),
-      fetchDefaultSettings: builder.query<ISettings, string | undefined>({
-        providesTags: ["Settings"],
-        keepUnusedDataFor: 3600,
-        queryFn: async (uid) => {
-          if (!uid) return { data: undefined, error: "Args not provided" };
-
+      setSettings: builder.mutation<ISettings, mutationArgs>({
+        queryFn: async ({ uid, type, setting, merge }) => {
           try {
-            const settings = await SettingsService(uid)?.getOne("default");
-
-            return {
-              data: settings,
-            };
-          } catch (err) {
-            return { error: err };
-          }
-        },
-      }),
-      fetchCustomSettings: builder.query<ISettings, string | undefined>({
-        providesTags: ["Settings"],
-        keepUnusedDataFor: 3600,
-        queryFn: async (uid) => {
-          if (!uid) return { data: undefined, error: "Args not provided" };
-
-          try {
-            const settings = await SettingsService(uid)?.getOne("custom");
-
-            return {
-              data: settings,
-            };
-          } catch (err) {
-            return { error: err };
+            await SettingsService(uid)?.setOne(type, setting, merge);
+            return { data: setting };
+          } catch (error: unknown) {
+            return { error };
           }
         },
       }),
@@ -82,13 +65,22 @@ export const selectAnamnesisSettings = (uid: string | undefined) => {
         ...settings?.default?.anamnesis,
         ...settings?.custom?.anamnesis,
       };
-      // settings?.anamnesis
     },
   );
 };
 
-export const {
-  useFetchSettingsQuery,
-  useFetchDefaultSettingsQuery,
-  useFetchCustomSettingsQuery,
-} = settingsSlice;
+export const selectDefaultAnamnesisSettings = (uid: string | undefined) => {
+  return createSelector(
+    settingsSlice.endpoints.fetchSettings.select(uid),
+    ({ data: settings }) => settings?.default?.anamnesis,
+  );
+};
+
+export const selectCustomAnamnesisSettings = (uid: string | undefined) => {
+  return createSelector(
+    settingsSlice.endpoints.fetchSettings.select(uid),
+    ({ data: settings }) => settings?.custom?.anamnesis,
+  );
+};
+
+export const { useFetchSettingsQuery, useSetSettingsMutation } = settingsSlice;

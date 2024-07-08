@@ -73,9 +73,11 @@ export function UserNav() {
               <KeyRound className="mr-2 h-4 w-4" />
               Assinatura
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              Configurações
+            <DropdownMenuItem asChild>
+              <Link to="/user/settings">
+                <Settings className="mr-2 h-4 w-4" />
+                Configurações
+              </Link>
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />

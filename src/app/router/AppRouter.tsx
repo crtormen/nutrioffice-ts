@@ -11,7 +11,8 @@ import Dashboard from "@/pages/infra/DashboardPage";
 import LoginPage from "@/pages/infra/LoginPage";
 import NotFoundPage from "@/pages/infra/NotFoundPage";
 import SignUpPage from "@/pages/infra/SignUpPage";
-import AccountPage from "@/pages/users/AccountPage";
+import AccountPage from "@/pages/user/AccountPage";
+import SettingsPage from "@/pages/user/SettingsPage";
 
 function App(): JSX.Element {
   return (
@@ -32,6 +33,7 @@ function App(): JSX.Element {
         </Route>
         <Route path="user">
           <Route path="profile/*" element={<AccountPage />} />
+          <Route path="settings/*" element={<SettingsPage />} />
         </Route>
       </Route>
       <Route

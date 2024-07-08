@@ -25,7 +25,10 @@ export const SettingsService = (uid: string | undefined) => {
   settingService.query = query(
     collection.withConverter({
       toFirestore({ ...data }: PartialWithFieldValue<ISettings>): DocumentData {
-        return data;
+        return {
+          ...data,
+          name: undefined,
+        };
       },
       fromFirestore(
         snapshot: QueryDocumentSnapshot<ISettings>,

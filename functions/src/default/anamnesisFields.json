@@ -2,6 +2,7 @@
   "anamnesis": {
     "objetivos": {
       "label": "Objetivos",
+      "placeholder": "Clique para selecionar",
       "type": "multiple",
       "options": {
         "emagrecimento": "Emagrecimento",
@@ -46,6 +47,10 @@
     "suplementos": {
       "label": "Se sim, quais suplementos utiliza?",
       "type": "text",
+      "condition": {
+        "field": "usa_suplemento",
+        "value": "yes"
+      },
       "rules": {}
     },
     "fumante": {
@@ -91,7 +96,8 @@
       "rules": {}
     },
     "horarios_fome": {
-      "label": "Horários de Fome",
+      "label": "Horários de maior fome",
+      "placeholder": "Clique para selecionar",
       "type": "multiple",
       "options": {
         "manha": "Manhã (até 11h)",
@@ -134,8 +140,9 @@
       "rules": {}
     },
     "sono": {
+      "placeholder": "Clique para selecionar",
       "label": "Qualidade do Sono",
-      "type": "radio",
+      "type": "multiple",
       "options": {
         "ronca": "Ronca",
         "fraco": "Acorda várias vezes",
@@ -149,6 +156,7 @@
     },
     "emocional": {
       "label": "Você sofre de algum destes fatores emocionais?",
+      "placeholder": "Clique para selecionar",
       "type": "multiple",
       "options": {
         "ansiedade": "Ansiedade",
@@ -159,6 +167,99 @@
         "bulimia": "Bulimia"
       },
       "rules": {}
+    },
+    "libido": {
+      "label": "Como é sua libido?",
+      "type": "radio",
+      "gender": "M",
+      "options": {
+        "baixo": "Baixa",
+        "medio": "Normal",
+        "alto": "Alta"
+      }
+    },
+    "calvicie": {
+      "label": "Possui algum grau de calvície?",
+      "type": "radio",
+      "gender": "M",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      }
+    },
+    "gestante": {
+      "label": "Já foi ou é gestante?",
+      "type": "radio",
+      "gender": "F",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      }
+    },
+    "anticoncepcional": {
+      "label": "Usou ou usa anticoncepcional?",
+      "type": "radio",
+      "gender": "F",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      }
+    },
+    "idade_anti": {
+      "label": "Quando iniciou o anticoncepcional?",
+      "placeholder": "Com que idade começou a usar o anti?",
+      "condition": {
+        "field": "anticoncepcional",
+        "value": "yes"
+      },
+      "type": "text",
+      "gender": "F"
+    },
+    "tpm": {
+      "label": "Qual é o seu grau de TPM?",
+      "type": "radio",
+      "gender": "F",
+      "options": {
+        "baixo": "Baixo",
+        "medio": "Normal",
+        "alto": "Alto"
+      }
+    },
+    "flacidez": {
+      "label": "Tem Flacidez?",
+      "type": "radio",
+      "gender": "F",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      }
+    },
+    "celulite": {
+      "label": "Tem Celulite?",
+      "type": "radio",
+      "gender": "F",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      }
+    },
+    "queda_cabelo": {
+      "label": "Tem queda de cabelo?",
+      "type": "radio",
+      "gender": "F",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      }
+    },
+    "unhas": {
+      "label": "Tem unhas fracas?",
+      "type": "radio",
+      "gender": "F",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      }
     }
   }
 }

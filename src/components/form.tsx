@@ -1,3 +1,4 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import {
   Control,
@@ -12,6 +13,7 @@ import {
   SubmitHandler,
   // UseControllerProps,
   useForm,
+  UseFormProps,
   UseFormRegister,
   UseFormReturn,
 } from "react-hook-form";
@@ -66,15 +68,34 @@ const Form = <TFormValues extends FieldValues>({
 //     return zodResolver(zodSchema)(data, context, options);
 // }
 
-export type inputType =
-  | "text"
-  | "radio"
-  | "textarea"
-  | "dropdown"
-  | "email"
-  | "date"
-  | "checkbox"
-  | "multiple";
+export const inputTypes = [
+  "text",
+  "tel",
+  "password",
+  "email",
+  "date",
+  "radio",
+  "textarea",
+  "checkbox",
+  "multiple",
+] as const;
+
+export type InputType = (typeof inputTypes)[number];
+
+export const INPUTTYPES: Record<
+  Partial<InputType>,
+  { text: string; value: string }
+> = {
+  text: { text: "Campo de Texto", value: "text" },
+  radio: { text: "Multiplas Opções (1 escolha)", value: "radio" },
+  multiple: { text: "Multipla Escolha", value: "multiple" },
+  tel: { text: "Campo de Telefone", value: "tel" },
+  email: { text: "Campo de Email", value: "email" },
+  password: { text: "Campo de Senha", value: "password" },
+  date: { text: "Campo de Data", value: "date" },
+  textarea: { text: "Campo de Área de Texto", value: "textarea" },
+  checkbox: { text: "Campo de Marcação (check)", value: "checkbox" },
+};
 
 export type Options = Record<string, string>;
 
@@ -145,6 +166,22 @@ export const zodType = (value: FieldValuesSetting | undefined) => {
   return type;
 };
 
+export function useZodForm<TSchema extends z.ZodType>(
+  props: Omit<UseFormProps<TSchema["_input"]>, "resolver"> & {
+    schema: TSchema;
+  },
+) {
+  const form = useForm<TSchema["_input"]>({
+    ...props,
+    resolver: zodResolver(props.schema, undefined, {
+      // This makes it so we can use `.transform()`s on the schema without same transform getting applied again when it reaches the server
+      raw: true,
+    }),
+  });
+
+  return form;
+}
+
 export type FormInputProps<TFormValues extends FieldValues = FieldValues> = {
   name: Path<TFormValues>;
   errors?: FieldErrors<TFormValues>;
@@ -156,7 +193,8 @@ export type FormInputProps<TFormValues extends FieldValues = FieldValues> = {
   control?: Control<TFormValues>;
   description?: string;
   creatable?: boolean;
-} & Omit<InputProps, "name">;
+  type: InputType;
+} & Omit<InputProps, "name" | "type">;
 
 export const FormInput = <TFormValues extends FieldValues>({
   className,
@@ -301,5 +339,68 @@ export const FormInput = <TFormValues extends FieldValues>({
     </div>
   );
 };
+
+// interface OptionsSectionProps<T extends FieldValues> {
+//   form: UseFormReturn<T>;
+// }
+
+// // newAnamnesisFieldFormInputs;
+// const OptionsSection = <T extends FieldValues>({
+//   form: {
+//     control,
+//     register,
+//     formState: { errors },
+//   },
+// }: OptionsSectionProps<T>) => {
+//   const { fields, append, remove } = useFieldArray({
+//     name: "options" as ArrayPath<T>,
+//     control,
+//   });
+
+//   return (
+//     <div className="flex flex-col gap-2">
+//       <Label htmlFor="options" className="pb-4">
+//         Opções
+//       </Label>
+//       {fields.map((field, i) => (
+//         <div className="flex flex-col gap-2" key={field.id}>
+//           <div className="flex items-center gap-1">
+//             <div className="w-1/5 text-sm">{`Opção ${i + 1}`}</div>
+//             <Input
+//               key={i}
+//               {...register(`options.${i}.option` as const)}
+//               placeholder="Escreva a opção"
+//               defaultValue={field.option}
+//               // error={errors.options?.[i]?.option}
+//             />
+//             <Button
+//               variant="link"
+//               onClick={() => remove(i)}
+//               className="w-1/5 items-center space-x-1"
+//             >
+//               <span>Remover</span>
+//             </Button>
+//           </div>
+//           <div className="p-1 text-destructive">
+//             {errors.options?.[i]?.option &&
+//               errors.options?.[i]?.option?.message}
+//           </div>
+//         </div>
+//       ))}
+//       <Button
+//         variant="outline"
+//         onClick={(e) => {
+//           e.preventDefault();
+//           e.stopPropagation();
+//           append({
+//             option: "",
+//           });
+//         }}
+//       >
+//         Adicionar outra opção
+//       </Button>
+//     </div>
+//   );
+// };
 
 export default Form;

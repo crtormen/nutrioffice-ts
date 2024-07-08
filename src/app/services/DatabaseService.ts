@@ -52,18 +52,19 @@ export class DatabaseService<T> {
     return docRef;
   }
 
-  async setOne(id: string, data: T) {
+  async setOne(id: string, data: T, merge?: boolean) {
     const docRef = doc(this.collection, id);
-    await setDoc(docRef, data);
+    return await setDoc(docRef, data, { merge });
   }
 
   async deleteOne(id: string) {
     const docRef = doc(this.collection, id);
-    await deleteDoc(docRef);
+    return await deleteDoc(docRef);
   }
 
   async updateOne(id: string, data: Partial<T>) {
-    await updateDoc(doc(this.collection, id), data);
+    const docRef = doc(this.collection, id);
+    await updateDoc(docRef, data);
   }
 
   async getOne(id: string) {

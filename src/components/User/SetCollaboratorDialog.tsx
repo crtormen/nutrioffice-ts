@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { ABILITIES, abilities, IContributor } from "@/domain/entities";
 
 import Form, { FormInput, Options } from "../form";
-import useSetCollaborator from "./hooks/useSetSetCollaborator";
+import useSetCollaborator from "./hooks/useSetCollaborator";
 
 const newCollaboratorValidationSchema = z.object({
   name: z.string().min(1, "Informe o nome do colaborador."),

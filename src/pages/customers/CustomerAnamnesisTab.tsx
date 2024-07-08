@@ -12,9 +12,14 @@ const CustomerAnamnesisTab: React.FC = () => {
 
   return anamnesis ? (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">Anamnese</h3>
-        <p className="text-sm text-muted-foreground"></p>
+      <div className="flex w-full justify-between">
+        <h3 className="text-xl font-medium">Anamnese</h3>
+        <div className="flex gap-1">
+          {/* TODO */}
+          <Button variant="outline">Editar Anamnese</Button>
+          <Button variant="default">+ Nova Anamnese</Button>
+          <Button variant="destructive">Excluir Anamnese</Button>
+        </div>
       </div>
       <div className="mt-6 border-t border-gray-200 px-4 py-3 sm:p-0">
         <dl className="flex flex-wrap divide-y divide-gray-200">
@@ -23,10 +28,10 @@ const CustomerAnamnesisTab: React.FC = () => {
               key={i}
               className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3"
             >
-              <dt className="text-xs font-medium text-gray-500">
+              <dt className="text-xs font-medium text-muted-foreground">
                 {field.label.toUpperCase()}
               </dt>
-              <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+              <dd className="mt-1 text-sm font-semibold leading-6 text-foreground sm:col-span-2 sm:mt-0">
                 {Array.isArray(field.value)
                   ? field.value.map((value) => value).join(", ")
                   : field.value}

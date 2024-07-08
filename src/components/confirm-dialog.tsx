@@ -14,7 +14,9 @@ type ConfirmDialogProps = {
   message: string;
   description?: string;
   onConfirm: () => void;
-  children: JSX.Element;
+  onCancel?: () => void;
+  children?: JSX.Element;
+  open?: boolean;
 };
 
 export const ConfirmDialogTrigger = AlertDialogTrigger;
@@ -23,10 +25,12 @@ export const ConfirmDialog = ({
   message,
   description,
   onConfirm,
+  onCancel,
   children,
+  open,
 }: ConfirmDialogProps) => {
   return (
-    <AlertDialog>
+    <AlertDialog open={open}>
       {children}
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -34,7 +38,7 @@ export const ConfirmDialog = ({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel onClick={onCancel}>Cancelar</AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm}>Continuar</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
