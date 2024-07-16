@@ -48,6 +48,10 @@ export const storage: FirebaseStorage = getStorage(app);
 export const functions: Functions = getFunctions(app);
 
 export const createAuthUser = httpsCallable(functions, "createAuthUser");
+export const redefineCustomClaims = httpsCallable(
+  functions,
+  "redefineCustomClaims",
+);
 export const reloadDefaultSettingsToUser = httpsCallable(
   functions,
   "reloadDefaultSettingsToUser",

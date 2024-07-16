@@ -252,6 +252,40 @@ export const reloadDefaultSettingsToUser = onCall(async (request) => {
   }
 });
 
+export const redefineCustomClaims = onCall(async (request) => {
+  const userId = request.auth?.uid;
+  if (!userId) return;
+  const usersRef = getFirestore().collection("/users");
+  const userRef = usersRef.doc(userId);
+
+  const user: IUser = await userRef.get();
+
+  if (!user) {
+    functions.logger.info("No user associated with the request");
+    return;
+  }
+  const contributors = user.contributors && Object.keys(user.contributors);
+
+  console.log(user);
+  try {
+    await admin.auth().setCustomUserClaims(userId, {
+      admin: user.roles?.ability === "PROFESSIONAL",
+      role: user.roles?.ability,
+      contributesTo: user.contributesTo,
+      contributors,
+    });
+    return {
+      admin,
+    };
+  } catch (err) {
+    functions.logger.error(
+      "Error redefining custom user claims for " + userId,
+      err,
+    );
+    throw err;
+  }
+});
+
 //call http request with ?id={user uid} to check the user custom claims
 export const checkCustomClaims = onRequest(async (request, response) => {
   const id = request.query.id;

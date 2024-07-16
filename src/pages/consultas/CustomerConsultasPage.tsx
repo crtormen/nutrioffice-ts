@@ -19,7 +19,7 @@ const CustomerConsultasTab = () => {
           {/* TODO */}
           <Button
             variant="outline"
-            onClick={() => navigate(`/consultas/${id}/create`)}
+            onClick={() => navigate("/consultas/create")}
           >
             <Plus size="16" /> Nova Consulta
           </Button>

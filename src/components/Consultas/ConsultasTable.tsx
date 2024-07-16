@@ -1,16 +1,12 @@
 import { Loader2 } from "lucide-react";
 
-import { useFillCustomerConsultasTable } from "@/components/Consultas/hooks";
+import { useFillConsultasTable } from "@/components/Consultas/hooks";
 import { DataTable } from "@/components/ui/data-table";
 
 import { columns } from "./customerColumns";
 
-export const CustomerConsultasTable = ({
-  customerId,
-}: {
-  customerId: string;
-}) => {
-  const { consultas, isLoading } = useFillCustomerConsultasTable(customerId);
+export const ConsultasTable = () => {
+  const { consultas, isLoading } = useFillConsultasTable();
 
   return isLoading ? (
     <Loader2 className="mx-auto size-8 animate-spin items-center text-zinc-500" />

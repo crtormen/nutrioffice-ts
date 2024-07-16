@@ -10,6 +10,34 @@ import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 // import { buttonVariants } from '@/components/ui/button'
 
+const mainNavItems = [
+  {
+    title: "Home",
+    link: "/",
+    icon: <LayoutDashboard size="16" />,
+  },
+  {
+    title: "Clientes",
+    link: "/customers",
+    icon: <Users size="16" />,
+  },
+  {
+    title: "Consultas",
+    link: "/consultas",
+    icon: <FileHeart size="16" />,
+  },
+  {
+    title: "Finanças",
+    link: "/finances",
+    icon: <DollarSign size="16" />,
+  },
+  {
+    title: "CRM",
+    link: "/crm",
+    icon: <Contact size="16" />,
+  },
+];
+
 export function MainNav({
   className,
   ...props
@@ -23,61 +51,20 @@ export function MainNav({
         )}
         {...props}
       >
-        <NavLink
-          to="/"
-          className={({ isActive }) =>
-            isActive
-              ? "inline-flex items-center gap-1.5 rounded-full border border-transparent bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors"
-              : "inline-flex items-center gap-1.5 rounded-full border border-transparent px-3 py-1.5 text-sm font-medium transition-colors hover:border-primary hover:text-primary"
-          }
-        >
-          <LayoutDashboard size="16" />
-          Geral
-        </NavLink>
-        <NavLink
-          to="/customers"
-          className={({ isActive }) =>
-            isActive
-              ? "inline-flex items-center gap-1.5 rounded-full border border-transparent bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors"
-              : "inline-flex items-center gap-1.5 rounded-full border border-transparent px-3 py-1.5 text-sm font-medium transition-colors hover:border-primary hover:text-primary"
-          }
-        >
-          <Users size="16" />
-          Clientes
-        </NavLink>
-        <NavLink
-          to="/consultas"
-          className={({ isActive }) =>
-            isActive
-              ? "inline-flex items-center gap-1.5 rounded-full border border-transparent bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors"
-              : "inline-flex items-center gap-1.5 rounded-full border border-transparent px-3 py-1.5 text-sm font-medium transition-colors hover:border-primary hover:text-primary"
-          }
-        >
-          <FileHeart size="16" />
-          Consultas
-        </NavLink>
-        <NavLink
-          to="/finances"
-          className={({ isActive }) =>
-            isActive
-              ? "inline-flex items-center gap-1.5 rounded-full border border-transparent bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors"
-              : "inline-flex items-center gap-1.5 rounded-full border border-transparent px-3 py-1.5 text-sm font-medium transition-colors hover:border-primary hover:text-primary"
-          }
-        >
-          <DollarSign size="16" />
-          Finanças
-        </NavLink>
-        <NavLink
-          to="/crm"
-          className={({ isActive }) =>
-            isActive
-              ? "inline-flex items-center gap-1.5 rounded-full border border-transparent bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors"
-              : "inline-flex items-center gap-1.5 rounded-full border border-transparent px-3 py-1.5 text-sm font-medium transition-colors hover:border-primary hover:text-primary"
-          }
-        >
-          <Contact size="16" />
-          CRM
-        </NavLink>
+        {mainNavItems.map((item, i) => (
+          <NavLink
+            key={i}
+            to={item.link}
+            className={({ isActive }) =>
+              isActive
+                ? "inline-flex items-center gap-1.5 rounded-full border border-transparent bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors"
+                : "inline-flex items-center gap-1.5 rounded-full border border-transparent px-3 py-1.5 text-sm font-medium transition-colors hover:border-primary hover:text-primary"
+            }
+          >
+            {item.icon}
+            {item.title}
+          </NavLink>
+        ))}
       </nav>
     </div>
   );

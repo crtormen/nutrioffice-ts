@@ -51,7 +51,7 @@ export interface IStructure {
   punho: number;
 }
 
-export interface IConsulta {
+export interface ICustomerConsulta {
   id: EntityId;
   anamnesis_id?: string;
   date?: string;
@@ -69,7 +69,7 @@ export interface IConsulta {
   structure?: IStructure;
 }
 
-export interface IConsultaFirebase {
+export interface ICustomerConsultaFirebase {
   id?: string;
   anamnesis_id?: string;
   date?: Timestamp;
@@ -85,4 +85,24 @@ export interface IConsultaFirebase {
   results?: IResults;
   meals?: string[];
   structure?: IStructure;
+}
+export interface IConsulta {
+  id: string;
+  customer_id: EntityId;
+  date?: string;
+  gender?: string;
+  idade?: number;
+  name: string;
+  peso?: number;
+  results?: IResults;
+}
+export interface IConsultaFirebase {
+  id?: string;
+  customer_id?: string;
+  date?: Timestamp;
+  gender?: string;
+  idade?: number;
+  name?: string;
+  peso?: number;
+  results?: IResults;
 }

@@ -24,7 +24,7 @@ const sidebarNavItems = [
   },
   {
     title: "Consultas",
-    link: "appointments",
+    link: "consultas",
   },
   {
     title: "Financeiro",
@@ -59,7 +59,7 @@ const CustomerDetailsPage: React.FC = () => {
               <Route path="/" element={<CustomerProfileTab />} />
               <Route path="anamnesis" element={<CustomerAnamnesisTab />} />
               <Route path="create-anamnesis" element={<NewAnamnesisPage />} />
-              <Route path="appointments" element={<CustomerConsultasTab />} />
+              <Route path="consultas" element={<CustomerConsultasTab />} />
               <Route path="finances" element={<CustomerFinancesTab />} />
               <Route path="results" element={<CustomerResultsTab />} />
             </Routes>

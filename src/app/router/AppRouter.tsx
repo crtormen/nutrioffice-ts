@@ -4,6 +4,8 @@ import { Route, Routes } from "react-router-dom";
 import NotAuthLayout from "@/pages/_layouts/NotAuthLayout";
 import RequireAuthLayout from "@/pages/_layouts/RequireAuthLayout";
 import NewAnamnesisPage from "@/pages/anamnesis/NewAnamnesisPage";
+import ConsultasPage from "@/pages/consultas/ConsultasPage";
+import NewConsultaPage from "@/pages/consultas/NewConsultaPage";
 import CustomerDetailsPage from "@/pages/customers/CustomerDetailsPage";
 import CustomersPage from "@/pages/customers/CustomersPage";
 import NewCustomerPage from "@/pages/customers/NewCustomerPage";
@@ -30,6 +32,11 @@ function App(): JSX.Element {
         </Route>
         <Route path="anamnesis">
           <Route path="create" element={<NewAnamnesisPage />} />
+        </Route>
+        <Route path="consultas">
+          <Route index element={<ConsultasPage />} />
+          <Route path=":customerId/create" element={<NewConsultaPage />} />
+          {/* <Route path=":customerId/*" element={<CustomerConsultaPage />} /> */}
         </Route>
         <Route path="user">
           <Route path="profile/*" element={<AccountPage />} />

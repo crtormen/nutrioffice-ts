@@ -16,9 +16,15 @@ const CustomerAnamnesisTab: React.FC = () => {
         <h3 className="text-xl font-medium">Anamnese</h3>
         <div className="flex gap-1">
           {/* TODO */}
-          <Button variant="outline">Editar Anamnese</Button>
-          <Button variant="default">+ Nova Anamnese</Button>
-          <Button variant="destructive">Excluir Anamnese</Button>
+          <Button size="sm" variant="outline">
+            Editar Anamnese
+          </Button>
+          <Button size="sm" variant="default">
+            + Nova Anamnese
+          </Button>
+          <Button size="sm" variant="destructive">
+            Excluir Anamnese
+          </Button>
         </div>
       </div>
       <div className="mt-6 border-t border-gray-200 px-4 py-3 sm:p-0">

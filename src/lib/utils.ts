@@ -1,4 +1,5 @@
 import { type ClassValue, clsx } from "clsx";
+import { differenceInCalendarYears, parse } from "date-fns";
 import { Timestamp } from "firebase/firestore";
 import { twMerge } from "tailwind-merge";
 
@@ -28,3 +29,11 @@ export const priceFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
 });
+
+export const calculateAge = (birthday: string | undefined) => {
+  if (!birthday) return 0;
+  const birthDate = new Date(parse(birthday, "dd/MM/yyyy", new Date()));
+  const age = differenceInCalendarYears(new Date(), birthDate);
+
+  return age;
+};

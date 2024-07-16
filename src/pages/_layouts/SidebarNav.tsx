@@ -13,8 +13,6 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
 }
 
 export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
-  const pathname = "/customers/details/";
-
   return (
     <nav
       className={cn(
@@ -23,17 +21,20 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
       )}
       {...props}
     >
-      {items.map((item) => (
+      {items.map((item, i) => (
         <NavLink
-          key={item.link}
+          key={i}
           to={item.link}
-          className={cn(
-            buttonVariants({ variant: "ghost" }),
-            pathname === item.link
-              ? "bg-muted hover:bg-muted"
-              : "hover:bg-transparent hover:underline",
-            "justify-start",
-          )}
+          className={({ isActive }) =>
+            isActive
+              ? cn(buttonVariants({ variant: "secondary" }), "justify-start")
+              : cn(
+                  buttonVariants({ variant: "ghost" }),
+                  "hover:bg-transparent hover:underline",
+                  "justify-start",
+                )
+          }
+          end
         >
           {item.title}
         </NavLink>

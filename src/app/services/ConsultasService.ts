@@ -12,16 +12,14 @@ import { dateInString } from "@/lib/utils";
 
 import { createCollectionRef, DatabaseService } from "./DatabaseService";
 
-const ConsultasCollection = (uid: string, customerId: string) => {
+const ConsultasCollection = (uid: string) => {
   return uid
-    ? createCollectionRef<IConsultaFirebase>(
-        "users/" + uid + "/customers/" + customerId + "/consultas",
-      )
+    ? createCollectionRef<IConsultaFirebase>("users/" + uid + "/consultas")
     : null;
 };
 
-export const ConsultasService = (uid: string, customerId: string) => {
-  const collection = ConsultasCollection(uid, customerId);
+export const ConsultasService = (uid: string) => {
+  const collection = ConsultasCollection(uid);
   if (!collection) return;
 
   const consultasService = new DatabaseService<IConsultaFirebase>(collection);

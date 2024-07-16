@@ -2,7 +2,7 @@ import React from "react";
 import { useParams } from "react-router-dom";
 
 import { useGetCustomerData } from "@/components/Customers/hooks";
-import { ICustomer } from "@/domain/entities";
+import { Gender, GENDERS, ICustomer } from "@/domain/entities";
 
 const CustomerProfileTab: React.FC = () => {
   const { id } = useParams();
@@ -26,7 +26,7 @@ const CustomerProfileTab: React.FC = () => {
             <div className="py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 sm:py-3">
               <dt className="text-xs font-medium text-gray-500">SEXO</dt>
               <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                {customer.gender}
+                {customer.gender && GENDERS[customer.gender as Gender].text}
               </dd>
             </div>
             <div className="py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 sm:py-3">

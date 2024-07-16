@@ -14,8 +14,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export type ConsultaData = {
-  customerId: EntityId;
-  name: string;
   id: EntityId;
   date: string | undefined;
   index: number;

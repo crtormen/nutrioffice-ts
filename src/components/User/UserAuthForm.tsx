@@ -41,8 +41,6 @@ export function UserAuthForm() {
     resolver: zodResolver(loginForm),
   });
 
-  console.log(errors);
-
   const from = location.state?.from?.pathname || "/";
 
   async function handleLogin(data: LoginForm) {

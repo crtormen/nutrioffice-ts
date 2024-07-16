@@ -2,8 +2,8 @@ import { Loader2 } from "lucide-react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
+import { UserAuthForm } from "@/components/User/UserAuthForm";
 import { useAuth } from "@/infra/firebase";
-import { UserAuthForm } from "@/pages/_layouts/UserAuthForm";
 
 const LoginPage = () => {
   const { loading, user } = useAuth();

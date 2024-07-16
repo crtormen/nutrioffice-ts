@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
 
-import { useFetchUserQuery } from "@/app/state/features/userSlice";
+import { useFetchSettingsQuery } from "@/app/state/features/settingsSlice";
 // import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/infra/firebase";
 
@@ -30,11 +31,17 @@ const sidebarNavItems = [
 ];
 
 const SettingsPage = () => {
-  const auth = useAuth();
-  const { data: user } = useFetchUserQuery(auth.user?.uid);
+  const { user } = useAuth();
+  const { data: settings, refetch } = useFetchSettingsQuery(user?.uid);
+
+  useEffect(() => {
+    if (!settings || Object.keys(settings).length === 0) {
+      refetch();
+    }
+  }, [refetch, user, settings]);
 
   return (
-    user && (
+    settings && (
       <div className="hidden space-y-10 p-10 pb-16 md:block">
         <div className="space-y-5">
           <h2 className="text-2xl font-bold tracking-tight">Configurações</h2>

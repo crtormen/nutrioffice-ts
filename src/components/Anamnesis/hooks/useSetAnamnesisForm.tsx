@@ -1,8 +1,12 @@
+import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { z } from "zod";
 
 import { useAppSelector } from "@/app/state";
-import { selectAnamnesisSettings } from "@/app/state/features/settingsSlice";
+import {
+  selectAnamnesisSettings,
+  useFetchSettingsQuery,
+} from "@/app/state/features/settingsSlice";
 import { useGetCustomerData } from "@/components/Customers/hooks";
 import { zodType } from "@/components/form";
 import { useAuth } from "@/infra/firebase";
@@ -10,10 +14,15 @@ import { useAuth } from "@/infra/firebase";
 export const useSetAnamnesisForm = () => {
   const { id } = useParams();
   const { user } = useAuth();
+  const { refetch } = useFetchSettingsQuery(user?.uid);
   const anamnesisFields = useAppSelector(selectAnamnesisSettings(user?.uid));
   const customer = useGetCustomerData(id);
 
-  if (!anamnesisFields) return {};
+  useEffect(() => {
+    if (!anamnesisFields || Object.keys(anamnesisFields).length === 0) {
+      refetch();
+    }
+  }, [refetch, user, anamnesisFields]);
 
   const anamnesisFieldArray = Object.entries(anamnesisFields).filter(
     ([, values]) =>

@@ -1,11 +1,12 @@
-import { useAuth } from "@/infra/firebase";
 import { useParams } from "react-router-dom";
+
+import { useAppSelector } from "@/app/state";
 import {
   selectLastConsulta,
   useFetchConsultasQuery,
-} from "@/app/state/features/consultasSlice";
+} from "@/app/state/features/customerConsultasSlice";
 import { IConsulta } from "@/domain/entities";
-import { useAppSelector } from "@/app/state";
+import { useAuth } from "@/infra/firebase";
 
 export function useSetLastConsulta(): IConsulta | undefined {
   const { id: customerId } = useParams();
