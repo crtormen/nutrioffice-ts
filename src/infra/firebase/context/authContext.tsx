@@ -18,6 +18,7 @@ import {
   ReactNode,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -84,81 +85,103 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
     return () => unsubscribe();
   }, [authChanged]);
 
-  const signin = async (
-    newUser: UserLoginInfo,
-    successCallback: (res: UserCredential) => void,
-    errorCallback: (error: AuthError) => void,
-  ): Promise<void> => {
-    setLoading(true);
-    try {
-      const res = await signInWithEmailAndPassword(
-        auth,
-        newUser.email,
-        newUser.password,
-      );
-      return successCallback(res);
-    } catch (error: unknown) {
-      console.log(error);
-      setLoading(false);
-      return errorCallback(error as AuthError);
-    }
-  };
-
-  const signinWithGoogle = async (
-    successCallback: (res: UserCredential) => void,
-    errorCallback: (
-      error: AuthError,
-      credential: OAuthCredential | null,
-    ) => void,
-  ): Promise<void> => {
-    const googleProvider = new GoogleAuthProvider();
-
-    setLoading(true);
-
-    try {
-      const res = await signInWithPopup(auth, googleProvider);
-
-      const credential = GoogleAuthProvider.credentialFromResult(res);
-      const token = credential?.accessToken;
-
-      if (res.user) {
-        // setUser(res.user);
-        startSession(res.user, token);
+  const signin = useCallback(
+    async (
+      newUser: UserLoginInfo,
+      successCallback: (res: UserCredential) => void,
+      errorCallback: (error: AuthError) => void,
+    ): Promise<void> => {
+      setLoading(true);
+      try {
+        const res = await signInWithEmailAndPassword(
+          auth,
+          newUser.email,
+          newUser.password,
+        );
+        return successCallback(res);
+      } catch (error: unknown) {
+        console.log(error);
+        setLoading(false);
+        return errorCallback(error as AuthError);
       }
-      return successCallback(res);
-    } catch (error: unknown) {
-      const credential = GoogleAuthProvider.credentialFromError(
-        error as FirebaseError,
-      );
-      setLoading(false);
-      return errorCallback(error as AuthError, credential);
-    }
-  };
+    },
+    [],
+  );
 
-  const signout = async (callback: () => void) => {
+  const signinWithGoogle = useCallback(
+    async (
+      successCallback: (res: UserCredential) => void,
+      errorCallback: (
+        error: AuthError,
+        credential: OAuthCredential | null,
+      ) => void,
+    ): Promise<void> => {
+      const googleProvider = new GoogleAuthProvider();
+
+      setLoading(true);
+
+      try {
+        const res = await signInWithPopup(auth, googleProvider);
+
+        const credential = GoogleAuthProvider.credentialFromResult(res);
+        const token = credential?.accessToken;
+
+        if (res.user) {
+          // setUser(res.user);
+          startSession(res.user, token);
+        }
+        return successCallback(res);
+      } catch (error: unknown) {
+        const credential = GoogleAuthProvider.credentialFromError(
+          error as FirebaseError,
+        );
+        setLoading(false);
+        return errorCallback(error as AuthError, credential);
+      }
+    },
+    [],
+  );
+
+  const signout = useCallback(async (callback: () => void) => {
     await signOut(auth);
     callback();
-  };
+  }, []);
 
-  const createAccount = async (
-    email: string,
-    password: string,
-    successCallback?: (res: UserCredential) => void,
-    errorCallback?: (error: AuthError) => void,
-  ): Promise<void> => {
-    try {
-      setLoading(true);
-      const res = await createUserWithEmailAndPassword(auth, email, password);
-      setLoading(false);
-      if (res.user) {
-        return successCallback && successCallback(res);
+  const createAccount = useCallback(
+    async (
+      email: string,
+      password: string,
+      successCallback?: (res: UserCredential) => void,
+      errorCallback?: (error: AuthError) => void,
+    ): Promise<void> => {
+      try {
+        setLoading(true);
+        const res = await createUserWithEmailAndPassword(auth, email, password);
+        setLoading(false);
+        if (res.user) {
+          return successCallback && successCallback(res);
+        }
+      } catch (error: unknown) {
+        console.error(error);
+        setLoading(false);
+        return errorCallback && errorCallback(error as AuthError);
       }
-    } catch (error: unknown) {
-      console.error(error);
-      setLoading(false);
-      return errorCallback && errorCallback(error as AuthError);
-    }
-  };
+    },
+    [],
+  );
+
+  const contextValue = useMemo(
+    () => ({
+      loading,
+      user,
+      dbUid,
+      signin,
+      signinWithGoogle,
+      signout,
+      createAccount,
+    }),
+    [loading, user, dbUid, signin, signinWithGoogle, signout, createAccount],
+  );
 
   // const recaptchaVerifier = new RecaptchaVerifier(
   //   auth,
@@ -182,18 +205,6 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
   // );
 
   return (
-    <AuthContext.Provider
-      value={{
-        loading,
-        user,
-        dbUid,
-        signin,
-        signinWithGoogle,
-        signout,
-        createAccount,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };

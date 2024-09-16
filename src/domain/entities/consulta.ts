@@ -1,4 +1,3 @@
-import { EntityId } from "@reduxjs/toolkit";
 import { Timestamp } from "firebase/firestore";
 
 export interface IAttachment {
@@ -12,6 +11,9 @@ export interface IImages {
   img_lado: IAttachment;
 }
 
+export const IMG_OPTIONS = ["img_costas", "img_frente", "img_lado"] as const;
+export type ImageOptions = (typeof IMG_OPTIONS)[number];
+
 export interface IFolds {
   abdominal: number;
   axilar: number;
@@ -23,17 +25,17 @@ export interface IFolds {
 }
 
 export interface IMeasures {
-  circ_abdomen: number;
-  circ_braco_dir: number;
-  circ_braco_esq: number;
-  circ_cintura: number;
-  circ_coxa_dir: number;
-  circ_coxa_esq: number;
-  circ_gluteo: number;
-  circ_ombro: number;
-  circ_panturrilha_dir: number;
-  circ_panturrilha_esq: number;
-  circ_peito: number;
+  circ_abdomen?: number;
+  circ_braco_dir?: number;
+  circ_braco_esq?: number;
+  circ_cintura?: number;
+  circ_coxa_dir?: number;
+  circ_coxa_esq?: number;
+  circ_gluteo?: number;
+  circ_ombro?: number;
+  circ_panturrilha_dir?: number;
+  circ_panturrilha_esq?: number;
+  circ_peito?: number;
 }
 
 export interface IResults {
@@ -45,17 +47,33 @@ export interface IResults {
   mr: number;
 }
 
+export const RESULTS: Record<string, { text: string; value: string }> = {
+  dobras: { text: "Soma de Dobras", value: "dobras" },
+  fat: { text: "% de Gordura", value: "fat" },
+  mg: { text: "Massa Gorda", value: "mg" },
+  mm: { text: "Massa Magra", value: "mm" },
+  mo: { text: "Massa Óssea", value: "mo" },
+  mr: { text: "Massa Residual", value: "mr" },
+};
+
 export interface IStructure {
   altura: number;
   joelho: number;
   punho: number;
 }
 
+export interface IMeal {
+  time: string;
+  meal: string;
+}
+
 export interface ICustomerConsulta {
-  id: EntityId;
-  anamnesis_id?: string;
+  id?: string;
+  pending?: boolean;
+  createdAt?: string;
   date?: string;
   updateCredits?: boolean;
+  howmuch?: number;
   obs?: string;
   peso?: string;
   idade?: number;
@@ -65,17 +83,19 @@ export interface ICustomerConsulta {
   dobras?: IFolds;
   medidas?: IMeasures;
   results?: IResults;
-  meals?: string[];
+  meals?: IMeal[];
   structure?: IStructure;
 }
 
 export interface ICustomerConsultaFirebase {
   id?: string;
-  anamnesis_id?: string;
+  pending?: boolean;
+  createdAt?: Timestamp;
   date?: Timestamp;
   updateCredits?: boolean;
+  howmuch?: number;
   obs?: string;
-  peso?: string;
+  peso?: number;
   idade?: number;
   notes?: string[];
   anexos?: IAttachment[];
@@ -83,22 +103,24 @@ export interface ICustomerConsultaFirebase {
   dobras?: IFolds;
   medidas?: IMeasures;
   results?: IResults;
-  meals?: string[];
+  meals?: IMeal[];
   structure?: IStructure;
 }
 export interface IConsulta {
-  id: string;
-  customer_id: EntityId;
+  id?: string;
+  customer_id?: string;
+  createdAt?: string;
   date?: string;
   gender?: string;
   idade?: number;
-  name: string;
-  peso?: number;
+  name?: string;
+  peso?: string;
   results?: IResults;
 }
 export interface IConsultaFirebase {
   id?: string;
   customer_id?: string;
+  createdAt?: Timestamp;
   date?: Timestamp;
   gender?: string;
   idade?: number;

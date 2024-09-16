@@ -64,7 +64,7 @@ export class DatabaseService<T> {
 
   async updateOne(id: string, data: Partial<T>) {
     const docRef = doc(this.collection, id);
-    await updateDoc(docRef, data);
+    return await updateDoc(docRef, data);
   }
 
   async getOne(id: string) {

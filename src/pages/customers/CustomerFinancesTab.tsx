@@ -3,10 +3,10 @@ import { useParams } from "react-router-dom";
 import { CustomerFinancesTable } from "@/components/Finances/CustomerFinancesTable";
 
 const CustomerFinancesTab = () => {
-  const { id } = useParams();
-  if (!id) return;
+  const { customerId } = useParams();
+  if (!customerId) return;
 
-  return CustomerFinancesTable(id);
+  return CustomerFinancesTable(customerId);
 };
 
 export default CustomerFinancesTab;

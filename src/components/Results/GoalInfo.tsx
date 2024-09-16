@@ -1,4 +1,5 @@
 import { Progress } from "@/components/ui/progress";
+
 import { GoalDetailProps } from "./GoalDetails";
 
 const setProgressVal = () => {};
@@ -6,7 +7,7 @@ const setProgressVal = () => {};
 const GoalInfo = ({ goal, param }: GoalDetailProps) => {
   return (
     <div className="flex flex-col gap-10">
-      <div className="flex gap-6 bg-slate-100 rounded-md p-2 justify-evenly">
+      <div className="flex justify-evenly gap-6 rounded-md bg-slate-100 p-2">
         <div className="flex flex-col gap-1">
           <span className="text-sm text-primary">Data Inicial</span>
           <span className="font-bold text-slate-600">{goal.createdAt}</span>

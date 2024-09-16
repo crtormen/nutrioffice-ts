@@ -1,4 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { InputMask } from "@react-input/mask";
+import { ptBR } from "date-fns/locale";
 import { useEffect } from "react";
 import {
   Control,
@@ -17,16 +19,31 @@ import {
   UseFormRegister,
   UseFormReturn,
 } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { Input, InputProps } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import MultipleSelector, {
   Option as SelectorOption,
 } from "@/components/ui/multiple-selector";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Textarea, TextareaProps } from "@/components/ui/textarea";
 import { FieldValuesSetting } from "@/domain/entities";
+import { cn } from "@/lib/utils";
 
 export type FormProps<TFormValues extends FieldValues> = {
   onSubmit: SubmitHandler<TFormValues>;
@@ -52,7 +69,13 @@ const Form = <TFormValues extends FieldValues>({
   }, [isSubmitSuccessful, reset]);
 
   return (
-    <form onSubmit={methods.handleSubmit(onSubmit)} className={className}>
+    <form
+      onSubmit={methods.handleSubmit(onSubmit, (error: unknown) => {
+        toast.error("O Formulário contém erros, corrija para salvar.");
+        throw new Error(error as string);
+      })}
+      className={className}
+    >
       {children(methods)}
     </form>
   );
@@ -74,6 +97,10 @@ export const inputTypes = [
   "password",
   "email",
   "date",
+  "select",
+  "switch",
+  "slider",
+  "number",
   "radio",
   "textarea",
   "checkbox",
@@ -87,12 +114,19 @@ export const INPUTTYPES: Record<
   { text: string; value: string }
 > = {
   text: { text: "Campo de Texto", value: "text" },
+  number: { text: "Campo de Numeral", value: "number" },
   radio: { text: "Multiplas Opções (1 escolha)", value: "radio" },
   multiple: { text: "Multipla Escolha", value: "multiple" },
   tel: { text: "Campo de Telefone", value: "tel" },
   email: { text: "Campo de Email", value: "email" },
   password: { text: "Campo de Senha", value: "password" },
   date: { text: "Campo de Data", value: "date" },
+  select: {
+    text: "Multiplas Opções (1 escolha) - caixa de diálogo",
+    value: "select",
+  },
+  switch: { text: "Campo Liga/Desliga", value: "switch" },
+  slider: { text: "Campo Slider", value: "slider" },
   textarea: { text: "Campo de Área de Texto", value: "textarea" },
   checkbox: { text: "Campo de Marcação (check)", value: "checkbox" },
 };
@@ -119,6 +153,29 @@ export const zodType = (value: FieldValuesSetting | undefined) => {
       type = value.rules?.required
         ? z.string().min(1, { message: `${value.label} é obrigatório` })
         : z.string();
+      break;
+    case "number":
+      type = value.rules?.required
+        ? z.coerce
+            .number({
+              required_error: "Campo obrigatório",
+              invalid_type_error: "Deve ser um número",
+            })
+            .positive({ message: "Deve ser um número maior que 0" })
+        : z.coerce
+            .number({ invalid_type_error: "Deve ser um número" })
+            .optional();
+      break;
+    case "date":
+      type = value.rules?.required
+        ? z.date({ required_error: `${value.label} é obrigatório` })
+        : z.date();
+      break;
+    case "switch":
+      type = z.boolean();
+      break;
+    case "slider":
+      type = z.coerce.number();
       break;
     case "email":
       type = value.rules?.required
@@ -182,31 +239,48 @@ export function useZodForm<TSchema extends z.ZodType>(
   return form;
 }
 
+export const MASK_TYPE = {
+  phone: "(__) _____-____",
+  cep: "_____-___",
+  date: "__/__/____",
+  time: "__:__",
+  creditCard: "____ ____ ____ ____",
+  cpf: "___.___.___-__",
+} as const;
+
 export type FormInputProps<TFormValues extends FieldValues = FieldValues> = {
   name: Path<TFormValues>;
+  label?: string;
   errors?: FieldErrors<TFormValues>;
   error?: FieldError;
   // errors?: Partial<DeepMap<TFormValues, FieldError>>;
   register?: UseFormRegister<TFormValues>;
-  rules?: RegisterOptions;
+  rules?: RegisterOptions<TFormValues>;
   options?: Options;
   control?: Control<TFormValues>;
   description?: string;
-  creatable?: boolean;
   type: InputType;
+  creatable?: boolean;
+  showTooltip?: boolean;
+  modal?: boolean;
+  mask?: keyof typeof MASK_TYPE;
 } & Omit<InputProps, "name" | "type">;
 
 export const FormInput = <TFormValues extends FieldValues>({
   className,
   name,
+  label,
   error,
   errors,
   register,
   rules,
+  modal,
   options,
   control,
   description,
   creatable,
+  showTooltip,
+  mask,
   ...props
 }: FormInputProps<TFormValues>): JSX.Element | null => {
   const errorMessage = error
@@ -220,12 +294,96 @@ export const FormInput = <TFormValues extends FieldValues>({
     case "text":
     case "email":
     case "password":
+    case "number":
     case "tel":
-      input = (
+      input = mask ? (
+        <InputMask
+          mask={MASK_TYPE[mask]}
+          {...props}
+          {...(register && register(name, rules))}
+          replacement={{ _: /\d/ }}
+          className={cn(
+            "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+            className,
+          )}
+        />
+      ) : (
         <Input
           name={name}
           {...props}
           {...(register && register(name, rules))}
+        />
+      );
+      break;
+    // case "fieldArray":
+    //   input = (
+    //     <Input
+    //   )
+    //   break;
+    case "date":
+      input = (
+        <Controller
+          control={control}
+          name={name}
+          render={({ field }) => {
+            return (
+              <DateTimePicker
+                granularity="day"
+                locale={ptBR}
+                value={field.value}
+                modal={modal}
+                onChange={field.onChange}
+                ref={field.ref}
+                displayFormat={{ hour24: "dd/MM/yyyy" }}
+                placeholder="Escolha uma data"
+              />
+            );
+          }}
+        />
+      );
+      break;
+    // case "simple-date":
+    //   input = (
+
+    //   );
+    // break;
+    case "switch":
+      input = (
+        <Controller
+          control={control}
+          name={name}
+          render={({ field }) => {
+            return (
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                ref={field.ref}
+              />
+            );
+          }}
+        />
+      );
+      break;
+    case "slider":
+      input = (
+        <Controller
+          control={control}
+          name={name}
+          render={({ field }) => (
+            <>
+              <Slider
+                // min={0}
+                // max={100}
+                step={5}
+                interval={20}
+                showTooltip={showTooltip}
+                ref={field.ref}
+                // minStepsBetweenThumbs={25}
+                defaultValue={[field.value]}
+                onValueChange={field.onChange}
+              />
+            </>
+          )}
         />
       );
       break;
@@ -239,6 +397,7 @@ export const FormInput = <TFormValues extends FieldValues>({
               <RadioGroup
                 onValueChange={field.onChange}
                 value={field.value as string}
+                ref={field.ref}
               >
                 {options &&
                   Object.entries(options)?.map(([option, label], i) => (
@@ -298,7 +457,7 @@ export const FormInput = <TFormValues extends FieldValues>({
         <Controller
           control={control}
           name={name}
-          render={({ field: { value, onChange } }) => {
+          render={({ field: { value, onChange, ref } }) => {
             return (
               <div>
                 {options && (
@@ -309,12 +468,49 @@ export const FormInput = <TFormValues extends FieldValues>({
                     selectFirstItem={false}
                     creatable={creatable}
                     placeholder={props.placeholder}
+                    ref={ref}
                     emptyIndicator={
                       <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
                         nenhum resultado encontrado.
                       </p>
                     }
                   />
+                )}
+              </div>
+            );
+          }}
+        />
+      );
+      break;
+    case "select":
+      input = (
+        <Controller
+          control={control}
+          name={name}
+          render={({ field: { value, onChange } }) => {
+            return (
+              <div>
+                {options && (
+                  <Select
+                    onValueChange={onChange}
+                    defaultValue={value}
+                    // ref={ref}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={props.placeholder} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>{label}</SelectLabel>
+                        {options &&
+                          Object.entries(options)?.map(([option, label], i) => (
+                            <SelectItem key={i} value={option}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 )}
               </div>
             );
@@ -340,6 +536,49 @@ export const FormInput = <TFormValues extends FieldValues>({
   );
 };
 
+export type FormTextareaProps<TFormValues extends FieldValues = FieldValues> = {
+  name: Path<TFormValues>;
+  errors?: FieldErrors<TFormValues>;
+  error?: FieldError;
+  // errors?: Partial<DeepMap<TFormValues, FieldError>>;
+  register?: UseFormRegister<TFormValues>;
+  rules?: RegisterOptions<TFormValues>;
+  description?: string;
+} & Omit<TextareaProps, "name">;
+
+export const FormTextarea = <TFormValues extends FieldValues>({
+  className,
+  name,
+  error,
+  errors,
+  register,
+  rules,
+  description,
+  ...props
+}: FormTextareaProps<TFormValues>): JSX.Element | null => {
+  const errorMessage = error
+    ? error.message
+    : errors && errors[name]
+      ? errors[name].message
+      : undefined;
+
+  return (
+    <div className={className} aria-live="polite">
+      <Textarea
+        name={name}
+        {...props}
+        {...(register && register(name, rules))}
+      />
+      <div className="block text-[0.8rem] text-sm text-muted-foreground">
+        {description}
+      </div>
+      <div className="error-message block text-[0.8rem] font-medium text-destructive">
+        {errorMessage && (errorMessage as string)}
+        {"\t"}
+      </div>
+    </div>
+  );
+};
 // interface OptionsSectionProps<T extends FieldValues> {
 //   form: UseFormReturn<T>;
 // }

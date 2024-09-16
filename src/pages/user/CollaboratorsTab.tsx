@@ -6,11 +6,11 @@ import {
   useFetchUserQuery,
   useUpdateUserMutation,
 } from "@/app/state/features/userSlice";
+import { Button } from "@/components/ui/button";
 import {
   ConfirmDialog,
   ConfirmDialogTrigger,
-} from "@/components/confirm-dialog";
-import { Button } from "@/components/ui/button";
+} from "@/components/ui/confirm-dialog";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";

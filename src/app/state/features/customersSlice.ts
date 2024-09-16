@@ -76,7 +76,6 @@ export const customersSlice = firestoreApi
               data: customers,
             };
           } catch (err: unknown) {
-            console.log("erro: ", err);
             return { error: err };
           }
         },

@@ -1,28 +1,23 @@
-import { cn } from "@/lib/utils";
+import { ArrowDownUp, CheckIcon } from "lucide-react";
+import { useState } from "react";
+
 import { ResultsChart } from "@/components/Results/ResultsChart";
-import { Button } from "../ui/button";
-import { CheckIcon, ArrowDownUp } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Command,
-  CommandInput,
-  CommandItem,
-  CommandGroup,
   CommandEmpty,
+  CommandGroup,
+  CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { useState } from "react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+
+import { Button } from "../ui/button";
 
 const options = [
   { label: "Massa Magra", value: "mm" },
@@ -72,7 +67,7 @@ const ResultsCard = () => {
                       <CheckIcon
                         className={cn(
                           "ml-auto h-4 w-4",
-                          value === option.value ? "opacity-100" : "opacity-0"
+                          value === option.value ? "opacity-100" : "opacity-0",
                         )}
                       />
                     </CommandItem>

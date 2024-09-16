@@ -1,6 +1,6 @@
 import { FormInputProps } from "@/components/form";
 
-export const genders = ["M", "F", "B"] as const;
+export const genders = ["H", "M", "B"] as const;
 export type Gender = (typeof genders)[number];
 
 export type FieldValuesSetting = {
@@ -22,7 +22,7 @@ export interface IAllSettings {
 }
 
 export const GENDERS: Record<Gender, { text: string; value: string }> = {
-  M: { text: "Homem", value: "M" },
-  F: { text: "Mulher", value: "F" },
+  H: { text: "Homem", value: "H" },
+  M: { text: "Mulher", value: "M" },
   B: { text: "Geral", value: "B" },
 };

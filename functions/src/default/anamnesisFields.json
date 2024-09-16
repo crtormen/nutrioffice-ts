@@ -171,7 +171,7 @@
     "libido": {
       "label": "Como é sua libido?",
       "type": "radio",
-      "gender": "M",
+      "gender": "H",
       "options": {
         "baixo": "Baixa",
         "medio": "Normal",
@@ -181,7 +181,7 @@
     "calvicie": {
       "label": "Possui algum grau de calvície?",
       "type": "radio",
-      "gender": "M",
+      "gender": "H",
       "options": {
         "yes": "Sim",
         "no": "Não"
@@ -190,7 +190,7 @@
     "gestante": {
       "label": "Já foi ou é gestante?",
       "type": "radio",
-      "gender": "F",
+      "gender": "M",
       "options": {
         "yes": "Sim",
         "no": "Não"
@@ -199,7 +199,7 @@
     "anticoncepcional": {
       "label": "Usou ou usa anticoncepcional?",
       "type": "radio",
-      "gender": "F",
+      "gender": "M",
       "options": {
         "yes": "Sim",
         "no": "Não"
@@ -213,12 +213,12 @@
         "value": "yes"
       },
       "type": "text",
-      "gender": "F"
+      "gender": "M"
     },
     "tpm": {
       "label": "Qual é o seu grau de TPM?",
       "type": "radio",
-      "gender": "F",
+      "gender": "M",
       "options": {
         "baixo": "Baixo",
         "medio": "Normal",
@@ -228,7 +228,7 @@
     "flacidez": {
       "label": "Tem Flacidez?",
       "type": "radio",
-      "gender": "F",
+      "gender": "M",
       "options": {
         "yes": "Sim",
         "no": "Não"
@@ -237,7 +237,7 @@
     "celulite": {
       "label": "Tem Celulite?",
       "type": "radio",
-      "gender": "F",
+      "gender": "M",
       "options": {
         "yes": "Sim",
         "no": "Não"
@@ -246,7 +246,7 @@
     "queda_cabelo": {
       "label": "Tem queda de cabelo?",
       "type": "radio",
-      "gender": "F",
+      "gender": "M",
       "options": {
         "yes": "Sim",
         "no": "Não"
@@ -255,7 +255,7 @@
     "unhas": {
       "label": "Tem unhas fracas?",
       "type": "radio",
-      "gender": "F",
+      "gender": "M",
       "options": {
         "yes": "Sim",
         "no": "Não"

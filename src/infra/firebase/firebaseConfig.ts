@@ -4,6 +4,7 @@ import {
   connectFirestoreEmulator,
   Firestore,
   getFirestore,
+  initializeFirestore,
 } from "firebase/firestore";
 import {
   connectFunctionsEmulator,
@@ -12,7 +13,7 @@ import {
   httpsCallable,
 } from "firebase/functions";
 import {
-  // connectStorageEmulator,
+  connectStorageEmulator,
   FirebaseStorage,
   getStorage,
 } from "firebase/storage";
@@ -30,19 +31,18 @@ const config = {
   measurementId: import.meta.env.VITE_MEASUREMENT_ID,
 };
 
-// const config = {
-//   apiKey: env.VITE_FIREBASE_API_KEY,
-//   authDomain: env.VITE_AUTH_DOMAIN,
-//   databaseURL: env.VITE_DATABASE_URL,
-//   projectId: env.VITE_PROJECT_ID,
-//   storageBucket: env.VITE_STORAGE_BUCKET,
-//   messagingSenderId: env.VITE_MESSAGING_SENDER_ID,
-//   appId: env.VITE_APP_ID,
-//   measurementId: env.VITE_MEASUREMENT_ID,
-// };
-
 const app: FirebaseApp = initializeApp(config);
+
+// Allow undefined values be passed to firestore, and ignore them instead throw an error.
+initializeFirestore(
+  app,
+  {
+    ignoreUndefinedProperties: true,
+  },
+  // "db",
+);
 export const db: Firestore = getFirestore(app);
+
 export const auth: Auth = getAuth(app);
 export const storage: FirebaseStorage = getStorage(app);
 export const functions: Functions = getFunctions(app);
@@ -60,7 +60,7 @@ export const reloadDefaultSettingsToUser = httpsCallable(
 if (location.hostname === "localhost") {
   connectFirestoreEmulator(db, "localhost", 8080);
   connectAuthEmulator(auth, "http://localhost:9099");
-  // connectStorageEmulator(storage, "localhost", 9199);
+  connectStorageEmulator(storage, "localhost", 9199);
   connectFunctionsEmulator(functions, "localhost", 5001);
   console.log("Emulator connected");
 }

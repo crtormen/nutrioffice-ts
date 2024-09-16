@@ -11,12 +11,12 @@ import { IAnamnesis } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
 
 export const useSaveAnamnesis = () => {
-  const { id } = useParams();
+  const { customerId } = useParams();
   const { user } = useAuth();
   const [addAnamnesis, { isLoading: isSaving }] = useAddAnamnesisMutation();
   const { refetch } = useFetchAnamnesisQuery({
     uid: user?.uid,
-    customerId: id,
+    customerId,
   });
   const navigate = useNavigate();
 
@@ -36,11 +36,11 @@ export const useSaveAnamnesis = () => {
         };
       }
 
-      addAnamnesis({ uid: user!.uid, customerId: id!, newAnamnesis: anamnesis })
+      addAnamnesis({ uid: user!.uid, customerId, newAnamnesis: anamnesis })
         .unwrap()
         .then(() => {
           toast.success("Anamnese cadastrada com sucesso!");
-          navigate(`/customers/${id}/anamnesis`, {
+          navigate(`/customers/${customerId}/anamnesis`, {
             replace: true,
             state: { refetch: true },
           });

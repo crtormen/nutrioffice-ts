@@ -46,6 +46,8 @@ export const CustomerConsultasService = (uid: string, customerId: string) => {
           id: snapshot.id,
           ...data,
           date: dateInString(data.date),
+          createdAt: dateInString(data.createdAt),
+          peso: data.peso?.toString(),
         };
       },
     }),

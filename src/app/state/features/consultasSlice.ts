@@ -1,7 +1,9 @@
 import { createSelector } from "@reduxjs/toolkit";
+import { parse } from "date-fns";
+import { Timestamp } from "firebase/firestore";
 
 import { ConsultasService } from "@/app/services/ConsultasService";
-import { IConsulta } from "@/domain/entities";
+import { IConsulta, IConsultaFirebase } from "@/domain/entities";
 
 import { firestoreApi } from "../firestoreApi";
 
@@ -36,7 +38,51 @@ export const consultasSlice = firestoreApi
             return {
               data: consultas,
             };
-          } catch (err) {
+          } catch (err: unknown) {
+            return { error: err };
+          }
+        },
+      }),
+      addConsulta: builder.mutation<
+        IConsulta,
+        { uid: string | undefined; newConsulta: IConsulta }
+      >({
+        queryFn: async ({ uid, newConsulta }) => {
+          if (!uid || !newConsulta.id)
+            return { error: new Error("No ID defined") };
+          // eslint-disable-next-line camelcase
+          const {
+            // eslint-disable-next-line camelcase
+            customer_id,
+            createdAt,
+            date,
+            gender,
+            idade,
+            name,
+            peso,
+            results,
+          } = newConsulta;
+
+          const consulta: IConsultaFirebase = {
+            // eslint-disable-next-line camelcase
+            customer_id,
+            date: date
+              ? Timestamp.fromDate(parse(date, "dd/MM/yyyy", new Date()))
+              : undefined,
+            createdAt: createdAt
+              ? Timestamp.fromDate(parse(createdAt, "dd/MM/yyyy", new Date()))
+              : undefined,
+            gender,
+            idade,
+            name,
+            peso: Number(peso),
+            results,
+          };
+
+          try {
+            await ConsultasService(uid)?.setOne(newConsulta.id, consulta);
+            return { data: newConsulta };
+          } catch (err: unknown) {
             return { error: err };
           }
         },
@@ -44,10 +90,11 @@ export const consultasSlice = firestoreApi
     }),
   });
 
-export const { useFetchAllConsultasQuery } = consultasSlice;
-
 export const selectLastConsulta = (uid: string, customerId: string) =>
   createSelector(
     consultasSlice.endpoints.fetchAllConsultas.select({ uid, customerId }),
     ({ data: consultas }) => (consultas ? consultas[0] : undefined),
   );
+
+export const { useFetchAllConsultasQuery, useAddConsultaMutation } =
+  consultasSlice;

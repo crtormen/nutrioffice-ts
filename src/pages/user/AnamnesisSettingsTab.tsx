@@ -9,7 +9,6 @@ import {
   useFetchSettingsQuery,
   useSetSettingsMutation,
 } from "@/app/state/features/settingsSlice";
-import { ConfirmDialog } from "@/components/confirm-dialog";
 import SetAnamnesisFieldDialog from "@/components/Settings/SetAnamnesisFieldDialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +16,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -215,12 +215,12 @@ const AnamnesisSettingsTab = () => {
       <GenderRows anamnesisFields={anamnesisFields} gender="B" />
       <GenderRows
         anamnesisFields={anamnesisFields}
-        gender="F"
+        gender="M"
         className="bg-purple-50"
       />
       <GenderRows
         anamnesisFields={anamnesisFields}
-        gender="M"
+        gender="H"
         className="bg-blue-50"
       />
     </TableBody>

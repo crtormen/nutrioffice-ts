@@ -18,7 +18,7 @@ const setTableData = (
   }));
 };
 
-export const useFillCustomerConsultasTable = (customerId: string) => {
+export const useFillCustomerConsultasTable = (customerId?: string) => {
   const [consultas, setConsultas] = useState<ConsultaData[] | undefined>([]);
   const auth = useAuth();
   const uid = auth.user?.uid;

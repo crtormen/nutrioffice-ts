@@ -4,11 +4,12 @@ import { useGetAnamnesisData } from "@/components/Anamnesis/hooks";
 import { useSetAnamnesisForm } from "@/components/Anamnesis/hooks/useSetAnamnesisForm";
 
 export const useShowAnamnesisData = () => {
-  const { id } = useParams();
+  const { customerId } = useParams();
   const { anamnesisFieldArray } = useSetAnamnesisForm();
-  const anamnesisData = useGetAnamnesisData(id);
+  const anamnesisData = useGetAnamnesisData(customerId);
   // const customer = useGetCustomerData(id);
 
+  // return anamnesis data dynamically based on the fields defined at settings
   const anamnesis =
     anamnesisData &&
     anamnesisFieldArray

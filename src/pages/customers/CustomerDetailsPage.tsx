@@ -37,8 +37,8 @@ const sidebarNavItems = [
 ];
 
 const CustomerDetailsPage: React.FC = () => {
-  const { id } = useParams();
-  const customer: ICustomer | undefined = useGetCustomerData(id!);
+  const { customerId } = useParams();
+  const customer: ICustomer | undefined = useGetCustomerData(customerId!);
 
   return (
     customer && (

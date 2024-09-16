@@ -1,6 +1,7 @@
 import { IGoal } from "@/domain/entities";
-import { ResultsChart } from "./ResultsChart";
+
 import GoalInfo from "./GoalInfo";
+import { ResultsChart } from "./ResultsChart";
 
 export interface GoalDetailProps {
   goal: IGoal;
@@ -12,10 +13,10 @@ const GoalDetails = ({ goal, param }: GoalDetailProps) => {
 
   return (
     <div className="flex gap-2 pt-10">
-      <div className="w-1/2 my-auto">
+      <div className="my-auto w-1/2">
         <ResultsChart param={param} goal={goal} />
       </div>
-      <div className="w-1/2 my-auto">
+      <div className="my-auto w-1/2">
         <GoalInfo goal={goal} param={param} />
       </div>
     </div>

@@ -1,15 +1,12 @@
 import { Plus } from "lucide-react";
 import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { CustomerConsultasTable } from "@/components/Consultas/CustomerConsultasTable";
 import { Button } from "@/components/ui/button";
 
 const CustomerConsultasTab = () => {
-  const { id } = useParams();
   const navigate = useNavigate();
-
-  if (!id) return;
 
   return (
     <div className="space-y-6">
@@ -26,7 +23,7 @@ const CustomerConsultasTab = () => {
         </div>
       </div>
       <div className="mt-6 border-t border-gray-200 px-4 py-3 sm:p-0">
-        <CustomerConsultasTable customerId={id} />
+        <CustomerConsultasTable />
       </div>
     </div>
   );

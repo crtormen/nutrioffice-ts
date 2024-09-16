@@ -1,6 +1,7 @@
 import React from "react";
 import { Route, Routes } from "react-router-dom";
 
+import { ConsultaProvider } from "@/components/Consultas/context/ConsultaContext";
 import NotAuthLayout from "@/pages/_layouts/NotAuthLayout";
 import RequireAuthLayout from "@/pages/_layouts/RequireAuthLayout";
 import NewAnamnesisPage from "@/pages/anamnesis/NewAnamnesisPage";
@@ -27,7 +28,7 @@ function App(): JSX.Element {
         <Route index element={<Dashboard />} />
         <Route path="customers">
           <Route index element={<CustomersPage />} />
-          <Route path=":id/*" element={<CustomerDetailsPage />} />
+          <Route path=":customerId/*" element={<CustomerDetailsPage />} />
           <Route path="create" element={<NewCustomerPage />} />
         </Route>
         <Route path="anamnesis">
@@ -35,7 +36,14 @@ function App(): JSX.Element {
         </Route>
         <Route path="consultas">
           <Route index element={<ConsultasPage />} />
-          <Route path=":customerId/create" element={<NewConsultaPage />} />
+          <Route
+            path=":customerId/create"
+            element={
+              <ConsultaProvider>
+                <NewConsultaPage />
+              </ConsultaProvider>
+            }
+          />
           {/* <Route path=":customerId/*" element={<CustomerConsultaPage />} /> */}
         </Route>
         <Route path="user">

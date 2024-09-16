@@ -18,7 +18,8 @@ const ConsultasCollection = (uid: string) => {
     : null;
 };
 
-export const ConsultasService = (uid: string) => {
+export const ConsultasService = (uid: string | undefined) => {
+  if (!uid) return;
   const collection = ConsultasCollection(uid);
   if (!collection) return;
 
@@ -37,7 +38,9 @@ export const ConsultasService = (uid: string) => {
         return {
           id: snapshot.id,
           ...data,
+          createdAt: dateInString(data.createdAt),
           date: dateInString(data.date),
+          peso: data.peso?.toString(),
         };
       },
     }),

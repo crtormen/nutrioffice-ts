@@ -1,5 +1,10 @@
-import { EntityId } from "@reduxjs/toolkit";
 import { Timestamp } from "firebase/firestore";
+
+import { IStructure } from "./consulta";
+
+export const HOMEM = "H";
+export const MULHER = "M";
+export const AMBOS = "B";
 
 export interface IAddress {
   cep: string;
@@ -7,13 +12,6 @@ export interface IAddress {
   district: string;
   street: string;
 }
-
-interface Structure {
-  height: number;
-  knee: number;
-  wrist: number;
-}
-
 export interface ICustomerFirebase {
   id?: string;
   name?: string;
@@ -26,14 +24,14 @@ export interface ICustomerFirebase {
   occupation?: string;
   phone?: string;
   address?: IAddress;
-  structure?: Structure;
+  structure?: IStructure;
   instagram?: string;
   cameBy?: string;
 }
 // adicionar estado civil
 
 export interface ICustomer {
-  id?: EntityId;
+  id?: string;
   name?: string;
   email?: string;
   cpf?: string;
@@ -44,7 +42,7 @@ export interface ICustomer {
   occupation?: string;
   phone?: string;
   address?: IAddress;
-  structure?: Structure;
+  structure?: IStructure;
   instagram?: string;
   cameBy?: string;
 }

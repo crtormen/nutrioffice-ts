@@ -28,7 +28,7 @@ type DialogProps = {
 const NewAnamnesisDialog = ({ anamnesis, setDialogOpen }: DialogProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { id } = useParams();
+  const { customerId } = useParams();
   const { anamnesisFieldArray, zodSchema } = useSetAnamnesisForm();
   const [addAnamnesis, { isLoading: isSaving }] = useAddAnamnesisMutation();
 
@@ -49,11 +49,11 @@ const NewAnamnesisDialog = ({ anamnesis, setDialogOpen }: DialogProps) => {
       };
     }
 
-    addAnamnesis({ uid: user!.uid, customerId: id!, newAnamnesis: anamnesis })
+    addAnamnesis({ uid: user!.uid, customerId, newAnamnesis: anamnesis })
       .unwrap()
       .then(() => {
         toast.success("Anamnese cadastrada com sucesso!");
-        navigate(`/customers/${id}/anamnesis`, { replace: true });
+        navigate(`/customers/${customerId}/anamnesis`, { replace: true });
       })
       .catch((error: unknown) => {
         console.error(error);
@@ -86,7 +86,7 @@ const NewAnamnesisDialog = ({ anamnesis, setDialogOpen }: DialogProps) => {
         {({ register, control, formState: { errors, isSubmitting } }) => {
           return (
             <>
-              {Object.entries(anamnesisFieldArray).map(([name, field], i) => (
+              {anamnesisFieldArray.map(([name, field], i) => (
                 <div className="space-y-2" key={i}>
                   <Label htmlFor={name}>{field?.label}</Label>
                   <FormInput

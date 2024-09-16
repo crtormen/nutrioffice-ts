@@ -1,15 +1,13 @@
 import { Loader2 } from "lucide-react";
+import { useParams } from "react-router-dom";
 
 import { useFillCustomerConsultasTable } from "@/components/Consultas/hooks";
 import { DataTable } from "@/components/ui/data-table";
 
 import { columns } from "./customerColumns";
 
-export const CustomerConsultasTable = ({
-  customerId,
-}: {
-  customerId: string;
-}) => {
+export const CustomerConsultasTable = () => {
+  const { customerId } = useParams();
   const { consultas, isLoading } = useFillCustomerConsultasTable(customerId);
 
   return isLoading ? (

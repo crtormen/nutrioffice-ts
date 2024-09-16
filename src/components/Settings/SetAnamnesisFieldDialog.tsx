@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FieldValuesSetting } from "@/domain/entities";
+import { FieldValuesSetting, GENDERS } from "@/domain/entities";
 
 import {
   newAnamnesisFieldFormInputs,
@@ -57,7 +57,7 @@ const OptionsSection = ({
         Opções
       </Label>
       {fields.map((field, i) => {
-        const optionId = field.optionId === "" ? `option${i}` : field.optionId;
+        const optionId = field.optionId === "" ? `option${i}` : field.optionId; // check if field already has an existing id
         return (
           <div className="flex flex-col gap-2" key={field.id}>
             <div className="flex items-center gap-1">
@@ -175,9 +175,9 @@ const SetAnamnesisFieldDialog = ({
               type="radio"
               name="gender"
               options={{
-                F: "Mulheres",
-                M: "Homens",
-                B: "Ambos",
+                [GENDERS.M.value]: GENDERS.M.text,
+                [GENDERS.H.value]: GENDERS.H.text,
+                [GENDERS.B.value]: GENDERS.B.text,
               }}
               control={control}
               error={errors.gender}

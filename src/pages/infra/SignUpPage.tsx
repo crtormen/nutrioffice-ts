@@ -114,6 +114,7 @@ const SignUpPage = () => {
             <Label htmlFor="phone">Seu celular</Label>
             <FormInput
               type="tel"
+              mask="phone"
               placeholder="Ex: (51) 98765-4321"
               name="phone"
               register={register}

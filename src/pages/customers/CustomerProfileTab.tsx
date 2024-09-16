@@ -5,8 +5,8 @@ import { useGetCustomerData } from "@/components/Customers/hooks";
 import { Gender, GENDERS, ICustomer } from "@/domain/entities";
 
 const CustomerProfileTab: React.FC = () => {
-  const { id } = useParams();
-  const customer: ICustomer | undefined = useGetCustomerData(id);
+  const { customerId } = useParams();
+  const customer: ICustomer | undefined = useGetCustomerData(customerId);
 
   return (
     customer && (
