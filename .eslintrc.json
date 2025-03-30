@@ -1,9 +1,13 @@
 {
   "plugins": ["react-hooks", "simple-import-sort"],
+  "extends": ["@rocketseat/eslint-config/react"],
   "rules": {
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
-    "simple-import-sort/imports": "error"
-  },
-  "extends": ["@rocketseat/eslint-config/react"]
+    "simple-import-sort/imports": "error",
+    "prettier/prettier": ["error", {
+      "singleQuote": false,
+      "semi": true
+    }]
+  }
 }

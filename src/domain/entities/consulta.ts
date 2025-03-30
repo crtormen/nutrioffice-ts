@@ -69,6 +69,7 @@ export interface IMeal {
 
 export interface ICustomerConsulta {
   id?: string;
+  online?: boolean;
   pending?: boolean;
   createdAt?: string;
   date?: string;
@@ -90,6 +91,7 @@ export interface ICustomerConsulta {
 export interface ICustomerConsultaFirebase {
   id?: string;
   pending?: boolean;
+  online?: boolean;
   createdAt?: Timestamp;
   date?: Timestamp;
   updateCredits?: boolean;
@@ -108,6 +110,7 @@ export interface ICustomerConsultaFirebase {
 }
 export interface IConsulta {
   id?: string;
+  online?: boolean;
   customer_id?: string;
   createdAt?: string;
   date?: string;
@@ -119,6 +122,7 @@ export interface IConsulta {
 }
 export interface IConsultaFirebase {
   id?: string;
+  online?: boolean;
   customer_id?: string;
   createdAt?: Timestamp;
   date?: Timestamp;

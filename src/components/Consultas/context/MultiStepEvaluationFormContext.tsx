@@ -12,16 +12,13 @@ import { toast } from "sonner";
 import { IFolds, IMeasures, IResults, IStructure } from "@/domain/entities";
 import { calculateAge } from "@/lib/utils";
 
-import { evaluationFormInputs } from "../SetEvaluationDrawer";
+import { evaluationFormInputs, STEPS } from "../SetEvaluationDrawer";
 import { useConsultaContext } from "./ConsultaContext";
 
-const STEPS = 4;
-
 interface MultiStepEvaluationFormContextModel {
-  STEPS: number;
+  steps: number;
+  changeSteps: (steps: number) => void;
   isFirstStep: boolean;
-  isLastStep: boolean;
-  isLastFormStep: boolean;
   currentStepIndex: number;
   folds: IFolds;
   measures: IMeasures;
@@ -35,7 +32,7 @@ interface MultiStepEvaluationFormContextModel {
   nextStep: () => void;
   previousStep: () => void;
   goTo: (index: number) => void;
-  calculate: (data: evaluationFormInputs) => void;
+  calculate: (data: evaluationFormInputs, online: boolean) => void;
   handleSave: () => void;
 }
 
@@ -54,18 +51,21 @@ export const MultiStepEvaluationFormProvider = ({
   const { customer, handleSetEvaluation } = useConsultaContext();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [peso, setPeso] = useState(0);
+  const [steps, setSteps] = useState(STEPS);
   const [measures, setMeasures] = useState<IMeasures>({} as IMeasures);
   const [structure, setStructure] = useState<IStructure>({} as IStructure);
   const [folds, setFolds] = useState<IFolds>({} as IFolds);
   const [results, setResults] = useState<IResults>({} as IResults);
   const [idade, setIdade] = useState(0);
   const isFirstStep = currentStepIndex === 0;
-  const isLastStep = currentStepIndex === STEPS - 1;
-  const isLastFormStep = currentStepIndex === STEPS - 2;
 
   useEffect(() => {
     if (customer) setIdade(calculateAge(customer?.birthday));
   }, [customer]);
+
+  const changeSteps = useCallback((steps: number) => {
+    setSteps(steps);
+  }, []);
 
   const changePeso = useCallback((peso: number) => {
     setPeso(peso);
@@ -84,10 +84,10 @@ export const MultiStepEvaluationFormProvider = ({
   }, []);
 
   const nextStep = useCallback(() => {
-    if (currentStepIndex < STEPS - 1) {
+    if (currentStepIndex < steps - 1) {
       setCurrentStepIndex((i) => i + 1);
     }
-  }, [currentStepIndex]);
+  }, [currentStepIndex, steps]);
 
   const previousStep = useCallback(() => {
     if (currentStepIndex > 0) {
@@ -239,34 +239,38 @@ export const MultiStepEvaluationFormProvider = ({
   );
 
   const calculate = useCallback(
-    (data: evaluationFormInputs) => {
-      defineMeasures(data);
-      defineFolds(data);
+    (data: evaluationFormInputs, online: boolean) => {
+      if (!online) {
+        defineFolds(data);
+      }
       defineStructure(data);
+      defineMeasures(data);
       definePeso(data);
     },
     [defineFolds, defineMeasures, definePeso, defineStructure],
   );
 
-  const handleSave = useCallback(() => {
-    handleSetEvaluation(
-      peso.toString(),
-      idade,
-      folds,
-      measures,
-      structure,
-      results,
-    );
-    toast.success("Avaliação salva com sucesso");
-  }, [peso, idade, folds, handleSetEvaluation, measures, results, structure]);
+  const handleSave = useCallback(
+    (online: boolean) => {
+      handleSetEvaluation(
+        peso.toString(),
+        idade,
+        folds,
+        measures,
+        structure,
+        results,
+      );
+      toast.success("Avaliação salva com sucesso");
+    },
+    [peso, idade, folds, handleSetEvaluation, measures, results, structure],
+  );
 
   const values = useMemo(
     () => ({
-      STEPS,
+      steps,
+      changeSteps,
       currentStepIndex,
       isFirstStep,
-      isLastStep,
-      isLastFormStep,
       measures,
       structure,
       folds,
@@ -284,6 +288,8 @@ export const MultiStepEvaluationFormProvider = ({
       handleSave,
     }),
     [
+      steps,
+      changeSteps,
       currentStepIndex,
       measures,
       structure,
@@ -292,8 +298,6 @@ export const MultiStepEvaluationFormProvider = ({
       idade,
       peso,
       isFirstStep,
-      isLastStep,
-      isLastFormStep,
       nextStep,
       previousStep,
       goTo,

@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Control,
   FieldErrors,
@@ -34,9 +34,13 @@ import { EvaluationFormStepOne } from "./EvaluationFormStepOne";
 import { EvaluationFormStepThree } from "./EvaluationFormStepThree";
 import { EvaluationFormStepTwo } from "./EvaluationFormStepTwo";
 
+const ONLINE_STEPS = 3;
+export const STEPS = 4;
+
 export interface EvaluationFormStepProps<
   TFieldValues extends FieldValues = FieldValues,
 > {
+  online?: boolean;
   register?: UseFormRegister<TFieldValues>;
   control?: Control<TFieldValues>;
   errors?: FieldErrors<TFieldValues>;
@@ -72,15 +76,15 @@ export type evaluationFormInputs = z.infer<
   typeof evaluationFormValidationSchema
 >;
 
-export const SetEvaluationDrawer = () => {
+export const SetEvaluationDrawer = ({ online }: { online: boolean }) => {
   const [evaluationDrawerOpen, setEvaluationDrawerOpen] =
     useState<boolean>(false);
   const { consulta } = useConsultaContext();
   const {
     currentStepIndex,
     isFirstStep,
-    isLastStep,
-    isLastFormStep,
+    steps,
+    changeSteps,
     nextStep,
     previousStep,
     calculate,
@@ -122,8 +126,15 @@ export const SetEvaluationDrawer = () => {
     },
   });
 
+  useEffect(() => {
+    if (online) changeSteps(ONLINE_STEPS);
+    else changeSteps(STEPS);
+  }, [online]);
+
+  console.log(steps);
+
   const handleSetPhysicalEvaluation = (data: evaluationFormInputs) => {
-    calculate(data);
+    calculate(data, online);
     nextStep();
   };
 
@@ -139,16 +150,17 @@ export const SetEvaluationDrawer = () => {
               {consulta.peso}
             </div>
           </div>
-          {Object.entries(consulta.results).map(([key, value], i) => (
-            <div key={i} className="flex items-center justify-start gap-4">
-              <div className="text-sm font-medium text-muted-foreground">
-                {RESULTS[key].text}
+          {!online &&
+            Object.entries(consulta.results).map(([key, value], i) => (
+              <div key={i} className="flex items-center justify-start gap-4">
+                <div className="text-sm font-medium text-muted-foreground">
+                  {RESULTS[key].text}
+                </div>
+                <div className="text-sm font-semibold leading-6 text-foreground">
+                  {value}
+                </div>
               </div>
-              <div className="text-sm font-semibold leading-6 text-foreground">
-                {value}
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
       ) : (
         <div></div>
@@ -193,31 +205,55 @@ export const SetEvaluationDrawer = () => {
               }}
               className="flex flex-1 flex-col gap-5"
             >
-              <div className="flex flex-grow">
-                {currentStepIndex === 0 && (
-                  <EvaluationFormStepOne
-                    register={register}
-                    control={control}
-                    errors={errors}
-                  />
-                )}
-                {currentStepIndex === 1 && (
-                  <EvaluationFormStepTwo
-                    register={register}
-                    control={control}
-                    errors={errors}
-                  />
-                )}
-                {currentStepIndex === 2 && (
-                  <EvaluationFormStepThree
-                    register={register}
-                    control={control}
-                    errors={errors}
-                  />
-                )}
+              {!online ? (
+                <div className="flex flex-grow">
+                  {currentStepIndex === 0 && (
+                    <EvaluationFormStepOne
+                      register={register}
+                      control={control}
+                      errors={errors}
+                    />
+                  )}
+                  {currentStepIndex === 1 && (
+                    <EvaluationFormStepTwo
+                      register={register}
+                      control={control}
+                      errors={errors}
+                    />
+                  )}
+                  {currentStepIndex === 2 && (
+                    <EvaluationFormStepThree
+                      register={register}
+                      control={control}
+                      errors={errors}
+                    />
+                  )}
 
-                {currentStepIndex === 3 && <EvaluationFormResult />}
-              </div>
+                  {currentStepIndex === 3 && <EvaluationFormResult />}
+                </div>
+              ) : (
+                <div className="flex flex-grow">
+                  {currentStepIndex === 0 && (
+                    <EvaluationFormStepOne
+                      online={true}
+                      register={register}
+                      control={control}
+                      errors={errors}
+                    />
+                  )}
+                  {currentStepIndex === 1 && (
+                    <EvaluationFormStepThree
+                      register={register}
+                      control={control}
+                      errors={errors}
+                    />
+                  )}
+
+                  {currentStepIndex === 2 && (
+                    <EvaluationFormResult online={true} />
+                  )}
+                </div>
+              )}
               <DrawerFooter className="h-1/5">
                 <Separator className="my-2" />
                 <div className="flex justify-center gap-4">
@@ -241,29 +277,22 @@ export const SetEvaluationDrawer = () => {
                       Voltar
                     </Button>
                   )}
-                  {isLastFormStep ? (
+                  {currentStepIndex === steps - 2 ? (
                     <Button
                       type="submit"
                       variant="success"
                       disabled={isSubmitting}
-                      // onClick={(e) => {
-                      //   e.preventDefault();
-                      //   e.stopPropagation();
-                      //   console.log(e);
-
-                      //   handleSubmit(handleSetPhysicalEvaluation);
-                      // }}
                     >
                       Calcular
                     </Button>
-                  ) : isLastStep ? (
+                  ) : currentStepIndex === steps - 1 ? (
                     <Button
                       variant="success"
                       type="button"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        handleSave();
+                        handleSave(online);
                         setEvaluationDrawerOpen(false);
                       }}
                     >

@@ -55,6 +55,7 @@ export const consultasSlice = firestoreApi
             // eslint-disable-next-line camelcase
             customer_id,
             createdAt,
+            online,
             date,
             gender,
             idade,
@@ -73,6 +74,7 @@ export const consultasSlice = firestoreApi
               ? Timestamp.fromDate(parse(createdAt, "dd/MM/yyyy", new Date()))
               : undefined,
             gender,
+            online,
             idade,
             name,
             peso: Number(peso),

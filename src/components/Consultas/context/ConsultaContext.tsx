@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 import { useGetCustomerData } from "@/components/Customers/hooks";
 import {
@@ -24,11 +25,13 @@ import {
   IResults,
   IStructure,
 } from "@/domain/entities";
+import type { newConsultaFormInputs } from "@/pages/consultas/NewConsultaPage";
 
 import { useSaveNewConsulta } from "../hooks/useSaveNewConsulta";
 
 enum ActionTypes {
   setID = "SET_ID",
+  setOnline = "SET_ONLINE",
   setPending = "SET_PENDING",
   setDate = "SET_DATE",
   setUpdateCredits = "SET_UPDATECREDITS",
@@ -47,6 +50,9 @@ type Payload = {
   [ActionTypes.setPending]: {
     pending: boolean;
   };
+  [ActionTypes.setOnline]: {
+    online: boolean;
+  };
   [ActionTypes.setDate]: {
     date: string;
   };
@@ -57,6 +63,7 @@ type Payload = {
     updateCredits: boolean;
     date: string;
     obs: string;
+    online: boolean;
     pending: boolean;
   };
   [ActionTypes.setMeals]: {
@@ -101,12 +108,7 @@ interface ConsultaContextModel {
   isUpdating: boolean;
   handleSetAnexos: (anexos: IAttachment[]) => void;
   handleSetDate: (date: string) => void;
-  handleSetFormData: (
-    updateCredits: boolean,
-    date: string,
-    obs: string,
-    pending: boolean,
-  ) => void;
+  handleSetFormData: (params: newConsultaFormInputs, pending: boolean) => void;
   handleSetImages: (images: IImages) => void;
   handleSetEvaluation: (
     peso: string,
@@ -120,6 +122,7 @@ interface ConsultaContextModel {
   handleSetObs: (obs: string) => void;
   handleSetUpdateCredits: (updateCredits: boolean) => void;
   handleSetPending: (pending: boolean) => void;
+  handleSetOnline: (online: boolean) => void;
 }
 
 export const ConsultaContext = createContext<ConsultaContextModel>(
@@ -133,6 +136,7 @@ export interface ConsultaProviderProps {
 const initialState = {
   customer_id: "",
   pending: true,
+  online: false,
   createdAt: format(new Date(), "dd/MM/yyyy"),
   id: "",
   name: "",
@@ -188,6 +192,12 @@ export const ConsultaProvider = ({
           pending: action.payload.pending,
         };
         break;
+      case "SET_ONLINE":
+        newConsulta = {
+          ...consulta,
+          online: action.payload.online,
+        };
+        break;
       case "SET_DATE":
         newConsulta = {
           ...consulta,
@@ -206,6 +216,7 @@ export const ConsultaProvider = ({
           updateCredits: action.payload.updateCredits,
           date: action.payload.date,
           obs: action.payload.obs,
+          online: action.payload.online,
           pending: action.payload.pending,
         };
         break;
@@ -264,6 +275,13 @@ export const ConsultaProvider = ({
     });
   }, []);
 
+  const handleSetOnline = useCallback((online: boolean) => {
+    dispatch({
+      type: ActionTypes.setOnline,
+      payload: { online },
+    });
+  }, []);
+
   const handleSetDate = useCallback((date: string) => {
     dispatch({
       type: ActionTypes.setDate,
@@ -281,12 +299,16 @@ export const ConsultaProvider = ({
   }, []);
 
   const handleSetFormData = useCallback(
-    (updateCredits: boolean, date: string, obs: string, pending: boolean) => {
+    (
+      { updateCredits, date, obs, online }: newConsultaFormInputs,
+      pending: boolean,
+    ) => {
       dispatch({
         type: ActionTypes.setFormData,
         payload: {
-          updateCredits,
-          date,
+          updateCredits: updateCredits || false,
+          online: online || false,
+          date: format(date, "dd/MM/yyyy"),
           obs,
           pending,
         },
@@ -359,10 +381,17 @@ export const ConsultaProvider = ({
       // with pending = true, and store consulta_id at consultareducer;
       setConsultaCreated(true);
       setConsultaChanged(false);
-      const id = await handleCreateNewConsulta(consulta);
-      if (!id || id === "") return; // something went wrong
-      console.log(id);
-      handleSetId(id);
+      try {
+        const id = await handleCreateNewConsulta(consulta);
+        if (!id || id === "") return; // something went wrong
+        console.log(id);
+        handleSetId(id);
+      } catch (err: unknown) {
+        toast.error(
+          "Houve um problema ao salvar a consulta. Tente novamente. Caso o problema persista, contate o suporte",
+        );
+        throw new Error(err as string);
+      }
     };
     createConsulta();
   }, [
@@ -405,6 +434,7 @@ export const ConsultaProvider = ({
       handleSetObs,
       handleSetGoal,
       handleSetPending,
+      handleSetOnline,
     }),
     [
       consulta,
@@ -422,6 +452,7 @@ export const ConsultaProvider = ({
       handleSetGoal,
       handleSetUpdateCredits,
       handleSetPending,
+      handleSetOnline,
     ],
   );
 

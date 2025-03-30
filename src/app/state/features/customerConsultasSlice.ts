@@ -79,6 +79,7 @@ export const customerConsultasSlice = firestoreApi
             date,
             // eslint-disable-next-line camelcase
             pending,
+            online,
             updateCredits,
             howmuch,
             obs,
@@ -102,6 +103,7 @@ export const customerConsultasSlice = firestoreApi
               ? Timestamp.fromDate(parse(createdAt, "dd/MM/yyyy", new Date()))
               : undefined,
             pending,
+            online,
             updateCredits,
             howmuch,
             obs,
@@ -146,6 +148,7 @@ export const customerConsultasSlice = firestoreApi
             date = "",
             // eslint-disable-next-line camelcase
             pending = true,
+            online = false,
             updateCredits = true,
             howmuch = 0,
             obs = "",
@@ -167,6 +170,7 @@ export const customerConsultasSlice = firestoreApi
               : undefined,
             createdAt: Timestamp.fromDate(new Date()),
             pending,
+            online,
             updateCredits,
             howmuch,
             obs,

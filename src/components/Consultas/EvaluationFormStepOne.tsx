@@ -10,6 +10,7 @@ import {
 } from "./SetEvaluationDrawer";
 
 export const EvaluationFormStepOne = ({
+  online,
   register,
   control,
   errors,
@@ -41,26 +42,30 @@ export const EvaluationFormStepOne = ({
               error={errors && (errors.altura as FieldError)}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="punho">Punho</Label>
-            <FormInput
-              type="text"
-              placeholder="Punho"
-              name="punho"
-              register={register}
-              error={errors && (errors.punho as FieldError)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="peso">Joelho</Label>
-            <FormInput
-              type="text"
-              placeholder="Joelho"
-              name="joelho"
-              register={register}
-              error={errors && (errors.joelho as FieldError)}
-            />
-          </div>
+          {!online && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="punho">Punho</Label>
+                <FormInput
+                  type="text"
+                  placeholder="Punho"
+                  name="punho"
+                  register={register}
+                  error={errors && (errors.punho as FieldError)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="peso">Joelho</Label>
+                <FormInput
+                  type="text"
+                  placeholder="Joelho"
+                  name="joelho"
+                  register={register}
+                  error={errors && (errors.joelho as FieldError)}
+                />
+              </div>
+            </>
+          )}
         </>
       ) : (
         <div className="space-y-2">
