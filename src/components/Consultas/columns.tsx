@@ -1,8 +1,9 @@
-import { EntityId } from '@reduxjs/toolkit'
-import { ColumnDef } from '@tanstack/react-table'
-import { Link } from 'react-router-dom'
-import { MoreHorizontal } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { EntityId } from "@reduxjs/toolkit";
+import { ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal } from "lucide-react";
+import { Link } from "react-router-dom";
+
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,36 +11,38 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 
 export type ConsultaData = {
-  id: EntityId
-  date: string | undefined
-  index: number
-}
+  customerId: EntityId;
+  name: string;
+  id: EntityId;
+  date: string | undefined;
+  index: number;
+};
 
 export const columns: ColumnDef<ConsultaData>[] = [
   {
-    accessorKey: 'Consulta',
+    accessorKey: "Consulta",
     cell: ({ row }) => {
-      const consulta = row.original
+      const consulta = row.original;
       return (
         <div className="text-left font-medium">
           <Link to={`/consultas/details/${consulta.id}`}>
             Consulta nº {consulta.index}
           </Link>
         </div>
-      )
+      );
     },
   },
   {
-    accessorKey: 'date',
-    header: 'Data',
+    accessorKey: "date",
+    header: "Data",
   },
   {
-    id: 'actions',
-    cell: ({ row }) => {
-      const consulta = row.original
+    id: "actions",
+    cell: () => {
+      // const consulta = row.original;
 
       return (
         <DropdownMenu>
@@ -56,7 +59,7 @@ export const columns: ColumnDef<ConsultaData>[] = [
             <DropdownMenuItem>Excluir</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
-]
+];

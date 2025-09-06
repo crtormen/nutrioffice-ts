@@ -1,5 +1,5 @@
 import {
-  CaseReducer,
+  // CaseReducer,
   createSlice,
   PayloadAction,
   SliceCaseReducers,
@@ -13,7 +13,7 @@ interface GenericState<T> {
 
 export const createGenericSlice = <
   T,
-  Reducers extends SliceCaseReducers<GenericState<T>>
+  Reducers extends SliceCaseReducers<GenericState<T>>,
 >({
   name = "",
   initialState,

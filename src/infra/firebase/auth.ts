@@ -1,8 +1,8 @@
 import {
   getAuth,
-  onAuthStateChanged,
-  User,
   signInAnonymously,
+  User,
+  UserCredential,
 } from "firebase/auth";
 
 export interface AuthProvider {
@@ -12,7 +12,7 @@ export interface AuthProvider {
 
 export class FirebaseAuthProvider implements AuthProvider {
   private isSignedIn: boolean = false;
-  constructor() {}
+  // constructor() {}
 
   isUserSignedIn(): boolean {
     return this.isSignedIn;
@@ -26,9 +26,9 @@ export class FirebaseAuthProvider implements AuthProvider {
     return getAuth().currentUser?.uid;
   }
 
-  signInAnonymously(): Promise<any> {
+  signInAnonymously(): Promise<UserCredential> {
     return signInAnonymously(getAuth());
   }
 }
 
-export let firebaseAuthProvider = new FirebaseAuthProvider();
+export const firebaseAuthProvider = new FirebaseAuthProvider();

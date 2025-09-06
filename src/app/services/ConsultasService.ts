@@ -1,49 +1,51 @@
-import { IConsulta, IConsultaFirebase } from '@/domain/entities'
-import { DatabaseService, createCollection } from './DatabaseService'
 import {
-  query,
   DocumentData,
+  orderBy,
   PartialWithFieldValue,
+  query,
   QueryDocumentSnapshot,
   SnapshotOptions,
-  orderBy,
-} from 'firebase/firestore'
-import { dateInString } from '@/lib/utils'
+} from "firebase/firestore";
 
-const ConsultasCollection = (uid: string, customerId: string) => {
+import { IConsulta, IConsultaFirebase } from "@/domain/entities";
+import { dateInString } from "@/lib/utils";
+
+import { createCollectionRef, DatabaseService } from "./DatabaseService";
+
+const ConsultasCollection = (uid: string) => {
   return uid
-    ? createCollection<IConsultaFirebase>(
-        'users/' + uid + '/customers/' + customerId + '/consultas',
-      )
-    : null
-}
+    ? createCollectionRef<IConsultaFirebase>("users/" + uid + "/consultas")
+    : null;
+};
 
-export const ConsultasService = (uid: string, customerId: string) => {
-  const collection = ConsultasCollection(uid, customerId)
-  if (!collection) return
+export const ConsultasService = (uid: string | undefined) => {
+  if (!uid) return;
+  
+  const collection = ConsultasCollection(uid);
+  if (!collection) return;
 
-  const consultasService = new DatabaseService<IConsultaFirebase, IConsulta>(
-    collection,
-  )
+  const consultasService = new DatabaseService<IConsultaFirebase>(collection);
 
   consultasService.query = query(
     collection.withConverter({
       toFirestore({ ...data }: PartialWithFieldValue<IConsulta>): DocumentData {
-        return data
+        return data;
       },
       fromFirestore(
         snapshot: QueryDocumentSnapshot<IConsultaFirebase>,
         options: SnapshotOptions,
       ): IConsulta {
-        const data = snapshot.data(options)
+        const data = snapshot.data(options);
         return {
-          id: snapshot.id,
           ...data,
+          id: snapshot.id,
+          createdAt: dateInString(data.createdAt),
           date: dateInString(data.date),
-        }
+          peso: data.peso?.toString(),
+        };
       },
     }),
-    orderBy('date', 'desc'),
-  )
-  return consultasService
-}
+    orderBy("date", "desc"),
+  );
+  return consultasService;
+};

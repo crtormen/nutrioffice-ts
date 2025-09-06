@@ -1,31 +1,22 @@
+import { createSelector } from "@reduxjs/toolkit";
 import { parse } from "date-fns";
 import {
-  // EntityId,
-  // createEntityAdapter,
-  createSelector,
-} from "@reduxjs/toolkit";
+  DocumentData,
+  PartialWithFieldValue,
+  QueryDocumentSnapshot,
+  SnapshotOptions,
+  Timestamp,
+} from "firebase/firestore";
+
 import { CustomersService } from "@/app/services/CustomersService";
 import {
+  IAddress,
   ICustomer,
   ICustomerFirebase,
-  IAddress,
 } from "@/domain/entities/customer";
+import { dateInString } from "@/lib/utils";
+
 import { firestoreApi } from "../firestoreApi";
-import { Timestamp } from "firebase/firestore";
-
-// const customersAdapter = createEntityAdapter({
-//   // selectId: (customer: ICustomer) => customer.id,
-//   // sortComparer: (a, b) => a.name.localeCompare(b.name),
-// });
-
-// const initialState = customersAdapter.getInitialState();
-
-// type normalizedCustomers = {
-//   ids: string[];
-//   entities: {
-//     [key: string]: ICustomer;
-//   };
-// };
 
 export const customersSlice = firestoreApi
   .enhanceEndpoints({
@@ -67,11 +58,9 @@ export const customersSlice = firestoreApi
           // return unsubscribe;
         },
       }),
-      fetchCustomersOnce: builder.query<ICustomer[], string | undefined>({
+      fetchCustomersOnce: builder.query<ICustomer[], string>({
         queryFn: async (uid) => {
           try {
-            if (!uid) return { data: [], isLoading: true };
-
             const querySnapshot = await CustomersService(uid)?.getAllOnce();
             const customers: ICustomer[] = [];
 
@@ -87,27 +76,15 @@ export const customersSlice = firestoreApi
               data: customers,
             };
           } catch (err: unknown) {
-            console.log("erro: ", err);
-            return { error: err };
-          }
-        },
-      }),
-      fetchOneCustomer: builder.query({
-        queryFn: async (id: string) => {
-          try {
-            return { data: null };
-          } catch (err: any) {
-            console.log("erro: ", err);
             return { error: err };
           }
         },
       }),
       addCustomer: builder.mutation<
         ICustomer,
-        { uid: string; newCustomer: ICustomer }
+        { uid: string | undefined; newCustomer: ICustomer }
       >({
-        queryFn: async (arg) => {
-          const { uid, newCustomer } = arg;
+        queryFn: async ({ uid, newCustomer }) => {
           const {
             name = "",
             email = "",
@@ -117,9 +94,10 @@ export const customersSlice = firestoreApi
             gender = "",
             occupation = "",
             instagram = "",
-            credits = undefined,
+            credits = 0,
             address = {} as IAddress,
           } = newCustomer;
+
           const customer: ICustomerFirebase = {
             name,
             email,
@@ -135,35 +113,54 @@ export const customersSlice = firestoreApi
             credits,
             address,
           };
+
           try {
             const response = await CustomersService(uid)?.addOne(customer);
-            return { data: response && response };
+            const data = response?.withConverter({
+              toFirestore({
+                ...data
+              }: PartialWithFieldValue<ICustomer>): DocumentData {
+                return data;
+              },
+              fromFirestore(
+                snapshot: QueryDocumentSnapshot<ICustomerFirebase>,
+                options: SnapshotOptions,
+              ): ICustomer {
+                const data = snapshot.data(options);
+                return {
+                  id: snapshot.id,
+                  ...data,
+                  birthday: dateInString(data.birthday),
+                  createdAt: dateInString(data.createdAt),
+                };
+              },
+            });
+            return { data };
           } catch (err: unknown) {
-            console.log("erro: ", err);
             return { error: err };
           }
         },
       }),
-      removeCustomer: builder.mutation({
-        queryFn: async (id: string) => {
-          try {
-            return { data: null };
-          } catch (err: any) {
-            console.log("erro: ", err);
-            return { error: err };
-          }
-        },
-      }),
-      editCustomer: builder.mutation({
-        queryFn: async (customerData: ICustomer) => {
-          try {
-            return { data: null };
-          } catch (err: any) {
-            console.log("erro: ", err);
-            return { error: err };
-          }
-        },
-      }),
+      // removeCustomer: builder.mutation({
+      //   queryFn: async (id: string) => {
+      //     try {
+      //       return { data: null };
+      //     } catch (err: any) {
+      //       console.log("erro: ", err);
+      //       return { error: err };
+      //     }
+      //   },
+      // }),
+      // editCustomer: builder.mutation({
+      //   queryFn: async (customerData: ICustomer) => {
+      //     try {
+      //       return { data: null };
+      //     } catch (err: any) {
+      //       console.log("erro: ", err);
+      //       return { error: err };
+      //     }
+      //   },
+      // }),
     }),
   });
 
@@ -171,8 +168,6 @@ export const selectCustomerById = (
   uid: string | undefined,
   customerId: string | undefined,
 ) => {
-  // if (!uid || !customerId) return undefined;
-
   return createSelector(
     customersSlice.endpoints.fetchCustomers.select(uid),
     ({ data: customers }) =>
@@ -180,8 +175,11 @@ export const selectCustomerById = (
   );
 };
 
-export const { useFetchCustomersOnceQuery, useFetchCustomersQuery } =
-  customersSlice;
+export const {
+  useFetchCustomersOnceQuery,
+  useFetchCustomersQuery,
+  useAddCustomerMutation,
+} = customersSlice;
 
 // export const selectCustomerById = (customerId: string) => {
 //   return customersSlice.endpoints.fetchCustomers.select(customerId);

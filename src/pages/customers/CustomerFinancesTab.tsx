@@ -1,12 +1,12 @@
-import { CustomerFinancesTable } from "@/components/Finances/CustomerFinancesTable";
-import React from "react";
 import { useParams } from "react-router-dom";
 
-const CustomerFinancesTab = () => {
-  const { id } = useParams();
-  if (!id) return;
+import { CustomerFinancesTable } from "@/components/Finances/CustomerFinancesTable";
 
-  return CustomerFinancesTable(id);
+const CustomerFinancesTab = () => {
+  const { customerId } = useParams();
+  if (!customerId) return;
+
+  return CustomerFinancesTable(customerId);
 };
 
 export default CustomerFinancesTab;

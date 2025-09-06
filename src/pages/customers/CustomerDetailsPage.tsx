@@ -1,41 +1,44 @@
-import React from 'react'
-import { Routes, Route, useParams } from 'react-router-dom'
-import CustomerProfileTab from '@/pages/customers/CustomerProfileTab'
-import CustomerAnamnesisTab from '@/pages/customers/CustomerAnamnesisTab'
-import CustomerConsultasTab from '@/pages/customers/CustomerConsultasTab'
-import CustomerFinancesTab from '@/pages/customers/CustomerFinancesTab'
-import CustomerResultsTab from '@/pages/customers/CustomerResultTab'
-import { SidebarNav } from '@/components/Layout/ShadcnLayout/SidebarNav'
-import { Separator } from '@/components/ui/separator'
-import { useGetCustomerData } from '@/components/Customers/hooks'
-import { ICustomer } from '@/domain/entities'
+import React from "react";
+import { Route, Routes, useParams } from "react-router-dom";
+
+import { useGetCustomerData } from "@/components/Customers/hooks";
+import { Separator } from "@/components/ui/separator";
+import { ICustomer } from "@/domain/entities";
+import { SidebarNav } from "@/pages/_layouts/SidebarNav";
+import CustomerAnamnesisTab from "@/pages/customers/CustomerAnamnesisTab";
+import CustomerConsultasTab from "@/pages/customers/CustomerConsultasTab";
+import CustomerFinancesTab from "@/pages/customers/CustomerFinancesTab";
+import CustomerProfileTab from "@/pages/customers/CustomerProfileTab";
+import CustomerResultsTab from "@/pages/customers/CustomerResultTab";
+
+import NewAnamnesisPage from "../anamnesis/NewAnamnesisPage";
 
 const sidebarNavItems = [
   {
-    title: 'Dados Pessoais',
-    link: '',
+    title: "Dados Pessoais",
+    link: "",
   },
   {
-    title: 'Anamnese',
-    link: 'anamnesis',
+    title: "Anamnese",
+    link: "anamnesis",
   },
   {
-    title: 'Consultas',
-    link: 'appointments',
+    title: "Consultas",
+    link: "consultas",
   },
   {
-    title: 'Financeiro',
-    link: 'finances',
+    title: "Financeiro",
+    link: "finances",
   },
   {
-    title: 'Resultados',
-    link: 'results',
+    title: "Resultados",
+    link: "results",
   },
-]
+];
 
 const CustomerDetailsPage: React.FC = () => {
-  const { id } = useParams()
-  const customer: ICustomer | undefined = useGetCustomerData(id)
+  const { customerId } = useParams();
+  const customer: ICustomer | undefined = useGetCustomerData(customerId!);
 
   return (
     customer && (
@@ -55,7 +58,8 @@ const CustomerDetailsPage: React.FC = () => {
             <Routes>
               <Route path="/" element={<CustomerProfileTab />} />
               <Route path="anamnesis" element={<CustomerAnamnesisTab />} />
-              <Route path="appointments" element={<CustomerConsultasTab />} />
+              <Route path="create-anamnesis" element={<NewAnamnesisPage />} />
+              <Route path="consultas" element={<CustomerConsultasTab />} />
               <Route path="finances" element={<CustomerFinancesTab />} />
               <Route path="results" element={<CustomerResultsTab />} />
             </Routes>
@@ -63,7 +67,7 @@ const CustomerDetailsPage: React.FC = () => {
         </div>
       </div>
     )
-  )
-}
+  );
+};
 
-export default CustomerDetailsPage
+export default CustomerDetailsPage;

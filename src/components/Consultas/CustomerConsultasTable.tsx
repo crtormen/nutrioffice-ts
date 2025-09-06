@@ -1,14 +1,26 @@
-import { useFillCustomerConsultaTable } from '@/components/Consultas/hooks'
-import { columns } from './columns'
-import { DataTable } from '@/components/ui/data-table'
-import { Loader2 } from 'lucide-react'
+import { Loader2 } from "lucide-react";
+import { useParams } from "react-router-dom";
 
-export const CustomerConsultasTable = (customerId: string) => {
-  const { consultas, isLoading } = useFillCustomerConsultaTable(customerId)
+import { useFillCustomerConsultasTable } from "@/components/Consultas/hooks";
+import { DataTable } from "@/components/ui/data-table";
+
+import { columns } from "./customerColumns";
+
+export const CustomerConsultasTable = () => {
+  const { customerId } = useParams();
+  const { consultas, isLoading } = useFillCustomerConsultasTable(customerId);
 
   return isLoading ? (
-    <Loader2 className="size-8 animate-spin text-zinc-500 items-center mx-auto" />
+    <Loader2 className="mx-auto size-8 animate-spin items-center text-zinc-500" />
+  ) : consultas && consultas?.length > 0 ? (
+    <DataTable columns={columns} data={consultas} />
   ) : (
-    consultas && <DataTable columns={columns} data={consultas} />
-  )
-}
+    <div className="space-y-4">
+      <div>
+        <h4 className="text-md space-y-2 py-4 font-medium">
+          Nenhuma consulta cadastrada.
+        </h4>
+      </div>
+    </div>
+  );
+};

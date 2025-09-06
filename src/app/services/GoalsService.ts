@@ -1,36 +1,39 @@
-import { IGoal, IGoalFirebase, IPayment } from "@/domain/entities";
-import { DatabaseService, createCollection } from "./DatabaseService";
 import {
-  query,
   DocumentData,
   PartialWithFieldValue,
+  query,
   QueryDocumentSnapshot,
   SnapshotOptions,
 } from "firebase/firestore";
+
+import { IGoal, IGoalFirebase } from "@/domain/entities";
 import { dateInString } from "@/lib/utils";
+
+import { createCollectionRef, DatabaseService } from "./DatabaseService";
 
 const GoalsCollection = (uid: string, customerId: string) => {
   return uid
-    ? createCollection<IGoalFirebase>(
-        "users/" + uid + "/customers/" + customerId + "/goals"
+    ? createCollectionRef<IGoalFirebase>(
+        "users/" + uid + "/customers/" + customerId + "/goals",
       )
     : null;
 };
 
 export const GoalsService = (uid: string, customerId: string) => {
+  if (!uid) return;
   const collection = GoalsCollection(uid, customerId);
   if (!collection) return;
 
-  const goalsService = new DatabaseService<IGoalFirebase, IGoal>(collection);
+  const goalsService = new DatabaseService<IGoalFirebase>(collection);
 
   goalsService.query = query(
     collection.withConverter({
-      toFirestore({ id, ...data }: PartialWithFieldValue<IGoal>): DocumentData {
+      toFirestore({ ...data }: PartialWithFieldValue<IGoal>): DocumentData {
         return data;
       },
       fromFirestore(
         snapshot: QueryDocumentSnapshot<IGoalFirebase>,
-        options: SnapshotOptions
+        options: SnapshotOptions,
       ): IGoal {
         const data = snapshot.data(options);
 
@@ -41,7 +44,7 @@ export const GoalsService = (uid: string, customerId: string) => {
           endDate: dateInString(data.endDate),
         };
       },
-    })
+    }),
   );
   return goalsService;
 };

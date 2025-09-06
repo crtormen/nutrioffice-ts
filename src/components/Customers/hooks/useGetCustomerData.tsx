@@ -1,17 +1,16 @@
-import { useAuth } from "@/infra/firebase";
+import { useAppSelector } from "@/app/state";
 import {
   selectCustomerById,
   useFetchCustomersQuery,
 } from "@/app/state/features/customersSlice";
-import { useAppSelector } from "@/app/state";
 import { ICustomer } from "@/domain/entities/customer";
+import { useAuth } from "@/infra/firebase";
 
-export const useGetCustomerData = (customerId: string) => {
-  const auth = useAuth();
-  const uid = auth.user?.uid;
+export const useGetCustomerData = (customerId: string | undefined) => {
+  const { dbUid } = useAuth();
 
-  const result = useFetchCustomersQuery(uid);
-  const selector = selectCustomerById(uid, customerId);
+  useFetchCustomersQuery(dbUid);
+  const selector = selectCustomerById(dbUid, customerId);
   const customerData: ICustomer | undefined = useAppSelector(selector);
 
   return customerData;

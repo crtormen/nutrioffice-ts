@@ -1,0 +1,265 @@
+{
+  "anamnesis": {
+    "objetivos": {
+      "label": "Objetivos",
+      "placeholder": "Clique para selecionar",
+      "type": "multiple",
+      "options": {
+        "emagrecimento": "Emagrecimento",
+        "hipertrofia": "Hipertrofia",
+        "definicao": "Definição",
+        "performance": "Performance",
+        "saude": "Saúde",
+        "estetica": "Estética",
+        "fertilidade": "Fertilidade",
+        "gestacional": "Gestacional"
+      },
+      "rules": {
+        "required": true
+      }
+    },
+    "atividades": {
+      "label": "Atividades Físicas Que Pratica",
+      "placeholder": "Tipos e frequencia. Ex: Musculação 3x por semana, Corrida 1x por semana",
+      "type": "text",
+      "rules": {
+        "required": true
+      }
+    },
+    "ja_fez_dieta": {
+      "label": "Já fez algum acompanhamento nutricional?",
+      "type": "radio",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      },
+      "rules": {}
+    },
+    "usa_suplemento": {
+      "label": "Utiliza suplementos?",
+      "type": "radio",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      },
+      "rules": {}
+    },
+    "suplementos": {
+      "label": "Se sim, quais suplementos utiliza?",
+      "type": "text",
+      "condition": {
+        "field": "usa_suplemento",
+        "value": "yes"
+      },
+      "rules": {}
+    },
+    "fumante": {
+      "label": "Fumante",
+      "type": "radio",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      },
+      "rules": {}
+    },
+    "bebida": {
+      "label": "Consumo de Álcool",
+      "type": "radio",
+      "options": {
+        "nunca": "Não bebo",
+        "raramente": "Sim, raramente",
+        "pouco": "Sim, 1-2x por mês",
+        "regular": "Sim, 1-2x por semana",
+        "muito": "Sim, mais de 3x por semana"
+      },
+      "rules": {}
+    },
+    "infancia": {
+      "label": "Infância",
+      "type": "radio",
+      "options": {
+        "magro": "Magro(a)",
+        "gordinho": "Gordinho(a)",
+        "obeso": "Obeso(a)"
+      },
+      "rules": {}
+    },
+    "horas_sono": {
+      "label": "Horas de Sono",
+      "type": "radio",
+      "options": {
+        "pouco": "De 2 a 3 horas",
+        "regular": "De 4 a 6 horas",
+        "bom": "De 6 a 8 horas",
+        "muito": "Mais de 8 horas"
+      },
+      "rules": {}
+    },
+    "horarios_fome": {
+      "label": "Horários de maior fome",
+      "placeholder": "Clique para selecionar",
+      "type": "multiple",
+      "options": {
+        "manha": "Manhã (até 11h)",
+        "almoco": "Almoço (entre 11h e 13h)",
+        "tarde1": "Início da tarde (entre 13h e 15:30)",
+        "tarde2": "Fim de tarde (entre 16h e 19h)",
+        "noite": "Noite (após 19h)"
+      },
+      "rules": {}
+    },
+    "patologias": {
+      "label": "Possui alguma doença ou patologia? Descreva",
+      "type": "text",
+      "rules": {}
+    },
+    "medicamentos": {
+      "label": "Medicamentos que utiliza regularmente",
+      "type": "text",
+      "rules": {}
+    },
+    "intestino": {
+      "label": "Como é seu hábito intestinal?",
+      "type": "radio",
+      "options": {
+        "constipado": "Constipado (evacua menos de 4x/semana)",
+        "normal": "Normal (até 2x por dia)",
+        "solto": "Solto (mais de 2x por dia)",
+        "diarreia": "Diarréia (cocô mole, sem forma)"
+      },
+      "rules": {}
+    },
+    "estresse": {
+      "label": "Nível de Estresse",
+      "type": "radio",
+      "options": {
+        "pouco": "Pouco estresse",
+        "normal": "Normal",
+        "muito": "Muito estresse"
+      },
+      "rules": {}
+    },
+    "sono": {
+      "placeholder": "Clique para selecionar",
+      "label": "Qualidade do Sono",
+      "type": "multiple",
+      "options": {
+        "ronca": "Ronca",
+        "fraco": "Acorda várias vezes",
+        "bom": "Dorme bem",
+        "cansado": "Acorda cansado",
+        "insonia": "Tem insônia",
+        "bruxismo": "Sofre de bruxismo",
+        "dificuldade": "Dificuldade para adormecer"
+      },
+      "rules": {}
+    },
+    "emocional": {
+      "label": "Você sofre de algum destes fatores emocionais?",
+      "placeholder": "Clique para selecionar",
+      "type": "multiple",
+      "options": {
+        "ansiedade": "Ansiedade",
+        "depressao": "Depressão",
+        "hiperatividade": "Hiperatividade",
+        "compulsao": "Compulsão Alimentar",
+        "anorexia": "Anorexia",
+        "bulimia": "Bulimia"
+      },
+      "rules": {}
+    },
+    "libido": {
+      "label": "Como é sua libido?",
+      "type": "radio",
+      "gender": "H",
+      "options": {
+        "baixo": "Baixa",
+        "medio": "Normal",
+        "alto": "Alta"
+      }
+    },
+    "calvicie": {
+      "label": "Possui algum grau de calvície?",
+      "type": "radio",
+      "gender": "H",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      }
+    },
+    "gestante": {
+      "label": "Já foi ou é gestante?",
+      "type": "radio",
+      "gender": "M",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      }
+    },
+    "anticoncepcional": {
+      "label": "Usou ou usa anticoncepcional?",
+      "type": "radio",
+      "gender": "M",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      }
+    },
+    "idade_anti": {
+      "label": "Quando iniciou o anticoncepcional?",
+      "placeholder": "Com que idade começou a usar o anti?",
+      "condition": {
+        "field": "anticoncepcional",
+        "value": "yes"
+      },
+      "type": "text",
+      "gender": "M"
+    },
+    "tpm": {
+      "label": "Qual é o seu grau de TPM?",
+      "type": "radio",
+      "gender": "M",
+      "options": {
+        "baixo": "Baixo",
+        "medio": "Normal",
+        "alto": "Alto"
+      }
+    },
+    "flacidez": {
+      "label": "Tem Flacidez?",
+      "type": "radio",
+      "gender": "M",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      }
+    },
+    "celulite": {
+      "label": "Tem Celulite?",
+      "type": "radio",
+      "gender": "M",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      }
+    },
+    "queda_cabelo": {
+      "label": "Tem queda de cabelo?",
+      "type": "radio",
+      "gender": "M",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      }
+    },
+    "unhas": {
+      "label": "Tem unhas fracas?",
+      "type": "radio",
+      "gender": "M",
+      "options": {
+        "yes": "Sim",
+        "no": "Não"
+      }
+    }
+  }
+}

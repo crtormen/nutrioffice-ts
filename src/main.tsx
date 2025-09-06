@@ -1,33 +1,37 @@
+import "@/assets/global.css";
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { Provider as ReduxProvider } from "react-redux";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+
+import NotFoundPage from "@/pages/infra/NotFoundPage";
 
 import AppRouter from "./app/router/AppRouter";
 import { store } from "./app/state/store";
+import { ThemeProvider } from "./components/theme/theme-provider";
+import { Toaster } from "./components/ui/sonner";
 import { AuthProvider } from "./infra/firebase";
-import NotFoundPage from "@/pages/infra/NotFoundPage";
-// import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
-import "@/assets/global.css";
+const router = createBrowserRouter([
+  {
+    path: "/*",
+    element: <AppRouter />,
+    errorElement: <NotFoundPage />,
+  },
+]);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <AuthProvider>
       <ReduxProvider store={store}>
-        <BrowserRouter>
+        <ThemeProvider storageKey="nutrioffice-theme" defaultTheme="light">
+          <Toaster richColors />
           <main className="App min-h-screen">
-            <Routes>
-              <Route
-                path="/*"
-                element={<AppRouter />}
-                errorElement={<NotFoundPage />}
-              />
-            </Routes>
+            <RouterProvider router={router} />
           </main>
-          {/* <ReactQueryDevtools initialIsOpen={false} /> */}
-        </BrowserRouter>
+        </ThemeProvider>
       </ReduxProvider>
     </AuthProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

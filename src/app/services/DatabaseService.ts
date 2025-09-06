@@ -1,68 +1,78 @@
 /* eslint-disable accessor-pairs */
-import { db } from '@/infra/firebase'
-import { Unsubscribe } from 'firebase/auth'
+import { Unsubscribe } from "firebase/auth";
 import {
   addDoc,
-  getDocs,
-  deleteDoc,
   collection,
-  getDoc,
+  CollectionReference,
+  deleteDoc,
   doc,
   DocumentData,
+  getDoc,
+  getDocs,
   onSnapshot,
-  CollectionReference,
-  QuerySnapshot,
   Query,
-} from 'firebase/firestore'
+  QuerySnapshot,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
 
-export const createCollection = <T = DocumentData>(collectionPath: string) => {
-  return collection(db, collectionPath) as CollectionReference<T>
-}
+import { db } from "@/infra/firebase";
+
+export const createCollectionRef = <T = DocumentData>(
+  collectionPath: string,
+) => {
+  return collection(db, collectionPath) as CollectionReference<T>;
+};
 
 export class DatabaseService<T> {
-  readonly collection
-  _query!: Query
+  readonly collection;
+  _query!: Query;
 
   constructor(collectionRef: CollectionReference<T>, q?: Query) {
-    this.collection = collectionRef
-    if (q) this._query = q
+    this.collection = collectionRef;
+    if (q) this._query = q;
   }
 
   set query(q: Query) {
-    this._query = q
+    this._query = q;
   }
 
   async getAllOnce(): Promise<QuerySnapshot<DocumentData>> {
-    const querySnapshot = await getDocs(this._query)
-    return querySnapshot
+    const querySnapshot = await getDocs(this._query);
+    return querySnapshot;
   }
 
   getAll(callback: (snapshot: QuerySnapshot) => void): Unsubscribe {
-    const unsubscribe = onSnapshot(this._query, callback)
-    return unsubscribe
+    const unsubscribe = onSnapshot(this._query, callback);
+    return unsubscribe;
   }
 
   async addOne(data: T) {
-    console.log(data)
-    const docRef = await addDoc(this.collection, data)
-    return docRef
+    const docRef = await addDoc(this.collection, data);
+    return docRef;
+  }
+
+  async setOne(id: string, data: T, merge?: boolean) {
+    const docRef = doc(this.collection, id);
+    return await setDoc(docRef, data, { merge });
   }
 
   async deleteOne(id: string) {
-    await deleteDoc(doc(this.collection, id))
+    const docRef = doc(this.collection, id);
+    return await deleteDoc(docRef);
   }
 
-  // async updateOne(id: string, data: UpdateData<T>) {
-  //   await updateDoc(doc(this.collection, id), data);
-  // }
+  async updateOne(id: string, data: Partial<T>) {
+    const docRef = doc(this.collection, id);
+    return await updateDoc(docRef, data);
+  }
 
   async getOne(id: string) {
-    const docRef = doc(this.collection!, 'customer_id', id)
-    const snapshot = await getDoc(docRef)
+    const docRef = doc(this.collection, id);
+    const snapshot = await getDoc(docRef);
+    if (!snapshot.exists()) return;
 
-    if (!snapshot.exists()) return
-
-    return snapshot.data()
+    return snapshot.data();
   }
 }
 // getAll(
