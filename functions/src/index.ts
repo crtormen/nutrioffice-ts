@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import { onRequest, onCall } from "firebase-functions/v2/https";
-import * as anamnesisFields from "./default/anamnesisFields.json";
+import * as anamnesisFields from "./default/anamnesisFields.json" assert { type: "json" };
 import {
   onDocumentCreated,
   onDocumentUpdated,
@@ -12,9 +12,10 @@ import {
   // FirestoreEvent,
 } from "firebase-functions/v2/firestore";
 import { getFirestore } from "firebase-admin/firestore";
-import * as admin from "firebase-admin";
+import { initializeApp } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 
-admin.initializeApp();
+const admin = initializeApp();
 
 export type abilities = "PROFESSIONAL" | "COLLABORATOR" | "CUSTOMER";
 export interface IUser {
@@ -35,14 +36,11 @@ export interface IUser {
 export const createAuthUser = onCall(async (request) => {
   const user: IUser = request.data;
   // Check whether the user already exists. If so, update it, otherwise, create a new one.
-  return admin
-    .auth()
+  return getAuth()
     .getUserByEmail(user.email!)
     .then(async (userExists) => {
       try {
-        const updateResult = await admin
-          .auth()
-          .updateUser(userExists.uid, user);
+        const updateResult = await getAuth().updateUser(userExists.uid, user);
         functions.logger.info(
           "AUTH: Successfully updated user:'",
           updateResult.uid,
@@ -55,7 +53,7 @@ export const createAuthUser = onCall(async (request) => {
           "AUTH: Error updating existent user: ",
           updateError,
         );
-        throw new functions.auth.HttpsError(code, "Error updating user");
+        throw new functions.https.HttpsError(code, "Error updating user");
       }
     })
     .catch(async (reason: unknown) => {
@@ -63,14 +61,14 @@ export const createAuthUser = onCall(async (request) => {
       // user-not-found is expected. If another error occur, throw it to the client
       if (code != "auth/user-not-found") {
         functions.logger.error("AUTH: Error getting existent user: ", reason);
-        throw new functions.auth.HttpsError(
+        throw new functions.https.HttpsError(
           code,
           "Error getting existent user",
         );
       }
       // Create new user
       try {
-        const result = await admin.auth().createUser({
+        const result = await getAuth().createUser({
           email: user.email,
           emailVerified: false,
           password: user.email,
@@ -86,7 +84,7 @@ export const createAuthUser = onCall(async (request) => {
       } catch (error) {
         const { code: code_1 } = JSON.parse(JSON.stringify(error));
         functions.logger.error("==== ERROR CREATING USER === ", code_1);
-        throw new functions.auth.HttpsError(code_1, "Error creating new user");
+        throw new functions.https.HttpsError(code_1, "Error creating new user");
       }
     });
 });
@@ -105,7 +103,7 @@ export const onCreateFirestoreUserSetCustomClaims = onDocumentCreated(
     const isAdmin = user.roles?.ability === "PROFESSIONAL";
 
     try {
-      await admin.auth().setCustomUserClaims(userId, {
+      await getAuth().setCustomUserClaims(userId, {
         admin: isAdmin,
         role: user.roles?.ability,
         contributesTo: user.contributesTo,
@@ -180,7 +178,7 @@ export const onUpdateFirestoreUser = onDocumentUpdated(
 
     console.log(user);
     try {
-      await admin.auth().setCustomUserClaims(userId, {
+      await getAuth().setCustomUserClaims(userId, {
         admin: user.roles?.ability === "PROFESSIONAL",
         role: user.roles?.ability,
         contributesTo: user.contributesTo,
@@ -268,14 +266,14 @@ export const redefineCustomClaims = onCall(async (request) => {
 
   console.log(user);
   try {
-    await admin.auth().setCustomUserClaims(userId, {
+    await getAuth().setCustomUserClaims(userId, {
       admin: user.roles?.ability === "PROFESSIONAL",
       role: user.roles?.ability,
       contributesTo: user.contributesTo,
       contributors,
     });
     return {
-      admin,
+      admin
     };
   } catch (err) {
     functions.logger.error(
@@ -292,7 +290,7 @@ export const checkCustomClaims = onRequest(async (request, response) => {
   if (!id) return;
 
   try {
-    const userRecord = await admin.auth().getUser(id as string);
+    const userRecord = await getAuth().getUser(id as string);
     response.send("Custom Claims: " + JSON.stringify(userRecord.customClaims));
   } catch (err) {
     functions.logger.warn("No user found with the UID provided", {

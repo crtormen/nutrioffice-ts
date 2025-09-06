@@ -1,3 +1,5 @@
+/* THIS FILE IS NOT BEING USED */
+
 import { FirebaseApp, initializeApp } from "firebase/app";
 import { Auth, connectAuthEmulator, getAuth } from "firebase/auth";
 import {

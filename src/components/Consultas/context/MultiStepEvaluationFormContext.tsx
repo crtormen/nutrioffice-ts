@@ -33,7 +33,7 @@ interface MultiStepEvaluationFormContextModel {
   previousStep: () => void;
   goTo: (index: number) => void;
   calculate: (data: evaluationFormInputs, online: boolean) => void;
-  handleSave: () => void;
+  handleSave: (online: boolean) => void;
 }
 
 export const MultiStepEvaluationFormContext =
@@ -253,6 +253,7 @@ export const MultiStepEvaluationFormProvider = ({
   const handleSave = useCallback(
     (online: boolean) => {
       handleSetEvaluation(
+        online,
         peso.toString(),
         idade,
         folds,

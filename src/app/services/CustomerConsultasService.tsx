@@ -43,8 +43,8 @@ export const CustomerConsultasService = (uid: string, customerId: string) => {
       ): ICustomerConsulta {
         const data = snapshot.data(options);
         return {
-          id: snapshot.id,
           ...data,
+          id: snapshot.id,
           date: dateInString(data.date),
           createdAt: dateInString(data.createdAt),
           peso: data.peso?.toString(),

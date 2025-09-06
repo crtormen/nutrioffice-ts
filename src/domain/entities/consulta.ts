@@ -68,7 +68,7 @@ export interface IMeal {
 }
 
 export interface ICustomerConsulta {
-  id?: string;
+  id: string;
   online?: boolean;
   pending?: boolean;
   createdAt?: string;
@@ -108,11 +108,12 @@ export interface ICustomerConsultaFirebase {
   meals?: IMeal[];
   structure?: IStructure;
 }
+
 export interface IConsulta {
-  id?: string;
-  online?: boolean;
-  customer_id?: string;
+  id: string;
+  customer_id: string;
   createdAt?: string;
+  online?: boolean;
   date?: string;
   gender?: string;
   idade?: number;
@@ -120,10 +121,11 @@ export interface IConsulta {
   peso?: string;
   results?: IResults;
 }
+
 export interface IConsultaFirebase {
   id?: string;
   online?: boolean;
-  customer_id?: string;
+  customer_id: string;
   createdAt?: Timestamp;
   date?: Timestamp;
   gender?: string;

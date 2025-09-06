@@ -7,17 +7,17 @@ import { useAuth } from "@/infra/firebase";
 import { ConsultaData } from "../columns";
 
 const setTableData = (
-  data: IConsulta[] | undefined,
+  data: IConsulta[],
 ): ConsultaData[] | undefined => {
-  if (!data) return undefined;
-
-  return data.map((record, i) => ({
+  const consultaDataList: ConsultaData[] = data.map((record, i) => ({
     customerId: record.customer_id,
-    name: record.name,
+    name: record.name || '',
     id: record.id,
     date: record.date,
     index: data.length - i,
   }));
+
+  return consultaDataList;
 };
 
 export const useFillConsultasTable = () => {
@@ -29,6 +29,9 @@ export const useFillConsultasTable = () => {
     useFetchAllConsultasQuery({ uid });
 
   useEffect(() => {
+    if (!data) {
+      return
+    }
     const consultasData = setTableData(data);
     setConsultas(consultasData);
   }, [data]);

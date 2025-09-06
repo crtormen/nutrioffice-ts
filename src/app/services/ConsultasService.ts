@@ -20,6 +20,7 @@ const ConsultasCollection = (uid: string) => {
 
 export const ConsultasService = (uid: string | undefined) => {
   if (!uid) return;
+  
   const collection = ConsultasCollection(uid);
   if (!collection) return;
 
@@ -36,8 +37,8 @@ export const ConsultasService = (uid: string | undefined) => {
       ): IConsulta {
         const data = snapshot.data(options);
         return {
-          id: snapshot.id,
           ...data,
+          id: snapshot.id,
           createdAt: dateInString(data.createdAt),
           date: dateInString(data.date),
           peso: data.peso?.toString(),

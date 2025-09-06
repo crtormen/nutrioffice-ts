@@ -30,8 +30,8 @@ export const consultasSlice = firestoreApi
 
             querySnapshot?.forEach((doc) => {
               consultas.push({
+                ...doc.data() as IConsulta,
                 id: doc.id,
-                ...doc.data(),
               });
             });
 
@@ -50,7 +50,7 @@ export const consultasSlice = firestoreApi
         queryFn: async ({ uid, newConsulta }) => {
           if (!uid || !newConsulta.id)
             return { error: new Error("No ID defined") };
-          // eslint-disable-next-line camelcase
+          
           const {
             // eslint-disable-next-line camelcase
             customer_id,

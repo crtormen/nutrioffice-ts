@@ -76,6 +76,7 @@ type Payload = {
     images: IImages;
   };
   [ActionTypes.setEvaluation]: {
+    online: boolean;
     peso: string;
     idade: number;
     medidas: IMeasures;
@@ -111,6 +112,7 @@ interface ConsultaContextModel {
   handleSetFormData: (params: newConsultaFormInputs, pending: boolean) => void;
   handleSetImages: (images: IImages) => void;
   handleSetEvaluation: (
+    online: boolean,
     peso: string,
     idade: number,
     dobras: IFolds,
@@ -344,6 +346,7 @@ export const ConsultaProvider = ({
 
   const handleSetEvaluation = useCallback(
     (
+      online: boolean,
       peso: string,
       idade: number,
       dobras: IFolds,
@@ -353,7 +356,7 @@ export const ConsultaProvider = ({
     ) => {
       dispatch({
         type: ActionTypes.setEvaluation,
-        payload: { peso, idade, dobras, medidas, structure, results },
+        payload: { online, peso, idade, dobras, medidas, structure, results },
       });
       setConsultaChanged(true);
     },

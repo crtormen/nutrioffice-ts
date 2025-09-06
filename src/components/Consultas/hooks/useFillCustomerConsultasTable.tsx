@@ -7,7 +7,7 @@ import { useAuth } from "@/infra/firebase";
 import { ConsultaData } from "../customerColumns";
 
 const setTableData = (
-  data: ICustomerConsulta[] | undefined,
+  data: ICustomerConsulta[],
 ): ConsultaData[] | undefined => {
   if (!data) return undefined;
 
@@ -28,6 +28,9 @@ export const useFillCustomerConsultasTable = (customerId?: string) => {
   );
 
   useEffect(() => {
+    if (!data) {
+      return
+    }
     const consultasData = setTableData(data);
     setConsultas(consultasData);
   }, [data]);

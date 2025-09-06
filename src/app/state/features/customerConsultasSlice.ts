@@ -48,8 +48,8 @@ export const customerConsultasSlice = firestoreApi
 
             querySnapshot?.forEach((doc) => {
               consultas.push({
+                ...doc.data() as ICustomerConsulta,
                 id: doc.id,
-                ...doc.data(),
               });
             });
 
@@ -218,6 +218,19 @@ export const customerConsultasSlice = firestoreApi
       }),
     }),
   });
+
+
+export const selectConsultaById = (
+  uid: string | undefined,
+  customerId: string | undefined,
+  consultaId: string | undefined,
+) => {
+  return createSelector(
+    customerConsultasSlice.endpoints.fetchConsultas.select({uid, customerId}),
+    ({ data: consultas }) =>
+      consultas?.filter((consulta) => consulta.id === consultaId)[0],
+  );
+};
 
 export const selectLastConsulta = (uid: string, customerId: string) =>
   createSelector(

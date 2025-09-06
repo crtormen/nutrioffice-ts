@@ -5,10 +5,10 @@ import {
   selectLastConsulta,
   useFetchConsultasQuery,
 } from "@/app/state/features/customerConsultasSlice";
-import { IConsulta } from "@/domain/entities";
+import { ICustomerConsulta } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
 
-export function useSetLastConsulta(): IConsulta | undefined {
+export function useSetLastConsulta(): ICustomerConsulta | undefined {
   const { id: customerId } = useParams();
   const { user } = useAuth();
 

@@ -18,8 +18,6 @@ import {
   getStorage,
 } from "firebase/storage";
 
-// import { env } from "@/env";
-
 const config = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_AUTH_DOMAIN,
@@ -41,12 +39,14 @@ initializeFirestore(
   },
   // "db",
 );
-export const db: Firestore = getFirestore(app);
 
+// INITIALIZE FIREBASE INSTANCES
+export const db: Firestore = getFirestore(app);
 export const auth: Auth = getAuth(app);
 export const storage: FirebaseStorage = getStorage(app);
 export const functions: Functions = getFunctions(app);
 
+// FUNCTIONS
 export const createAuthUser = httpsCallable(functions, "createAuthUser");
 export const redefineCustomClaims = httpsCallable(
   functions,
@@ -57,6 +57,8 @@ export const reloadDefaultSettingsToUser = httpsCallable(
   "reloadDefaultSettingsToUser",
 );
 
+
+// CONNECT EMULATORS
 if (location.hostname === "localhost") {
   connectFirestoreEmulator(db, "localhost", 8080);
   connectAuthEmulator(auth, "http://localhost:9099");
