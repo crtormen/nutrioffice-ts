@@ -98,12 +98,12 @@ app.get("/users/:userId/inactive-customers", async (req, res) => {
   }
 });
 
-app.post("/users/:userId/customer-anamnesis", async (req, res) => {
+app.post("/users/:userId/customer-anamnesis-consulta", async (req, res) => {
   try {
-    const { userId } = req.params;    
+    const { userId } = req.params;
     const customersRef = db.collection("/users/" + userId + "/customers");
-    const { cpf, customerData, anamnesisData } = req.body;
- 
+    const { cpf, customerData, anamnesisData, consultaData } = req.body;
+
     if (!cpf || !customerData || !anamnesisData) {
       return res.status(400).json({ error: "Missing parameters" });
     }
@@ -136,13 +136,32 @@ app.post("/users/:userId/customer-anamnesis", async (req, res) => {
         createdAt: FieldValue.serverTimestamp(),
       });
 
+    // Create new consulta if data is provided
+    let consultaId;
+    if (consultaData && Object.keys(consultaData).length > 0) {
+      const consultaRef = await customersRef
+        .doc(customerId)
+        .collection("consultas")
+        .add({
+          ...consultaData,
+          createdAt: FieldValue.serverTimestamp(),
+        });
+      consultaId = consultaRef.id;
+      console.log(`Created new consulta: ${consultaId}`);
+    }
+
+    const responseMessage = consultaId
+      ? "Customer, Anamnesis, and Consulta created successfully"
+      : "Customer and Anamnesis created successfully";
+
     return res.status(201).json({
-      message: "Anamnesis created successfully",
+      message: responseMessage,
       customerId,
       anamnesisId: anamnesisRef.id,
+      ...(consultaId && { consultaId }),
     });
   } catch (error) {
-    console.error("Error in /create-customer:", error);
+    console.error("Error in /customer-anamnesis:", error);
     return res.status(500).send("Internal Server Error");
   }
 })
@@ -168,6 +187,52 @@ app.get("/users/:userId/customers", async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 });
+
+/**
+ * POST /users/:userId/customers
+ * Creates a customer for user with userId
+ */
+app.post("/users/:userId/customers", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const customersRef = db.collection("/users/" + userId + "/customers");
+    const { cpf, customerData } = req.body;
+
+    if (!cpf || !customerData) {
+      return res.status(400).json({ error: "Missing parameters" });
+    }
+
+    // Find customer by CPF
+    const existing = await customersRef.where("cpf", "==", cpf).limit(1).get();
+    let customerId;
+    let responseMessage;
+
+    if (!existing.empty) {
+      // Customer exists
+      customerId = existing.docs[0].id;
+      responseMessage = `Found existing customer: ${customerId}`
+      console.log(responseMessage);
+    } else {
+      // Customer doesn't exist → create new one
+      const newCustomerRef = await customersRef.add({
+        cpf,
+        ...customerData,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+      customerId = newCustomerRef.id;
+      responseMessage = `Created new customer: ${customerId}`
+      console.log(responseMessage);
+    }
+    
+    return res.status(201).json({
+      message: responseMessage,
+      customerId,
+    });
+  } catch (error) {
+    console.error("Error in /users/:userId/customers:", error);
+    return res.status(500).send("Internal Server Error");
+  }
+})
 
 /**
  * GET /users/:userId/customers/:customerId/anamnesis
@@ -196,6 +261,117 @@ app.get("/users/:userId/customers/:customerId/anamnesis", async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 });
+
+/**
+ * POST /users/:userId/customers/:customerId/anamnesis
+ * Creates an anamnesis for a specific customer
+ */
+app.post("/users/:userId/customers/:customerId/anamnesis", async (req, res) => {
+  try {
+    const { userId, customerId } = req.params;
+    const { anamnesisData } = req.body;
+
+    if (!anamnesisData) {
+      return res.status(400).json({ error: "Missing parameters" });
+    }
+
+    const customerRef = db
+      .collection("users")
+      .doc(userId)
+      .collection("customers")
+      .doc(customerId);
+
+    if (!customerRef) {
+      // Customer doesn't exists
+       return res.status(400).json({ error: `Customer ${customerId} not found` });
+    }
+
+    const newAnamnesisRef = await customerRef
+      .collection("anamnesis")
+      .add({
+        ...anamnesisData,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    
+    return res.status(201).json({
+      message: `Anamnesis created successfully ${newAnamnesisRef.id}`,
+      customerId,
+    });
+  } catch (error) {
+    console.error("Error in /users/:userId/customers:", error);
+    return res.status(500).send("Internal Server Error");
+  }
+});
+
+/**
+ * GET /users/:userId/customers/:customerId/consultas
+ * Returns all consultas for a customer
+ */
+app.get("/users/:userId/customers/:customerId/consultas", async (req, res) => {
+  try {
+    const { userId, customerId } = req.params;
+    const consultasRef = db
+      .collection("users")
+      .doc(userId)
+      .collection("customers")
+      .doc(customerId)
+      .collection("consultas");
+
+    const snapshot = await consultasRef.orderBy("createdAt", "desc").get();
+
+    const consultas = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return res.status(200).json(consultas);
+  } catch (error: any) {
+    console.error(error);
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /users/:userId/customers/:customerId/consultas
+ * Creates a consulta for a specific customer
+ */
+app.post("/users/:userId/customers/:customerId/consultas", async (req, res) => {
+  try {
+    const { userId, customerId } = req.params;
+    const { consultaData } = req.body;
+
+    if (!consultaData) {
+      return res.status(400).json({ error: "Missing parameters" });
+    }
+
+    const customerRef = db
+      .collection("users")
+      .doc(userId)
+      .collection("customers")
+      .doc(customerId);
+
+    if (!customerRef) {
+      // Customer doesn't exists
+       return res.status(400).json({ error: `Customer ${customerId} not found` });
+    }
+
+    const newConsultaRef = await customerRef
+      .collection("consulta")
+      .add({
+        ...consultaData,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    
+    return res.status(201).json({
+      message: `Consulta created successfully ${newConsultaRef.id}`,
+      customerId,
+    });
+  } catch (error) {
+    console.error("Error in /users/:userId/customers:", error);
+    return res.status(500).send("Internal Server Error");
+  }
+});
+
 
 // Export the Express app as an HTTPS Cloud Function
 export const api = functions.https.onRequest(app);
