@@ -45,6 +45,7 @@ export const settingsSlice = firestoreApi
         },
       }),
       setSettings: builder.mutation<ISettings, mutationArgs>({
+        invalidatesTags: ["Settings"],
         queryFn: async ({ uid, type, setting, merge }) => {
           try {
             await SettingsService(uid)?.setOne(type, setting, merge);
