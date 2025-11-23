@@ -59,6 +59,7 @@ export const customersSlice = firestoreApi
         },
       }),
       fetchCustomersOnce: builder.query<ICustomer[], string>({
+        providesTags: ["Customers"],
         queryFn: async (uid) => {
           try {
             const querySnapshot = await CustomersService(uid)?.getAllOnce();
@@ -84,6 +85,7 @@ export const customersSlice = firestoreApi
         ICustomer,
         { uid: string | undefined; newCustomer: ICustomer }
       >({
+        invalidatesTags: ["Customers"],
         queryFn: async ({ uid, newCustomer }) => {
           const {
             name = "",
@@ -141,18 +143,32 @@ export const customersSlice = firestoreApi
           }
         },
       }),
+      updateCustomer: builder.mutation<
+        void,
+        { uid: string; customerId: string; customerData: Partial<ICustomer> }
+      >({
+        invalidatesTags: ["Customers"],
+        queryFn: async ({ uid, customerId, customerData }) => {
+          try {
+            // Convert date fields to Firestore Timestamp
+            const { birthday, createdAt, ...otherData } = customerData;
+            const updates: Partial<ICustomerFirebase> = { ...otherData };
+
+            if (birthday) {
+              updates.birthday = Timestamp.fromDate(
+                parse(birthday, "dd/MM/yyyy", new Date())
+              );
+            }
+
+            await CustomersService(uid)?.updateOne(customerId, updates);
+            return { data: undefined };
+          } catch (err: unknown) {
+            return { error: err };
+          }
+        },
+      }),
       // removeCustomer: builder.mutation({
       //   queryFn: async (id: string) => {
-      //     try {
-      //       return { data: null };
-      //     } catch (err: any) {
-      //       console.log("erro: ", err);
-      //       return { error: err };
-      //     }
-      //   },
-      // }),
-      // editCustomer: builder.mutation({
-      //   queryFn: async (customerData: ICustomer) => {
       //     try {
       //       return { data: null };
       //     } catch (err: any) {
@@ -179,6 +195,7 @@ export const {
   useFetchCustomersOnceQuery,
   useFetchCustomersQuery,
   useAddCustomerMutation,
+  useUpdateCustomerMutation,
 } = customersSlice;
 
 // export const selectCustomerById = (customerId: string) => {

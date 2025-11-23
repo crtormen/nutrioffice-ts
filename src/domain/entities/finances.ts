@@ -10,44 +10,66 @@ interface IFiles {
 
 export interface IPayment {
   createdAt: string;
-  method: number;
-  obs: string;
+  method: string; // Changed to string for better flexibility (PIX, Cartão, Dinheiro, etc)
+  obs?: string;
   valor: number;
   files?: IFiles;
 }
 
 export interface IPaymentFirebase {
   createdAt: Timestamp;
-  method: number;
-  obs: string;
+  method: string;
+  obs?: string;
   valor: number;
   files?: IFiles;
 }
 
+export interface IFinanceItem {
+  serviceId: string;
+  serviceName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  credits: number;
+}
+
 export interface IFinance {
-  id: EntityId;
+  id?: string;
+  customerId: string;
   createdAt?: string;
-  pacotes?: string;
+  items: IFinanceItem[]; // Services sold
+  subtotal: number; // Sum of all items
+  discount?: number; // Discount amount
+  total: number; // Subtotal - discount
+  pago: number; // Amount paid
+  saldo: number; // Remaining balance (total - pago)
+  creditsGranted: number; // Total credits from this sale
   obs?: string;
-  total?: string;
-  paymentMethod?: string;
-  pago?: number;
-  creditsUsed?: number;
-  creditsAvailable?: number;
-  consultas_id?: string[];
   payments?: IPayment[];
+  status: "pending" | "partial" | "paid"; // Payment status
 }
 
 export interface IFinanceFirebase {
   id?: string;
+  customerId: string;
   createdAt?: Timestamp;
-  pacotes?: string;
+  items: IFinanceItem[];
+  subtotal: number;
+  discount?: number;
+  total: number;
+  pago: number;
+  saldo: number;
+  creditsGranted: number;
   obs?: string;
-  total?: string;
-  paymentMethod?: string;
-  pago?: number;
-  creditsUsed?: number;
-  creditsAvailable?: number;
-  consultas_id?: string[];
   payments?: IPaymentFirebase[];
+  status: "pending" | "partial" | "paid";
 }
+
+export const PAYMENT_METHODS = [
+  { label: "Dinheiro", value: "dinheiro" },
+  { label: "Cartão de Crédito", value: "credito" },
+  { label: "Cartão de Débito", value: "debito" },
+  { label: "PIX", value: "pix" },
+  { label: "Transferência", value: "transferencia" },
+  { label: "Outro", value: "outro" },
+] as const;

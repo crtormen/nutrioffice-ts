@@ -10,10 +10,12 @@ const setTableData = (
   if (!data) return undefined;
 
   return data.map((record) => ({
-    id: record.id,
-    createdAt: record.createdAt,
-    pacotes: record.pacotes,
+    id: record.id!,
+    createdAt: record.createdAt || "",
+    services: record.items.map((item) => item.serviceName).join(", "),
+    total: record.total,
     pago: record.pago,
+    status: record.status,
   }));
 };
 

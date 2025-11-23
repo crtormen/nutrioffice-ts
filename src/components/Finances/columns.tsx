@@ -14,9 +14,11 @@ import {
 
 export type FinanceData = {
   id: EntityId;
-  createdAt: string | undefined;
-  pacotes: string | undefined;
-  pago: number | undefined;
+  createdAt: string;
+  services: string;
+  total: number;
+  pago: number;
+  status: "pending" | "partial" | "paid";
 };
 
 export const columns: ColumnDef<FinanceData>[] = [
@@ -35,18 +37,65 @@ export const columns: ColumnDef<FinanceData>[] = [
     },
   },
   {
-    accessorKey: "pacotes",
-    header: "Pacotes",
+    accessorKey: "services",
+    header: "Serviços",
     cell: ({ row }) => {
-      const finance = row.original;
       return (
-        <div className="text-left font-medium">{row.getValue("pacotes")}</div>
+        <div className="text-left font-medium">{row.getValue("services")}</div>
+      );
+    },
+  },
+  {
+    accessorKey: "total",
+    header: "Total",
+    cell: ({ row }) => {
+      const total = row.getValue("total") as number;
+      return (
+        <div className="text-left font-medium">
+          {new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          }).format(total)}
+        </div>
       );
     },
   },
   {
     accessorKey: "pago",
     header: "Pago",
+    cell: ({ row }) => {
+      const pago = row.getValue("pago") as number;
+      return (
+        <div className="text-left font-medium">
+          {new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          }).format(pago)}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = row.getValue("status") as "pending" | "partial" | "paid";
+      const statusLabels = {
+        pending: "Pendente",
+        partial: "Parcial",
+        paid: "Pago",
+      };
+      const statusColors = {
+        pending: "text-red-600 bg-red-50",
+        partial: "text-yellow-600 bg-yellow-50",
+        paid: "text-green-600 bg-green-50",
+      };
+      return (
+        <div className={`text-center font-medium px-2 py-1 rounded ${statusColors[status]}`}>
+          {statusLabels[status]}
+        </div>
+      );
+    },
   },
   {
     id: "actions",

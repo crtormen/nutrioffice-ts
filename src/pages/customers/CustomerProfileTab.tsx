@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 
 import { useGetCustomerData } from "@/components/Customers/hooks";
 import { Gender, GENDERS, ICustomer } from "@/domain/entities";
+import { EditCustomerDialog } from "@/components/Customers/EditCustomerDialog";
 
 const CustomerProfileTab: React.FC = () => {
   const { customerId } = useParams();
@@ -11,9 +12,12 @@ const CustomerProfileTab: React.FC = () => {
   return (
     customer && (
       <div className="space-y-6">
-        <div>
-          <h3 className="text-lg font-medium">Perfil</h3>
-          <p className="text-sm text-muted-foreground">Dados pessoais</p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="text-lg font-medium">Perfil</h3>
+            <p className="text-sm text-muted-foreground">Dados pessoais</p>
+          </div>
+          <EditCustomerDialog customer={customer} />
         </div>
         <div className="mt-6 border-t border-gray-200 px-4 py-3 sm:p-0">
           <dl className="divide-y divide-gray-200">
