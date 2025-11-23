@@ -1,8 +1,12 @@
-import React from "react";
-import { ResponsiveContainer, PieChart, Pie, Legend, Cell } from "recharts";
+import { PieChart, Pie } from "recharts";
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import { useSetLastConsulta } from "./hooks/useSetLastConsulta";
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 const RADIAN = Math.PI / 180;
 
 type PieLabelProps = {
@@ -12,7 +16,6 @@ type PieLabelProps = {
   innerRadius: number;
   outerRadius: number;
   percent: number;
-  index: number;
 };
 
 const renderCustomizedLabel = ({
@@ -22,7 +25,6 @@ const renderCustomizedLabel = ({
   innerRadius,
   outerRadius,
   percent,
-  index,
 }: PieLabelProps) => {
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -40,53 +42,57 @@ const renderCustomizedLabel = ({
   );
 };
 
-const renderLegend = (value: string | undefined, entry: any) => {
-  const { color } = entry;
-  return <span style={{ color }}>{value}</span>;
-};
-
 const CompositionChart = () => {
   const consulta = useSetLastConsulta();
-  if (!consulta || !consulta.results) return;
+  if (!consulta || !consulta.results) return null;
 
   const data = [
-    { name: "Massa Gorda", value: consulta.results.mg },
-    { name: "Massa Magra", value: consulta.results.mm },
-    { name: "Massa Residual", value: consulta.results.mr },
-    { name: "Massa Óssea", value: consulta.results.mo },
+    { name: "mg", value: consulta.results.mg, fill: "var(--color-mg)" },
+    { name: "mm", value: consulta.results.mm, fill: "var(--color-mm)" },
+    { name: "mr", value: consulta.results.mr, fill: "var(--color-mr)" },
+    { name: "mo", value: consulta.results.mo, fill: "var(--color-mo)" },
   ];
 
-  return data ? (
-    <div style={{ width: "100%", height: 220 }}>
-      <ResponsiveContainer>
-        <PieChart>
-          <Pie
-            data={data}
-            cy="50%"
-            cx="50%"
-            labelLine={false}
-            label={renderCustomizedLabel}
-            outerRadius={80}
-            fill="#8884d8"
-            dataKey="value"
-            isAnimationActive={false}
-          >
-            {data.map((entry, index) => (
-              <Cell key={index} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Legend
-            verticalAlign="middle"
-            align="left"
-            layout="vertical"
-            iconType="square"
-            formatter={renderLegend}
-            // wrapperStyle={{ padding: "0 0 10px 15px" }}
-          />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
-  ) : null;
+  const chartConfig = {
+    mg: {
+      label: "Massa Gorda",
+      color: "hsl(var(--chart-1))",
+    },
+    mm: {
+      label: "Massa Magra",
+      color: "hsl(var(--chart-2))",
+    },
+    mr: {
+      label: "Massa Residual",
+      color: "hsl(var(--chart-3))",
+    },
+    mo: {
+      label: "Massa Óssea",
+      color: "hsl(var(--chart-4))",
+    },
+  } satisfies ChartConfig;
+
+  return (
+    <ChartContainer config={chartConfig} className="h-[220px] w-full">
+      <PieChart>
+        <Pie
+          data={data}
+          cy="50%"
+          cx="50%"
+          labelLine={false}
+          label={renderCustomizedLabel}
+          outerRadius={80}
+          dataKey="value"
+          isAnimationActive={false}
+        />
+        <ChartLegend
+          content={<ChartLegendContent />}
+          verticalAlign="middle"
+          className="flex-col items-start gap-2"
+        />
+      </PieChart>
+    </ChartContainer>
+  );
 };
 
 export default CompositionChart;

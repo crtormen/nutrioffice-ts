@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useAppSelector } from "@/app/state";
 import {
   selectLastConsulta,
-  useFetchConsultasQuery,
+  useFetchCustomerConsultasQuery,
 } from "@/app/state/features/customerConsultasSlice";
 import { ICustomerConsulta } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";

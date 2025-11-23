@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 
-import { useFetchConsultasQuery } from "@/app/state/features/customerConsultasSlice";
+import { useFetchCustomerConsultasQuery } from "@/app/state/features/customerConsultasSlice";
 import { useAuth } from "@/infra/firebase";
 
 export const useSetCustomerConsultas = () => {
@@ -9,7 +9,7 @@ export const useSetCustomerConsultas = () => {
 
   if (!user || !customerId) return undefined;
 
-  const { data: consultas } = useFetchConsultasQuery({
+  const { data: consultas } = useFetchCustomerConsultasQuery({
     uid: user.uid,
     customerId,
   });
