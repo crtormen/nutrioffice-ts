@@ -1,14 +1,17 @@
 {
   "compilerOptions": {
-    "module": "ESNext",
+    "module": "NodeNext",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "outDir": "lib",
-    "target": "ES2020",
+    "target": "ES2022",
     "sourceMap": true,
     "strict": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true
+    "moduleResolution": "NodeNext",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    /* Keep JSX off (for API / Functions only) */
+    "allowJs": false
   },
   "compileOnSave": true,
   "include": ["src"]

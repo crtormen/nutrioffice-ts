@@ -1,9 +1,25 @@
 {
-  "plugins": ["react-hooks", "simple-import-sort"],
-  "rules": {
-    "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn",
-    "simple-import-sort/imports": "error"
+  "root": true,
+  "env": {
+    "es6": true,
+    "node": true
   },
-  "extends": ["@rocketseat/eslint-config/react"]
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": ["tsconfig.json"],
+    "sourceType": "module"
+  },
+  "ignorePatterns": [
+    "/lib/**/*"
+  ],
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "warn"
+  }
 }
