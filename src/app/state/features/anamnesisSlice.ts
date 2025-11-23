@@ -48,6 +48,7 @@ export const anamnesisSlice = firestoreApi
         },
       }),
       addAnamnesis: builder.mutation<IAnamnesis, mutationArgs>({
+        invalidatesTags: ["Anamnesis"],
         queryFn: async ({ uid, customerId, newAnamnesis }) => {
           if (!uid || !customerId || !newAnamnesis)
             return { error: "Args not provided" };

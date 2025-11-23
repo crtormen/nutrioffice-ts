@@ -10,13 +10,20 @@ import CustomerConsultasTab from "@/pages/customers/CustomerConsultasTab";
 import CustomerFinancesTab from "@/pages/customers/CustomerFinancesTab";
 import CustomerProfileTab from "@/pages/customers/CustomerProfileTab";
 import CustomerResultsTab from "@/pages/customers/CustomerResultTab";
+import CustomerSummaryTab from "@/pages/customers/CustomerSummaryTab";
 
 import NewAnamnesisPage from "../anamnesis/NewAnamnesisPage";
+import { ROUTES } from "@/app/router/routes";
+import { PageHeader } from "@/components/PageHeader";
 
 const sidebarNavItems = [
   {
-    title: "Dados Pessoais",
+    title: "Resumo",
     link: "",
+  },
+  {
+    title: "Dados Pessoais",
+    link: "profile",
   },
   {
     title: "Anamnese",
@@ -39,10 +46,20 @@ const sidebarNavItems = [
 const CustomerDetailsPage: React.FC = () => {
   const { customerId } = useParams();
   const customer: ICustomer | undefined = useGetCustomerData(customerId!);
+  const breadcrumbs = [
+    { label: "Dashboard", href: ROUTES.DASHBOARD },
+    { label: "Clientes", href: `/${ROUTES.CUSTOMERS.BASE}` },
+    { label: customer?.name || "Cliente" }
+  ];
 
   return (
     customer && (
       <div className="hidden space-y-6 p-10 pb-16 md:block">
+        <PageHeader
+          breadcrumbs={breadcrumbs}
+          backTo={`/${ROUTES.CUSTOMERS.BASE}`}
+        />
+        
         <div className="space-y-0.5">
           <h2 className="text-2xl font-bold tracking-tight">{customer.name}</h2>
           <p className="text-muted-foreground">
@@ -56,7 +73,8 @@ const CustomerDetailsPage: React.FC = () => {
           </aside>
           <div className="flex-1">
             <Routes>
-              <Route path="/" element={<CustomerProfileTab />} />
+              <Route path="/" element={<CustomerSummaryTab />} />
+              <Route path="profile" element={<CustomerProfileTab />} />
               <Route path="anamnesis" element={<CustomerAnamnesisTab />} />
               <Route path="create-anamnesis" element={<NewAnamnesisPage />} />
               <Route path="consultas" element={<CustomerConsultasTab />} />

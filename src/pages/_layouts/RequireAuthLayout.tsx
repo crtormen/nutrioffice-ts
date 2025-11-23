@@ -1,35 +1,38 @@
-import { Loader2 } from "lucide-react";
 import { ReactNode } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-
 import { useFetchSettingsQuery } from "@/app/state/features/settingsSlice";
 import { useAuth } from "@/infra/firebase/hooks";
-
 import MainHeader from "./MainHeader";
 import { MainNav } from "./MainNav";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ROUTES } from "@/app/router/routes";
+import { useFetchUserQuery } from "@/app/state/features/userSlice";
 
 interface AuthProps {
-  // isAllowed: boolean,
+  allowedRoles?: string[],
   // redirectPath: string,
   children?: ReactNode;
 }
 
-const RequireAuthLayout = ({ children }: AuthProps) => {
-  const { user, loading } = useAuth();
+const RequireAuthLayout = ({ allowedRoles, children }: AuthProps) => {
+  const { user, loading: authLoading } = useAuth();
   const location = useLocation();
+  const { data: userProfile, isLoading: profileLoading } = useFetchUserQuery(user?.uid);
   // Load default settings from DB
   useFetchSettingsQuery(user?.uid);
 
-  if (loading)
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-2">
-        <Loader2 className="size-12 animate-spin text-zinc-500" />
-        <div className="font-semibold">Carregando...</div>
-      </div>
-    );
+  const loading = authLoading || profileLoading;
+  const isAuthenticated = !!user && !!userProfile && !profileLoading;
 
-  if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
+  if (loading) return <LoadingSpinner />;
+  if (!isAuthenticated) return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />;
 
+  if (allowedRoles && userProfile) {
+    const userHasRequiredRole = userProfile.roles && allowedRoles.includes(userProfile.roles.ability);
+    if (!userHasRequiredRole) {
+      return <Navigate to="/unauthorized" replace />
+    }
+  }
   return (
     children || (
       <div className="flex-col space-y-8 py-6">

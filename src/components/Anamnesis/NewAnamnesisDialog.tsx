@@ -19,6 +19,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { IAnamnesis } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
+import { ROUTES } from "@/app/router/routes";
 
 type DialogProps = {
   anamnesis?: IAnamnesis;
@@ -32,7 +33,7 @@ const NewAnamnesisDialog = ({ anamnesis, setDialogOpen }: DialogProps) => {
   const { anamnesisFieldArray, zodSchema } = useSetAnamnesisForm();
   const [addAnamnesis, { isLoading: isSaving }] = useAddAnamnesisMutation();
 
-  if (!zodSchema || !anamnesisFieldArray) return null;
+  if (!zodSchema || !anamnesisFieldArray || !customerId) return null;
 
   function handleNewAnamnesis(data: Record<string, zod.ZodTypeAny>) {
     let anamnesis: IAnamnesis = {};
@@ -53,7 +54,7 @@ const NewAnamnesisDialog = ({ anamnesis, setDialogOpen }: DialogProps) => {
       .unwrap()
       .then(() => {
         toast.success("Anamnese cadastrada com sucesso!");
-        navigate(`/customers/${customerId}/anamnesis`, { replace: true });
+        navigate(`${customerId && ROUTES.CUSTOMERS.DETAILS(customerId)}/anamnesis`, { replace: true });
       })
       .catch((error: unknown) => {
         console.error(error);

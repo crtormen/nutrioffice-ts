@@ -36,6 +36,7 @@ export const userSlice = firestoreApi
         },
       }),
       setUser: builder.mutation<IUser, { uid: string; newUser: IUser }>({
+        invalidatesTags: (_result, _error, { uid }) => [{ type: "User", id: uid }],
         queryFn: async ({ uid, newUser }) => {
           try {
             // const dbUser = await UserService()?.getOne(uid);
@@ -53,6 +54,7 @@ export const userSlice = firestoreApi
         },
       }),
       addUser: builder.mutation<IUser, IUser>({
+        invalidatesTags: ["User"],
         queryFn: async (newUser) => {
           try {
             const docRef = await UserService()?.addOne(newUser);
@@ -86,6 +88,7 @@ export const userSlice = firestoreApi
         IUser,
         { uid: string | undefined; updateData: IUser }
       >({
+        invalidatesTags: (_result, _error, { uid }) => [{ type: "User", id: uid }],
         queryFn: async ({ uid, updateData }, api) => {
           if (!uid) return { error: "No UID provided" };
 
