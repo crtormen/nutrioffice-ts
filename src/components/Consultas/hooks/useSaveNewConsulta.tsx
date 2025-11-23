@@ -10,6 +10,7 @@ import {
 import { useGetCustomerData } from "@/components/Customers/hooks";
 import { IConsulta, type ICustomerConsulta } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
+import { ROUTES } from "@/app/router/routes";
 
 export const useSaveNewConsulta = () => {
   const { dbUid } = useAuth();
@@ -68,7 +69,7 @@ export const useSaveNewConsulta = () => {
         } as IConsulta;
 
         addConsulta({ uid: dbUid, newConsulta: consulta2 })
-          .then(() => navigate(`/customers/${customerId}`))
+          .then(() => customerId && navigate(ROUTES.CUSTOMERS.DETAILS(customerId)))
           .catch((err) => {
             toast.error("Um erro ocorreu ao cadastrar a consulta.");
             throw new Error(err);

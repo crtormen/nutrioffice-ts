@@ -48,9 +48,12 @@ export const SetFeedingHistoryDrawer = () => {
     formState: { errors, isSubmitting },
   } = useForm<mealsFormInputs>({
     resolver: zodResolver(mealsFormValidationSchema),
-    values: consulta.meals
+    values: consulta.meals && consulta.meals.length > 0
       ? {
-          meals: consulta.meals,
+          meals: consulta.meals.map((meal) => ({
+            time: meal.time || "",
+            meal: meal.meal || "",
+          })),
         }
       : undefined,
   });

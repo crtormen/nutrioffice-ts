@@ -24,6 +24,16 @@ export interface IFolds {
   triceps: number;
 }
 
+export const FOLDS = [
+  { label: "Abdominal", value: "abdominal" },
+  { label: "Axilar", value: "axilar" },
+  { label: "Coxa", value: "coxa" },
+  { label: "Peitoral", value: "peitoral" },
+  { label: "Sub-escapular", value: "subescapular" },
+  { label: "Supra-ilíaca", value: "supra" },
+  { label: "Tríceps", value: "triceps" },
+] as const;
+
 export interface IMeasures {
   circ_abdomen?: number;
   circ_braco_dir?: number;
@@ -38,6 +48,20 @@ export interface IMeasures {
   circ_peito?: number;
 }
 
+export const MEASURES = [
+  { label: "Abdômen", value: "circ_abdomen" },
+  { label: "Cintura", value: "circ_cintura" },
+  { label: "Ombros", value: "circ_ombro" },
+  { label: "Glúteos", value: "circ_gluteo" },
+  { label: "Peito", value: "circ_peito" },
+  { label: "Braço Direito", value: "circ_braco_dir" },
+  { label: "Braço Esquerdo", value: "circ_braco_esq" },
+  { label: "Coxa Direita", value: "circ_coxa_dir" },
+  { label: "Coxa Esquerda", value: "circ_coxa_esq" },
+  { label: "Panturrilha Direita", value: "circ_panturrilha_dir" },
+  { label: "Panturrilha Esquerda", value: "circ_panturrilha_esq" },
+] as const;
+
 export interface IResults {
   dobras: number;
   fat: number;
@@ -47,14 +71,14 @@ export interface IResults {
   mr: number;
 }
 
-export const RESULTS: Record<string, { text: string; value: string }> = {
-  dobras: { text: "Soma de Dobras", value: "dobras" },
-  fat: { text: "% de Gordura", value: "fat" },
-  mg: { text: "Massa Gorda", value: "mg" },
-  mm: { text: "Massa Magra", value: "mm" },
-  mo: { text: "Massa Óssea", value: "mo" },
-  mr: { text: "Massa Residual", value: "mr" },
-};
+export const RESULTS = [
+  { label: "Soma de Dobras", value: "dobras" },
+  { label: "% de Gordura", value: "fat" },
+  { label: "Massa Gorda", value: "mg" },
+  { label: "Massa Magra", value: "mm" },
+  { label: "Massa Óssea", value: "mo" },
+  { label: "Massa Residual", value: "mr" },
+] as const;
 
 export interface IStructure {
   altura: number;
@@ -64,7 +88,8 @@ export interface IStructure {
 
 export interface IMeal {
   time: string;
-  meal: string;
+  meal?: string;
+  description?: string;
 }
 
 export interface ICustomerConsulta {

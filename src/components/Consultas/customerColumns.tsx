@@ -12,9 +12,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ROUTES } from "@/app/router/routes";
 
 export type ConsultaData = {
   id: EntityId;
+  customerId: EntityId;
   date: string | undefined;
   index: number;
 };
@@ -26,7 +28,7 @@ export const columns: ColumnDef<ConsultaData>[] = [
       const consulta = row.original;
       return (
         <div className="text-left font-medium">
-          <Link to={`/consultas/details/${consulta.id}`}>
+          <Link to={`/${ROUTES.CONSULTAS.DETAILS(consulta.customerId as string, consulta.id as string)}`}>
             Consulta nº {consulta.index}
           </Link>
         </div>

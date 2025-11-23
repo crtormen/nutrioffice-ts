@@ -33,7 +33,7 @@ export const customerConsultasSlice = firestoreApi
   })
   .injectEndpoints({
     endpoints: (builder) => ({
-      fetchConsultas: builder.query<ICustomerConsulta[], args>({
+      fetchCustomerConsultas: builder.query<ICustomerConsulta[], args>({
         providesTags: ["Consultas"],
         keepUnusedDataFor: 3600,
         queryFn: async ({ uid, customerId }) => {
@@ -69,6 +69,7 @@ export const customerConsultasSlice = firestoreApi
           consulta: ICustomerConsulta;
         }
       >({
+        invalidatesTags: ["Consultas"],
         queryFn: async ({ uid, customerId, consulta }) => {
           if (!uid || !customerId || !consulta.id)
             return { error: "Args not provided" };
@@ -141,6 +142,7 @@ export const customerConsultasSlice = firestoreApi
           newConsulta: ICustomerConsulta;
         }
       >({
+        invalidatesTags: ["Consultas"],
         queryFn: async ({ uid, customerId, newConsulta }) => {
           if (!uid || !customerId) return { error: "Args not provided" };
 
@@ -226,7 +228,7 @@ export const selectConsultaById = (
   consultaId: string | undefined,
 ) => {
   return createSelector(
-    customerConsultasSlice.endpoints.fetchConsultas.select({uid, customerId}),
+    customerConsultasSlice.endpoints.fetchCustomerConsultas.select({uid, customerId}),
     ({ data: consultas }) =>
       consultas?.filter((consulta) => consulta.id === consultaId)[0],
   );
@@ -234,7 +236,7 @@ export const selectConsultaById = (
 
 export const selectLastConsulta = (uid: string, customerId: string) =>
   createSelector(
-    customerConsultasSlice.endpoints.fetchConsultas.select({
+    customerConsultasSlice.endpoints.fetchCustomerConsultas.select({
       uid,
       customerId,
     }),
@@ -242,7 +244,7 @@ export const selectLastConsulta = (uid: string, customerId: string) =>
   );
 
 export const {
-  useFetchConsultasQuery,
+  useFetchCustomerConsultasQuery,
   useAddCustomerConsultaMutation,
   useUpdateCustomerConsultaMutation,
 } = customerConsultasSlice;

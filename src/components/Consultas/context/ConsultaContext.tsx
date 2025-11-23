@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import equal from "fast-deep-equal";
 import {
   createContext,
   ReactNode,
@@ -7,6 +8,7 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
   useState,
 } from "react";
 import { useParams } from "react-router-dom";
@@ -157,6 +159,52 @@ const initialState = {
   obs: "",
 };
 
+/**
+ * Check if consulta has any meaningful user data beyond default/empty values
+ */
+function hasConsultaMeaningfulData(consulta: ICustomerConsulta): boolean {
+  // Check meals
+  if (consulta.meals && consulta.meals.length > 0) return true;
+
+  // Check weight
+  if (consulta.peso && consulta.peso !== "") return true;
+
+  // Check attachments
+  if (consulta.anexos && consulta.anexos.length > 0) return true;
+
+  // Check images (at least one image uploaded)
+  if (consulta.images) {
+    const hasImages =
+      (consulta.images.img_frente && Object.keys(consulta.images.img_frente).length > 0) ||
+      (consulta.images.img_costas && Object.keys(consulta.images.img_costas).length > 0) ||
+      (consulta.images.img_lado && Object.keys(consulta.images.img_lado).length > 0);
+    if (hasImages) return true;
+  }
+
+  // Check folds (dobras) - at least one measurement
+  if (consulta.dobras && Object.keys(consulta.dobras).length > 0) {
+    const hasValidFold = Object.values(consulta.dobras).some(val => val && val !== 0);
+    if (hasValidFold) return true;
+  }
+
+  // Check measures (medidas) - at least one measurement
+  if (consulta.medidas && Object.keys(consulta.medidas).length > 0) {
+    const hasValidMeasure = Object.values(consulta.medidas).some(val => val && val !== 0);
+    if (hasValidMeasure) return true;
+  }
+
+  // Check results - at least one result
+  if (consulta.results && Object.keys(consulta.results).length > 0) {
+    const hasValidResult = Object.values(consulta.results).some(val => val && val !== 0);
+    if (hasValidResult) return true;
+  }
+
+  // Check observations
+  if (consulta.obs && consulta.obs.trim() !== "") return true;
+
+  return false;
+}
+
 export const ConsultaProvider = ({
   children,
 }: ConsultaProviderProps): JSX.Element => {
@@ -175,6 +223,7 @@ export const ConsultaProvider = ({
   const [goal, setGoal] = useState<IGoal>();
   const [consultaChanged, setConsultaChanged] = useState(false);
   const [consultaCreated, setConsultaCreated] = useState(false);
+  const previousConsultaRef = useRef<ICustomerConsulta>(initialState as ICustomerConsulta);
 
   function consultaReducer(
     consulta: ICustomerConsulta,
@@ -285,19 +334,25 @@ export const ConsultaProvider = ({
   }, []);
 
   const handleSetDate = useCallback((date: string) => {
-    dispatch({
-      type: ActionTypes.setDate,
-      payload: { date },
-    });
-    setConsultaChanged(true);
+    const newConsulta = { ...previousConsultaRef.current, date };
+    if (!equal(newConsulta, previousConsultaRef.current)) {
+      dispatch({
+        type: ActionTypes.setDate,
+        payload: { date },
+      });
+      setConsultaChanged(true);
+    }
   }, []);
 
   const handleSetUpdateCredits = useCallback((updateCredits: boolean) => {
-    dispatch({
-      type: ActionTypes.setUpdateCredits,
-      payload: { updateCredits },
-    });
-    setConsultaChanged(true);
+    const newConsulta = { ...previousConsultaRef.current, updateCredits };
+    if (!equal(newConsulta, previousConsultaRef.current)) {
+      dispatch({
+        type: ActionTypes.setUpdateCredits,
+        payload: { updateCredits },
+      });
+      setConsultaChanged(true);
+    }
   }, []);
 
   const handleSetFormData = useCallback(
@@ -305,43 +360,54 @@ export const ConsultaProvider = ({
       { updateCredits, date, obs, online }: newConsultaFormInputs,
       pending: boolean,
     ) => {
-      dispatch({
-        type: ActionTypes.setFormData,
-        payload: {
-          updateCredits: updateCredits || false,
-          online: online || false,
-          date: format(date, "dd/MM/yyyy"),
-          obs,
-          pending,
-        },
-      });
-      setConsultaChanged(true);
+      const newData = {
+        updateCredits: updateCredits || false,
+        online: online || false,
+        date: format(date, "dd/MM/yyyy"),
+        obs,
+        pending,
+      };
+      const newConsulta = { ...previousConsultaRef.current, ...newData };
+      if (!equal(newConsulta, previousConsultaRef.current)) {
+        dispatch({
+          type: ActionTypes.setFormData,
+          payload: newData,
+        });
+        setConsultaChanged(true);
+      }
     },
     [],
   );
 
   const handleSetMeals = useCallback((meals: IMeal[]) => {
-    dispatch({
-      type: ActionTypes.setMeals,
-      payload: { meals },
-    });
-    setConsultaChanged(true);
+    const newConsulta = { ...previousConsultaRef.current, meals };
+    if (!equal(newConsulta.meals, previousConsultaRef.current.meals)) {
+      dispatch({
+        type: ActionTypes.setMeals,
+        payload: { meals },
+      });
+      setConsultaChanged(true);
+    }
   }, []);
 
   const handleSetAnexos = useCallback((anexos: IAttachment[]) => {
-    dispatch({
-      type: ActionTypes.setAnexos,
-      payload: { anexos },
-    });
-    setConsultaChanged(true);
+    if (!equal(anexos, previousConsultaRef.current.anexos)) {
+      dispatch({
+        type: ActionTypes.setAnexos,
+        payload: { anexos },
+      });
+      setConsultaChanged(true);
+    }
   }, []);
 
   const handleSetImages = useCallback((images: IImages) => {
-    dispatch({
-      type: ActionTypes.setImages,
-      payload: { images },
-    });
-    setConsultaChanged(true);
+    if (!equal(images, previousConsultaRef.current.images)) {
+      dispatch({
+        type: ActionTypes.setImages,
+        payload: { images },
+      });
+      setConsultaChanged(true);
+    }
   }, []);
 
   const handleSetEvaluation = useCallback(
@@ -354,21 +420,27 @@ export const ConsultaProvider = ({
       structure: IStructure,
       results: IResults,
     ) => {
-      dispatch({
-        type: ActionTypes.setEvaluation,
-        payload: { online, peso, idade, dobras, medidas, structure, results },
-      });
-      setConsultaChanged(true);
+      const newData = { online, peso, idade, dobras, medidas, structure, results };
+      const newConsulta = { ...previousConsultaRef.current, ...newData };
+      if (!equal(newConsulta, previousConsultaRef.current)) {
+        dispatch({
+          type: ActionTypes.setEvaluation,
+          payload: newData,
+        });
+        setConsultaChanged(true);
+      }
     },
     [],
   );
 
   const handleSetObs = useCallback((obs: string) => {
-    dispatch({
-      type: ActionTypes.setObs,
-      payload: { obs },
-    });
-    setConsultaChanged(true);
+    if (obs !== previousConsultaRef.current.obs) {
+      dispatch({
+        type: ActionTypes.setObs,
+        payload: { obs },
+      });
+      setConsultaChanged(true);
+    }
   }, []);
 
   const handleSetGoal = useCallback((goal: IGoal) => {
@@ -376,10 +448,24 @@ export const ConsultaProvider = ({
     // setConsultaChanged(true);
   }, []);
 
+  // Update previousConsultaRef whenever consulta changes
+  useEffect(() => {
+    previousConsultaRef.current = consulta;
+  }, [consulta]);
+
+  // Effect 1: Initial consulta creation (only when meaningful data exists)
   useEffect(() => {
     const createConsulta = async () => {
       if (!consulta || !customerId || !consultaChanged || consultaCreated)
         return;
+
+      // IMPORTANT: Only create consulta if it has meaningful user data
+      if (!hasConsultaMeaningfulData(consulta)) {
+        console.log("Skipping consulta creation - no meaningful data");
+        setConsultaChanged(false);
+        return;
+      }
+
       // If consulta_id not defined yet, create consulta in Firebase
       // with pending = true, and store consulta_id at consultareducer;
       setConsultaCreated(true);
@@ -387,7 +473,7 @@ export const ConsultaProvider = ({
       try {
         const id = await handleCreateNewConsulta(consulta);
         if (!id || id === "") return; // something went wrong
-        console.log(id);
+        console.log("Created consulta with ID:", id);
         handleSetId(id);
       } catch (err: unknown) {
         toast.error(
@@ -404,17 +490,17 @@ export const ConsultaProvider = ({
     customerId,
     handleCreateNewConsulta,
     handleSetId,
-    handleUpdateConsulta,
   ]);
 
+  // Effect 2: Update existing consulta (only when consultaChanged flag is true)
   useEffect(() => {
     if (!customerId || !consulta || !consultaCreated || !consultaChanged) {
       return;
     }
-    console.log("Update Consulta", consulta);
+    console.log("Updating consulta", consulta);
     handleUpdateConsulta(consulta);
     setConsultaChanged(false);
-  }, [consulta]);
+  }, [consultaChanged, customerId, consulta, consultaCreated, handleUpdateConsulta]);
 
   // se já tiver consulta_id, atualiza sempre que consulta atualizar
 

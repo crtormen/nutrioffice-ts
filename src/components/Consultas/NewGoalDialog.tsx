@@ -72,7 +72,11 @@ export type newGoalFormInputs = z.infer<typeof newGoalValidationSchema>;
 - close datepicker dialog when a day were selected
 */
 
-export const NewGoalDialog = () => {
+interface NewGoalDialogProps {
+  children?: React.ReactNode;
+}
+
+export const NewGoalDialog = ({ children }: NewGoalDialogProps = {}) => {
   const [goalDrawerOpen, setGoalDrawerOpen] = useState<boolean>(false);
   const { consulta } = useConsultaContext();
   const { handleSaveGoal, isSaving } = useSaveGoal();
@@ -133,7 +137,7 @@ export const NewGoalDialog = () => {
     }
   };
 
-  return consulta.results && Object.entries(consulta.results).length > 0 ? (
+  return consulta?.results && Object.keys(consulta.results).length > 0 ? (
     <Drawer
       direction="right"
       open={goalDrawerOpen}
@@ -143,9 +147,11 @@ export const NewGoalDialog = () => {
       }}
     >
       <DrawerTrigger asChild>
-        <Button variant="outline">
-          <Plus /> Criar Meta
-        </Button>
+        {children || (
+          <Button variant="outline">
+            <Plus /> Criar Meta
+          </Button>
+        )}
       </DrawerTrigger>
       <DrawerPortal>
         <DrawerOverlay className="fixed inset-0 bg-black/30" />

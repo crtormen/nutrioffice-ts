@@ -5,12 +5,15 @@ import { z } from "zod";
 import { useConsultaContext } from "@/components/Consultas/context/ConsultaContext";
 import { MultiStepEvaluationFormProvider } from "@/components/Consultas/context/MultiStepEvaluationFormContext";
 import { NewGoalDialog } from "@/components/Consultas/NewGoalDialog";
+import { PageHeader } from "@/components/PageHeader";
 import { PersonalData } from "@/components/Consultas/PersonalData";
 import { SetEvaluationDrawer } from "@/components/Consultas/SetEvaluationDrawer";
 import { SetFeedingHistoryDrawer } from "@/components/Consultas/SetFeedingHistoryDrawer";
 import { SetFilesDrawer } from "@/components/Consultas/SetFilesDrawer";
 import { SetImagesDrawer } from "@/components/Consultas/SetImagesDrawer";
 import { ShowAnamnesis } from "@/components/Consultas/ShowAnamnesis";
+import { GoalProgressCard } from "@/components/Results/GoalProgressCard";
+import { GoalsList } from "@/components/Results/GoalsList";
 import Form, { FormInput, FormTextarea } from "@/components/form";
 import {
   Accordion,
@@ -28,15 +31,18 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/infra/firebase/hooks";
+import { ROUTES } from "@/app/router/routes";
+import { useParams } from "react-router-dom";
 /* eslint-disable spaced-comment */
-const sidebarNavItems = [
+const getSidebarNavItems = (customerId: string, userId: string) => [
   {
     title: "Anamnese",
     content: <ShowAnamnesis />,
   },
   {
     title: "Metas",
-    content: "",
+    content: <GoalsList customerId={customerId} userId={userId} />,
   },
   {
     title: "Evolução",
@@ -59,8 +65,12 @@ export type newConsultaFormInputs = z.infer<typeof newConsultaValidationSchema>;
 
 const NewConsultaPage = () => {
   // const [openFeedingHistory, setOpenFeedingHistory] = useState(false);
-  const { handleSetFormData } =
+  const { customerId } = useParams<{ customerId: string }>();
+  const { dbUid } = useAuth();
+  const { handleSetFormData, consulta, customer } =
     useConsultaContext();
+
+  const sidebarNavItems = getSidebarNavItems(customerId!, dbUid!);
 
   function handleSaveConsulta(data: newConsultaFormInputs) {
     console.log(data);
@@ -69,25 +79,27 @@ const NewConsultaPage = () => {
 
   }
 
+  const breadcrumbs = [
+    { label: "Dashboard", href: ROUTES.DASHBOARD },
+    { label: "Clientes", href: `/${ROUTES.CUSTOMERS.BASE}` },
+    { label: customer?.name || "Cliente", href: ROUTES.CUSTOMERS.DETAILS(customerId!) },
+    { label: "Nova Consulta" },
+  ];
+
   return (
       <div className="hidden space-y-6 p-6 pb-16 md:block">
+        <PageHeader
+          breadcrumbs={breadcrumbs}
+          backTo={ROUTES.CUSTOMERS.DETAILS(customerId!)}
+        />
         <PersonalData />
         <div className="flex flex-col space-y-6 lg:flex-row lg:space-x-6 lg:space-y-0">
           <aside className="flex flex-col gap-4 lg:w-1/2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Meta Atual</CardTitle>
-                <CardDescription>
-                  O cliente não possui meta definida. Crie uma no botão abaixo.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-2">
-                <NewGoalDialog />
-                {/* <Button variant="outline">
-                  <Plus /> Criar Meta
-                </Button> */}
-              </CardContent>
-            </Card>
+            <GoalProgressCard
+              customerId={customerId!}
+              userId={dbUid!}
+              currentConsultaResults={consulta?.results}
+            />
             <Card>
               <CardHeader>
                 <CardTitle>Informações do Cliente</CardTitle>

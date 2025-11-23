@@ -60,6 +60,7 @@ export const goalsSlice = firestoreApi
           newGoal: IGoal;
         }
       >({
+        invalidatesTags: ["Goals"],
         queryFn: async ({ uid, customerId, newGoal }) => {
           if (!uid || !customerId) return { error: "Args not provided" };
 

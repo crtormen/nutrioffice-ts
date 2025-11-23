@@ -47,6 +47,7 @@ export const consultasSlice = firestoreApi
         IConsulta,
         { uid: string | undefined; newConsulta: IConsulta }
       >({
+        invalidatesTags: ["Consultas"],
         queryFn: async ({ uid, newConsulta }) => {
           if (!uid || !newConsulta.id)
             return { error: new Error("No ID defined") };
