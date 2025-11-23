@@ -1,38 +1,22 @@
 import React from "react";
-import { Route, Routes, useParams } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Calendar } from "lucide-react";
 import { format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SidebarNav } from "@/pages/_layouts/SidebarNav";
 import { PageHeader } from "@/components/PageHeader";
 import { useGetCustomerConsultaData } from "@/components/Consultas/hooks/useGetCustomerConsultas";
 import { useGetCustomerData } from "@/components/Customers/hooks";
-import { useAuth } from "@/infra/firebase/hooks";
 import { ROUTES } from "@/app/router/routes";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ConsultaProfileTab from "./tabs/ConsultaProfileTab";
 import ConsultaResultsTab from "./tabs/ConsultaResultsTab";
 import ConsultaPhotosTab from "./tabs/ConsultaPhotosTab";
 
-const sidebarNavItems = [
-  {
-    title: "Dados da Consulta",
-    link: "",
-  },
-  {
-    title: "Metas e Resultados",
-    link: "results",
-  },
-  {
-    title: "Fotos",
-    link: "pictures",
-  },
-];
-
 const ConsultaDetailsPage: React.FC = () => {
   const { customerId, consultaId } = useParams<{ customerId: string; consultaId: string }>();
-  const { dbUid } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Fetch consulta data with both parameters
   const consulta = useGetCustomerConsultaData(customerId, consultaId);
@@ -54,18 +38,34 @@ const ConsultaDetailsPage: React.FC = () => {
 
   const consultaDate = formatConsultaDate(consulta?.date);
 
+  // Determine active tab from URL path
+  const getActiveTab = () => {
+    const path = location.pathname;
+    if (path.includes("/results")) return "results";
+    if (path.includes("/pictures")) return "pictures";
+    return "profile";
+  };
+
+  const handleTabChange = (value: string) => {
+    const baseUrl = `/${ROUTES.CUSTOMERS.BASE}/${customerId}/${ROUTES.CONSULTAS.BASE}/${consultaId}`;
+    if (value === "profile") {
+      navigate(baseUrl);
+    } else {
+      navigate(`${baseUrl}/${value}`);
+    }
+  };
+
   // Loading state
   if (!consulta) {
     return (
-      <div className="hidden space-y-6 p-10 pb-16 md:block">
+      <div className="space-y-6 p-6 md:p-10">
         <div className="space-y-4">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-4 w-96" />
         </div>
-        <Separator className="my-6" />
-        <div className="flex gap-12">
-          <Skeleton className="h-96 w-48" />
-          <Skeleton className="h-96 flex-1" />
+        <div className="space-y-4 mt-8">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-96 w-full" />
         </div>
       </div>
     );
@@ -77,35 +77,55 @@ const ConsultaDetailsPage: React.FC = () => {
     { label: customer?.name || "Cliente", href: `/${ROUTES.CUSTOMERS.DETAILS(customerId!)}` },
     { label: `Consulta ${consultaDate}` },
   ];
-  // Future: AI suggestions (e.g., "Weight trend suggests goal achievable by [date]")
+
   return (
-    <div className="hidden space-y-6 p-10 pb-16 md:block">
+    <div className="space-y-6 p-6 md:p-10">
       <PageHeader
         breadcrumbs={breadcrumbs}
         backTo={`/${ROUTES.CUSTOMERS.DETAILS(customerId!)}`}
       />
 
       {/* Page subtitle with date */}
-      <div className="flex items-center gap-2 text-muted-foreground -mt-4 mb-6">
+      <div className="flex items-center gap-2 text-muted-foreground">
         <Calendar className="h-4 w-4" />
         <p>Consulta realizada em {consultaDate}</p>
       </div>
 
-      <Separator className="my-6" />
+      {/* Horizontal tabs navigation and content */}
+      <Tabs value={getActiveTab()} onValueChange={handleTabChange} className="space-y-6">
+        <TabsList className="border-b w-full justify-start rounded-none bg-transparent p-0 h-auto">
+          <TabsTrigger
+            value="profile"
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+          >
+            Dados da Consulta
+          </TabsTrigger>
+          <TabsTrigger
+            value="results"
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+          >
+            Metas e Resultados
+          </TabsTrigger>
+          <TabsTrigger
+            value="pictures"
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+          >
+            Fotos
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Tab navigation and content */}
-      <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
-        <aside className="-mx-4 lg:w-1/5">
-          <SidebarNav items={sidebarNavItems} />
-        </aside>
-        <div className="flex-1">
-          <Routes>
-            <Route path="/" element={<ConsultaProfileTab />} />
-            <Route path="results" element={<ConsultaResultsTab />} />
-            <Route path="pictures" element={<ConsultaPhotosTab />} />
-          </Routes>
-        </div>
-      </div>
+        <TabsContent value="profile" className="mt-6">
+          <ConsultaProfileTab />
+        </TabsContent>
+
+        <TabsContent value="results" className="mt-6">
+          <ConsultaResultsTab />
+        </TabsContent>
+
+        <TabsContent value="pictures" className="mt-6">
+          <ConsultaPhotosTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

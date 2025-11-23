@@ -37,7 +37,7 @@ const RequireAuthLayout = ({ allowedRoles, children }: AuthProps) => {
     children || (
       <div className="flex-col space-y-8 py-6">
         <MainHeader />
-        <main className="mx-auto max-w-6xl flex-1 space-y-5">
+        <main className="mx-auto max-w-screen-xl flex-1 space-y-5">
           <MainNav className="mx-6" />
           <Outlet />
         </main>
