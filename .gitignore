@@ -25,3 +25,10 @@ firebase-debug.log*
 firestore-debug.log*
 /firebase-export-*
 /exported_data
+
+# Firebase emulator data (may contain sensitive production data)
+/emulator-data
+/saved-data
+/production-export
+/datasets
+emulator-data-backup-*

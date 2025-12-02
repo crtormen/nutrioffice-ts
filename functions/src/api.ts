@@ -1,9 +1,11 @@
 import functions from "firebase-functions";
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import express from "express";
 import cors from "cors";
+import { v4 as uuidv4 } from "uuid";
 
 import { db, auth } from "./firebase-admin.js";
+import { sendInvitationEmail } from "./services/emailService.js";
 
 // Hardcoded userId for development - remove in production
 // const userId = "P0gkEAaP8YSARPyS5pKak6ZWss13";
@@ -369,6 +371,387 @@ app.post("/users/:userId/customers/:customerId/consultas", async (req, res) => {
   } catch (error) {
     console.error("Error in /users/:userId/customers:", error);
     return res.status(500).send("Internal Server Error");
+  }
+});
+
+/**
+ * ========================================
+ * INVITATION ENDPOINTS
+ * ========================================
+ */
+
+/**
+ * POST /users/:userId/invitations
+ * Send invitation to a collaborator
+ * Requires: PROFESSIONAL role
+ */
+app.post("/users/:userId/invitations", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { email, role, permissions } = req.body;
+
+    if (!email || !role) {
+      return res.status(400).json({ error: "Missing required fields: email, role" });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+
+    // Get professional user data
+    const professionalDoc = await db.collection("users").doc(userId).get();
+    if (!professionalDoc.exists) {
+      return res.status(404).json({ error: "Professional not found" });
+    }
+
+    const professionalData = professionalDoc.data();
+    const professionalRole = professionalData?.roles?.ability;
+
+    // Only PROFESSIONAL role can send invitations
+    if (professionalRole !== "PROFESSIONAL") {
+      return res.status(403).json({ error: "Only professionals can send invitations" });
+    }
+
+    // Check collaborator limit (5 max)
+    const contributorsRef = db.collection("users").doc(userId).collection("contributors");
+    const contributorsSnapshot = await contributorsRef.get();
+    const currentCollaboratorCount = contributorsSnapshot.size;
+
+    if (currentCollaboratorCount >= 5) {
+      return res.status(400).json({
+        error: "Collaborator limit reached",
+        message: "You have reached the maximum of 5 collaborators. Please upgrade your plan to add more.",
+      });
+    }
+
+    // Check if invitation already exists for this email
+    const existingInvitation = await db
+      .collection("invitations")
+      .where("email", "==", email.toLowerCase())
+      .where("professionalId", "==", userId)
+      .where("status", "==", "pending")
+      .get();
+
+    if (!existingInvitation.empty) {
+      return res.status(400).json({
+        error: "Invitation already sent",
+        message: "An active invitation already exists for this email.",
+      });
+    }
+
+    // Check if user already exists with this email
+    try {
+      const existingUser = await auth.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({
+          error: "User already exists",
+          message: "A user with this email already exists in the system.",
+        });
+      }
+    } catch (error: any) {
+      // User not found is expected, continue with invitation
+      if (error.code !== "auth/user-not-found") {
+        throw error;
+      }
+    }
+
+    // Generate secure token
+    const token = uuidv4();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiration
+
+    // Create invitation document
+    const invitationRef = await db.collection("invitations").add({
+      email: email.toLowerCase(),
+      professionalId: userId,
+      professionalName: professionalData?.name || "Professional",
+      role,
+      permissions: permissions || [],
+      status: "pending",
+      token,
+      createdAt: FieldValue.serverTimestamp(),
+      expiresAt: Timestamp.fromDate(expiresAt),
+    });
+
+    // Send invitation email
+    const emailSent = await sendInvitationEmail({
+      recipientEmail: email,
+      professionalName: professionalData?.name || "Professional",
+      role,
+      token,
+      expiresAt,
+    });
+
+    if (!emailSent) {
+      functions.logger.warn(`Invitation created but email failed to send: ${invitationRef.id}`);
+    }
+
+    return res.status(201).json({
+      message: "Invitation sent successfully",
+      invitationId: invitationRef.id,
+      emailSent,
+    });
+  } catch (error: any) {
+    console.error("Error sending invitation:", error);
+    return res.status(500).json({ error: "Internal Server Error", details: error.message });
+  }
+});
+
+/**
+ * GET /users/:userId/invitations
+ * Get all invitations for a professional
+ */
+app.get("/users/:userId/invitations", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { status } = req.query;
+
+    let query = db
+      .collection("invitations")
+      .where("professionalId", "==", userId)
+      .orderBy("createdAt", "desc");
+
+    if (status) {
+      query = query.where("status", "==", status);
+    }
+
+    const snapshot = await query.get();
+
+    const invitations = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        email: data.email,
+        role: data.role,
+        permissions: data.permissions,
+        status: data.status,
+        createdAt: data.createdAt?.toDate().toISOString(),
+        expiresAt: data.expiresAt?.toDate().toISOString(),
+      };
+    });
+
+    return res.status(200).json(invitations);
+  } catch (error: any) {
+    console.error("Error fetching invitations:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+/**
+ * GET /invitations/:token
+ * Get invitation details by token (no auth required for registration flow)
+ */
+app.get("/invitations/:token", async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const snapshot = await db
+      .collection("invitations")
+      .where("token", "==", token)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ error: "Invitation not found" });
+    }
+
+    const invitationDoc = snapshot.docs[0];
+    const invitation = invitationDoc.data();
+
+    // Check if invitation is expired
+    const expiresAt = invitation.expiresAt?.toDate();
+    if (expiresAt && expiresAt < new Date()) {
+      // Update status to expired
+      await invitationDoc.ref.update({ status: "expired" });
+      return res.status(400).json({ error: "Invitation expired" });
+    }
+
+    // Check if invitation is already accepted or revoked
+    if (invitation.status !== "pending") {
+      return res.status(400).json({ error: `Invitation ${invitation.status}` });
+    }
+
+    return res.status(200).json({
+      id: invitationDoc.id,
+      email: invitation.email,
+      professionalName: invitation.professionalName,
+      role: invitation.role,
+      status: invitation.status,
+      expiresAt: expiresAt?.toISOString(),
+    });
+  } catch (error: any) {
+    console.error("Error fetching invitation:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+/**
+ * POST /invitations/:token/accept
+ * Accept invitation and create user relationship
+ * Body: { userId: string } - newly created user ID
+ */
+app.post("/invitations/:token/accept", async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+
+    // Get invitation
+    const snapshot = await db
+      .collection("invitations")
+      .where("token", "==", token)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ error: "Invitation not found" });
+    }
+
+    const invitationDoc = snapshot.docs[0];
+    const invitation = invitationDoc.data();
+
+    // Validate invitation
+    if (invitation.status !== "pending") {
+      return res.status(400).json({ error: "Invitation already processed" });
+    }
+
+    const expiresAt = invitation.expiresAt?.toDate();
+    if (expiresAt && expiresAt < new Date()) {
+      await invitationDoc.ref.update({ status: "expired" });
+      return res.status(400).json({ error: "Invitation expired" });
+    }
+
+    // Update user document with contributesTo
+    await db.collection("users").doc(userId).update({
+      contributesTo: invitation.professionalId,
+    });
+
+    // Add user to professional's contributors collection
+    await db
+      .collection("users")
+      .doc(invitation.professionalId)
+      .collection("contributors")
+      .doc(userId)
+      .set({
+        name: "", // Will be updated by user profile
+        email: invitation.email,
+        phone: "",
+        roles: invitation.role,
+        permissions: invitation.permissions || [],
+        addedAt: FieldValue.serverTimestamp(),
+      });
+
+    // Mark invitation as accepted
+    await invitationDoc.ref.update({
+      status: "accepted",
+      acceptedAt: FieldValue.serverTimestamp(),
+      acceptedBy: userId,
+    });
+
+    return res.status(200).json({
+      message: "Invitation accepted successfully",
+      professionalId: invitation.professionalId,
+    });
+  } catch (error: any) {
+    console.error("Error accepting invitation:", error);
+    return res.status(500).json({ error: "Internal Server Error", details: error.message });
+  }
+});
+
+/**
+ * DELETE /users/:userId/invitations/:invitationId
+ * Revoke/cancel an invitation
+ */
+app.delete("/users/:userId/invitations/:invitationId", async (req, res) => {
+  try {
+    const { userId, invitationId } = req.params;
+
+    const invitationRef = db.collection("invitations").doc(invitationId);
+    const invitationDoc = await invitationRef.get();
+
+    if (!invitationDoc.exists) {
+      return res.status(404).json({ error: "Invitation not found" });
+    }
+
+    const invitation = invitationDoc.data();
+
+    // Verify ownership
+    if (invitation?.professionalId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    // Update status to revoked
+    await invitationRef.update({
+      status: "revoked",
+      revokedAt: FieldValue.serverTimestamp(),
+    });
+
+    return res.status(200).json({ message: "Invitation revoked successfully" });
+  } catch (error: any) {
+    console.error("Error revoking invitation:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+/**
+ * POST /users/:userId/invitations/:invitationId/resend
+ * Resend invitation email
+ */
+app.post("/users/:userId/invitations/:invitationId/resend", async (req, res) => {
+  try {
+    const { userId, invitationId } = req.params;
+
+    const invitationRef = db.collection("invitations").doc(invitationId);
+    const invitationDoc = await invitationRef.get();
+
+    if (!invitationDoc.exists) {
+      return res.status(404).json({ error: "Invitation not found" });
+    }
+
+    const invitation = invitationDoc.data();
+
+    // Verify ownership
+    if (invitation?.professionalId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    // Can only resend pending invitations
+    if (invitation?.status !== "pending") {
+      return res.status(400).json({ error: "Can only resend pending invitations" });
+    }
+
+    // Get professional data
+    const professionalDoc = await db.collection("users").doc(userId).get();
+    const professionalData = professionalDoc.data();
+
+    // Send invitation email
+    const expiresAt = invitation.expiresAt?.toDate() || new Date();
+    const emailSent = await sendInvitationEmail({
+      recipientEmail: invitation.email,
+      professionalName: professionalData?.name || "Professional",
+      role: invitation.role,
+      token: invitation.token,
+      expiresAt,
+    });
+
+    if (!emailSent) {
+      return res.status(500).json({ error: "Failed to send email" });
+    }
+
+    // Update last sent timestamp
+    await invitationRef.update({
+      lastSentAt: FieldValue.serverTimestamp(),
+    });
+
+    return res.status(200).json({ message: "Invitation resent successfully" });
+  } catch (error: any) {
+    console.error("Error resending invitation:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
