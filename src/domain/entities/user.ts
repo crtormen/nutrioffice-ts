@@ -1,4 +1,5 @@
 import { EntityId } from "@reduxjs/toolkit";
+import { ISubscription } from "./subscription";
 
 export const abilities = [
   "PROFESSIONAL",
@@ -42,8 +43,20 @@ export interface IUser {
   roles?: {
     ability: Abilities;
   };
+  avatarUrl?: string;
+  clinicName?: string;
+  specialty?: string;
+  licenseNumber?: string;
+  bio?: string;
+  website?: string;
+  whatsapp?: string;
   contributesTo?: string;
   contributors?: IContributors;
+
+  // Subscription system fields
+  subscription?: ISubscription;
+  permanentFree?: boolean;  // For special accounts (e.g., wife's account)
+  currentCustomerCount?: number;  // Cached count for quick limit checks
   // isActive
   // plan
   // payments
