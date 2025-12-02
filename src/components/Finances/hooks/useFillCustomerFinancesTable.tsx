@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FinanceData } from "../columns";
 import { useAuth } from "@/infra/firebase";
-import { useFetchFinancesQuery } from "@/app/state/features/financesSlice";
+import { useFetchCustomerFinancesQuery } from "@/app/state/features/customerFinancesSlice";
 import { IFinance } from "@/domain/entities";
 
 const setTableData = (
@@ -33,7 +33,7 @@ export const useFillCustomerFinancesTable = (customerId: string) => {
       error: "UID not provided",
     };
 
-  const { data, isLoading, isSuccess, isError, error } = useFetchFinancesQuery({
+  const { data, isLoading, isSuccess, isError, error } = useFetchCustomerFinancesQuery({
     uid,
     customerId,
   });

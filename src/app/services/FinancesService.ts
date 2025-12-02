@@ -9,24 +9,19 @@ import {
 } from "firebase/firestore";
 
 import { IFinance, IFinanceFirebase, IPayment } from "@/domain/entities";
-import { dateInString } from "@/lib/utils";
 
 import { createCollectionRef, DatabaseService } from "./DatabaseService";
 
-const FinancesCollection = (uid: string, customerId: string) => {
-  return uid && customerId
-    ? createCollectionRef<IFinanceFirebase>(
-        "users/" + uid + "/customers/" + customerId + "/finances",
-      )
+const FinancesCollection = (uid: string) => {
+  return uid
+    ? createCollectionRef<IFinanceFirebase>("users/" + uid + "/finances")
     : null;
 };
 
-export const FinancesService = (
-  uid: string | undefined,
-  customerId: string | undefined
-) => {
-  if (!uid || !customerId) return;
-  const collection = FinancesCollection(uid, customerId);
+export const FinancesService = (uid: string | undefined) => {
+  if (!uid) return;
+
+  const collection = FinancesCollection(uid);
   if (!collection) return;
 
   const financesService = new DatabaseService<IFinanceFirebase>(collection);
@@ -59,19 +54,20 @@ export const FinancesService = (
         const payments: IPayment[] | undefined = data.payments
           ? data.payments.map((payment) => ({
               ...payment,
-              createdAt: dateInString(payment.createdAt),
+              createdAt: payment.createdAt?.toDate().toISOString() || "",
             }))
           : undefined;
-        const returnData: IFinance = {
+
+        return {
           id: snapshot.id,
           ...data,
-          createdAt: dateInString(data.createdAt),
+          createdAt: data.createdAt?.toDate().toISOString() || "",
           payments,
         };
-        return returnData;
       },
     }),
-    orderBy("createdAt", "desc")
+    orderBy("createdAt", "desc"),
   );
+
   return financesService;
 };

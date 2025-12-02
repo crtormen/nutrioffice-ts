@@ -37,7 +37,7 @@ export interface IFinance {
   id?: string;
   customerId: string;
   createdAt?: string;
-  items: IFinanceItem[]; // Services sold
+  items?: IFinanceItem[]; // Services sold (optional for backwards compatibility)
   subtotal: number; // Sum of all items
   discount?: number; // Discount amount
   total: number; // Subtotal - discount
@@ -53,7 +53,7 @@ export interface IFinanceFirebase {
   id?: string;
   customerId: string;
   createdAt?: Timestamp;
-  items: IFinanceItem[];
+  items?: IFinanceItem[]; // Optional for backwards compatibility
   subtotal: number;
   discount?: number;
   total: number;

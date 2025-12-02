@@ -26,7 +26,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/infra/firebase/hooks";
 import { useFetchSettingsQuery } from "@/app/state/features/settingsSlice";
-import { useAddFinanceMutation } from "@/app/state/features/financesSlice";
+import { useAddCustomerFinanceMutation } from "@/app/state/features/customerFinancesSlice";
 import { useToast } from "@/components/ui/use-toast";
 import { IServiceConfig, IAllSettings } from "@/domain/entities/settings";
 import { IFinanceItem, PAYMENT_METHODS } from "@/domain/entities/finances";
@@ -55,7 +55,7 @@ export const NewFinanceDialog = ({
   const { dbUid } = useAuth();
   const { toast } = useToast();
   const { data: settings } = useFetchSettingsQuery(dbUid);
-  const [addFinance] = useAddFinanceMutation();
+  const [addCustomerFinance] = useAddCustomerFinanceMutation();
   const [isOpen, setIsOpen] = useState(false);
 
   // Selected services state
@@ -200,7 +200,7 @@ export const NewFinanceDialog = ({
             ]
           : undefined;
 
-      await addFinance({
+      await addCustomerFinance({
         uid: dbUid!,
         customerId,
         finance: {
