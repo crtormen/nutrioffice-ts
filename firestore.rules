@@ -13,31 +13,105 @@ service cloud.firestore {
     match /users/{userId}/{userData=**} {
     	allow read, write: if isOwner(userId) || isContributor(userId);
     }
-    
-    
+
+    // Customer creation with subscription limit enforcement
+    match /users/{userId}/customers/{customerId} {
+      allow read: if isOwner(userId) || isContributor(userId);
+      allow update, delete: if isOwner(userId) || isContributor(userId);
+      allow create: if (isOwner(userId) || isContributor(userId)) && canAddCustomer(userId);
+    }
+
+    // Invitation rules
+    match /invitations/{invitationId} {
+      // Allow reading invitation by anyone (needed for registration flow)
+      allow read: if true;
+
+      // Only authenticated users can write
+      allow create: if isSignedIn() && isProfessional();
+      allow update: if isSignedIn() && (
+        isProfessional() ||
+        resource.data.status == 'pending' // Allow accepting invitation
+      );
+      allow delete: if isSignedIn() && isProfessional();
+    }
+
+
     function isSignedIn() {
       return request.auth != null;
     }
-    
+
     function isOwner(userId) {
     	return request.auth.uid == userId
     }
-    
+
     function getRole() {
       return request.auth.token.role;
     }
-    
+
+    function isProfessional() {
+      return getRole() == "PROFESSIONAL";
+    }
+
     function getContributors(uid) {
     	return get(/databases/$(database)/documents/users/$(uid)/contributors).data;
     }
-    
+
     function isContributor(uid) {
     	let contributesTo = request.auth.token.contributesTo;
     	return (
-      	getRole() == "COLLABORATOR" && 
-        contributesTo == uid && 
+      	getRole() == "COLLABORATOR" &&
+        contributesTo == uid &&
         request.auth.uid in getContributors(contributesTo)
         ) ? true : false;
+    }
+
+    // Subscription limit functions
+    function getUserData(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
+
+    function isPermanentFree(userId) {
+      let userData = getUserData(userId);
+      return userData.permanentFree == true;
+    }
+
+    function getCustomerLimit(userId) {
+      let userData = getUserData(userId);
+
+      // Permanent free accounts have no limit
+      if (userData.permanentFree == true) {
+        return 999999;
+      }
+
+      let subscription = userData.subscription;
+
+      // No subscription means free tier
+      if (subscription == null) {
+        return 50;
+      }
+
+      // Get limit based on plan tier
+      let planTier = subscription.planTier;
+      return planTier == "free" ? 50 :
+             planTier == "starter" ? 200 :
+             planTier == "professional" ? 500 :
+             999999; // enterprise = unlimited
+    }
+
+    function getCurrentCustomerCount(userId) {
+      let userData = getUserData(userId);
+      return userData.currentCustomerCount != null ? userData.currentCustomerCount : 0;
+    }
+
+    function canAddCustomer(userId) {
+      // Permanent free accounts can always add
+      if (isPermanentFree(userId)) {
+        return true;
+      }
+
+      let currentCount = getCurrentCustomerCount(userId);
+      let limit = getCustomerLimit(userId);
+      return currentCount < limit;
     }
   }
 }
