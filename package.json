@@ -10,7 +10,8 @@
     "lint-fix": "eslint . --ext .tsx --fix",
     "preview": "vite preview",
     "serve": "firebase emulators:start",
-    "emulate": "firebase emulators:start --only firestore,storage,auth,functions --import=./saved-data --export-on-exit"
+    "emulate-old": "firebase emulators:start --only firestore,storage,auth,functions --import=./saved-data --export-on-exit",
+    "emulate": "firebase emulators:start --only firestore,storage,auth,functions --import ./emulator-data --export-on-exit ./emulator-data"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.4.2",
@@ -81,7 +82,7 @@
     "eslint-plugin-simple-import-sort": "^12.1.0",
     "postcss": "^8.4.35",
     "prettier-plugin-tailwindcss": "^0.5.14",
-    "shadcn": "^3.5.0",
+    "shadcn": "^3.5.1",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3",
     "vite": "^5.1.4"
