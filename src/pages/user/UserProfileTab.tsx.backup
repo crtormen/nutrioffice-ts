@@ -1,0 +1,404 @@
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useAuth } from "@/infra/firebase";
+import { storage } from "@/infra/firebase/firebaseConfig";
+import {
+  useFetchUserQuery,
+  useUpdateUserMutation,
+} from "@/app/state/features/userSlice";
+import { ABILITIES, IUser } from "@/domain/entities";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { toast } from "sonner";
+import { getInitials } from "@/lib/utils";
+
+const profileSchema = z.object({
+  name: z.string().min(2, "Informe pelo menos 2 caracteres"),
+  email: z.string().email("Email inválido"),
+  phone: z
+    .string()
+    .min(8, "Informe um telefone válido")
+    .max(20, "Telefone muito longo")
+    .optional()
+    .or(z.literal("")),
+  clinicName: z.string().max(80, "Máximo 80 caracteres").optional(),
+  specialty: z.string().max(80, "Máximo 80 caracteres").optional(),
+  licenseNumber: z.string().max(40, "Máximo 40 caracteres").optional(),
+  bio: z.string().max(240, "Máximo 240 caracteres").optional(),
+  website: z
+    .string()
+    .url("Informe uma URL válida (https://...)")
+    .optional()
+    .or(z.literal("")),
+  whatsapp: z.string().max(20, "Máximo 20 caracteres").optional(),
+});
+
+type ProfileFormValues = z.infer<typeof profileSchema>;
+
+const InfoItem = ({ label, value }: { label: string; value?: string | null }) => (
+  <div className="space-y-1 rounded-md border p-3">
+    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      {label}
+    </p>
+    <p className="text-sm font-medium leading-relaxed">{value || "—"}</p>
+  </div>
+);
+
+const UserProfileTab = () => {
+  const { dbUid, user: authUser } = useAuth();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const { data: user, isLoading } = useFetchUserQuery(dbUid, { skip: !dbUid });
+  const [updateUser, { isLoading: isSaving }] = useUpdateUserMutation();
+
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      name: user?.name || authUser?.displayName || "",
+      email: user?.email || authUser?.email || "",
+      phone: user?.phone || "",
+      clinicName: user?.clinicName || "",
+      specialty: user?.specialty || "",
+      licenseNumber: user?.licenseNumber || "",
+      bio: user?.bio || "",
+      website: user?.website || "",
+      whatsapp: user?.whatsapp || "",
+    },
+  });
+
+  useEffect(() => {
+    if (user || authUser) {
+      form.reset({
+        name: user?.name || authUser?.displayName || "",
+        email: user?.email || authUser?.email || "",
+        phone: user?.phone || "",
+        clinicName: user?.clinicName || "",
+        specialty: user?.specialty || "",
+        licenseNumber: user?.licenseNumber || "",
+        bio: user?.bio || "",
+        website: user?.website || "",
+        whatsapp: user?.whatsapp || "",
+      });
+    }
+  }, [user, authUser, form]);
+
+  const abilityLabel = useMemo(() => {
+    const abilityKey = user?.roles?.ability;
+    if (!abilityKey) return "Usuário";
+    return ABILITIES[abilityKey]?.text || abilityKey;
+  }, [user?.roles?.ability]);
+
+  const onSubmit = async (values: ProfileFormValues) => {
+    if (!dbUid) return;
+
+    const payload: Partial<IUser> = {
+      name: values.name.trim(),
+      email: values.email.trim(),
+      phone: values.phone?.trim() || "",
+      clinicName: values.clinicName?.trim(),
+      specialty: values.specialty?.trim(),
+      licenseNumber: values.licenseNumber?.trim(),
+      bio: values.bio?.trim(),
+      website: values.website?.trim(),
+      whatsapp: values.whatsapp?.trim(),
+    };
+
+    try {
+      await updateUser({ uid: dbUid, updateData: payload }).unwrap();
+      toast.success("Perfil atualizado com sucesso");
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error(error);
+      toast.error("Não foi possível salvar os dados. Tente novamente.");
+    }
+  };
+
+  const avatarSrc = user?.avatarUrl || authUser?.photoURL || "";
+
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Envie um arquivo de imagem válido.");
+      return;
+    }
+    if (!dbUid) return;
+
+    setIsUploadingAvatar(true);
+    try {
+      const avatarRef = ref(storage, `avatars/${dbUid}/profile`);
+      await uploadBytes(avatarRef, file);
+      const url = await getDownloadURL(avatarRef);
+      await updateUser({ uid: dbUid, updateData: { avatarUrl: url } }).unwrap();
+      toast.success("Foto atualizada com sucesso.");
+    } catch (error) {
+      console.error(error);
+      toast.error("Não foi possível enviar a foto. Tente novamente.");
+    } finally {
+      setIsUploadingAvatar(false);
+      event.target.value = "";
+    }
+  };
+
+  if (isLoading || !user) {
+    return <LoadingSpinner />;
+  }
+
+  const displayName = user?.name || authUser?.displayName || "Usuário";
+  const email = user?.email || authUser?.email || "—";
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="border-b pb-6">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
+              <Avatar className="h-24 w-24 ring-2 ring-primary/20">
+                <AvatarImage src={avatarSrc} alt={displayName} />
+                <AvatarFallback className="text-lg">
+                  {getInitials(displayName)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="space-y-2 text-center sm:text-left">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                  <CardTitle className="text-2xl">{displayName}</CardTitle>
+                  <Badge variant="secondary">{abilityLabel}</Badge>
+                </div>
+                <CardDescription className="text-sm">{email}</CardDescription>
+                <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={isUploadingAvatar}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {isUploadingAvatar ? "Enviando..." : "Atualizar foto"}
+                  </Button>
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="outline">
+                        Editar dados
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Editar perfil</DialogTitle>
+                        <DialogDescription>
+                          Atualize suas informações. Alguns campos são opcionais e ajudam a compor seu perfil.
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <Form {...form}>
+                        <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+                          <div className="grid gap-4 sm:grid-cols-2">
+                            <FormField
+                              control={form.control}
+                              name="name"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Nome completo</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Ex: Ana Nutricionista" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="email"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Email</FormLabel>
+                                  <FormControl>
+                                    <Input type="email" placeholder="seu@email.com" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <div className="grid gap-4 sm:grid-cols-2">
+                            <FormField
+                              control={form.control}
+                              name="phone"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Telefone</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="(xx) xxxxx-xxxx" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="whatsapp"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>WhatsApp</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="(xx) xxxxx-xxxx" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <div className="grid gap-4 sm:grid-cols-2">
+                            <FormField
+                              control={form.control}
+                              name="clinicName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Nome da clínica</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Ex: Vitalize Clinic" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="specialty"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Especialidade</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Ex: Nutrição esportiva" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={form.control}
+                            name="licenseNumber"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Registro profissional (CRN)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Ex: CRN 12345" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="website"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Website</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="https://seusite.com" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="bio"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Bio / descrição breve</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="Conte um pouco sobre sua atuação..."
+                                    className="min-h-[90px] resize-none"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <DialogFooter className="gap-2 sm:justify-end">
+                            <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>
+                              Cancelar
+                            </Button>
+                            <Button type="submit" disabled={isSaving}>
+                              {isSaving ? "Salvando..." : "Salvar alterações"}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <InfoItem label="Telefone" value={user?.phone} />
+            <InfoItem label="WhatsApp" value={user?.whatsapp} />
+            <InfoItem label="Clínica" value={user?.clinicName} />
+            <InfoItem label="Especialidade" value={user?.specialty} />
+            <InfoItem label="Registro profissional" value={user?.licenseNumber} />
+            <InfoItem label="Website" value={user?.website} />
+          </div>
+
+          <Separator />
+
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Bio
+            </p>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              {user?.bio || "Adicione uma breve descrição sobre você."}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default UserProfileTab;

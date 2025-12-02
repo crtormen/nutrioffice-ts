@@ -90,8 +90,8 @@ const ServicesSettingsTab = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium">Serviços</h3>
-        <p className="text-sm text-muted-foreground">
+        <h3 className="text-2xl font-bold tracking-tight">Serviços</h3>
+        <p className="text-muted-foreground">
           Gerencie os serviços disponíveis para venda aos seus clientes.
         </p>
       </div>

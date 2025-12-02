@@ -10,6 +10,7 @@ import AnamnesisSettingsTab from "./AnamnesisSettingsTab";
 import AvaliationSettingsTab from "./AvaliationSettingsTab";
 import ServicesSettingsTab from "./ServicesSettingsTab";
 import ThemeSettingsTab from "./ThemeSettingsTab";
+import { SystemTab } from "./SystemTab";
 
 const sidebarNavItems = [
   {
@@ -27,6 +28,10 @@ const sidebarNavItems = [
   {
     title: "Aparência",
     link: "theme",
+  },
+  {
+    title: "Sistema",
+    link: "system",
   },
 ];
 
@@ -57,6 +62,7 @@ const SettingsPage = () => {
               <Route path="anamnesis" element={<AnamnesisSettingsTab />} />
               <Route path="avaliation" element={<AvaliationSettingsTab />} />
               <Route path="theme" element={<ThemeSettingsTab />} />
+              <Route path="system" element={<SystemTab />} />
             </Routes>
           </div>
         </div>

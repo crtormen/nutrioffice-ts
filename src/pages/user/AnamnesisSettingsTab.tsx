@@ -227,34 +227,38 @@ const AnamnesisSettingsTab = () => {
   );
 
   return (
-    <div>
-      <div className="flex w-full justify-between pb-8">
-        <h2 className="mb-4 text-xl font-semibold">Anamnese</h2>
-        <div>
-          <Dialog
-            open={dialogOpen}
-            onOpenChange={(isOpen) => {
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-2xl font-bold tracking-tight">Anamnese</h3>
+        <p className="text-muted-foreground">
+          Gerencie os campos que estarão presentes em sua anamnese.
+        </p>
+      </div>
+      <Separator />
+      <div className="flex justify-end">
+        <Dialog
+          open={dialogOpen}
+          onOpenChange={(isOpen) => {
+            setDialogOpen(isOpen);
+            setFieldToEdit({ field: undefined, type: "" });
+          }}
+        >
+          <DialogTrigger asChild>
+            <Button className="flex items-center">
+              <Plus size="16" /> <span>Novo Campo</span>
+            </Button>
+          </DialogTrigger>
+          <SetAnamnesisFieldDialog
+            fieldToEdit={fieldToEdit.field}
+            type={fieldToEdit.type}
+            isOpen={dialogOpen}
+            setDialogOpen={(isOpen: boolean) => {
               setDialogOpen(isOpen);
               setFieldToEdit({ field: undefined, type: "" });
+              refetch();
             }}
-          >
-            <DialogTrigger asChild>
-              <Button variant="outline" className="flex items-center">
-                <Plus size="16" /> <span>Novo Campo</span>
-              </Button>
-            </DialogTrigger>
-            <SetAnamnesisFieldDialog
-              fieldToEdit={fieldToEdit.field}
-              type={fieldToEdit.type}
-              isOpen={dialogOpen}
-              setDialogOpen={(isOpen: boolean) => {
-                setDialogOpen(isOpen);
-                setFieldToEdit({ field: undefined, type: "" });
-                refetch();
-              }}
-            />
-          </Dialog>
-        </div>
+          />
+        </Dialog>
       </div>
       <div className="flex flex-col gap-12">
         {customAnamnesisFields && (
@@ -266,16 +270,18 @@ const AnamnesisSettingsTab = () => {
                     Campos Personalizados
                   </h2>
                 </div>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="font-medium">Label</TableHead>
-                      <TableHead className="font-medium">Tipo</TableHead>
-                      <TableHead className="font-medium">Gênero</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <GroupRowsByGender anamnesisFields={customAnamnesisFields} />
-                </Table>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="font-medium">Label</TableHead>
+                        <TableHead className="font-medium">Tipo</TableHead>
+                        <TableHead className="font-medium">Gênero</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <GroupRowsByGender anamnesisFields={customAnamnesisFields} />
+                  </Table>
+                </div>
               </div>
             )}
             <Separator className="bg-primary" />
@@ -286,16 +292,18 @@ const AnamnesisSettingsTab = () => {
             <div>
               <h2 className="text-md font-semibold">Campos Padrão</h2>
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="font-medium">Label</TableHead>
-                  <TableHead className="font-medium">Tipo</TableHead>
-                  <TableHead className="font-medium">Gênero</TableHead>
-                </TableRow>
-              </TableHeader>
-              <GroupRowsByGender anamnesisFields={defaultAnamnesisFields} />
-            </Table>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-medium">Label</TableHead>
+                    <TableHead className="font-medium">Tipo</TableHead>
+                    <TableHead className="font-medium">Gênero</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <GroupRowsByGender anamnesisFields={defaultAnamnesisFields} />
+              </Table>
+            </div>
           </div>
         )}
       </div>
