@@ -1,31 +1,47 @@
-import { Plus } from "lucide-react";
+import { Plus, Calendar } from "lucide-react";
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { CustomerConsultasTable } from "@/components/Consultas/CustomerConsultasTable";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { ROUTES } from "@/app/router/routes";
 
 const CustomerConsultasTab = () => {
   const { customerId } = useParams();
   const navigate = useNavigate();
 
-  if (!customerId) return;
+  if (!customerId) {
+    return (
+      <div className="flex items-center justify-center p-10">
+        <p className="text-muted-foreground">Cliente não encontrado</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex w-full justify-between">
-        <h3 className="text-xl font-medium">Consultas</h3>
-        <div className="flex gap-1">
-          {/* TODO */}
-          <Button
-            variant="outline"
-            onClick={() => navigate(`/consultas/${customerId}/create`)}
-          >
-            <Plus size="16" /> Nova Consulta
-          </Button>
+      {/* Header with actions */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h3 className="text-2xl font-bold tracking-tight">Consultas</h3>
+          <p className="text-sm text-muted-foreground">
+            Histórico de atendimentos e avaliações
+          </p>
         </div>
+        <Button
+          size="sm"
+          onClick={() => navigate(ROUTES.CONSULTAS.CREATE(customerId))}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Nova Consulta
+        </Button>
       </div>
-      <div className="mt-6 border-t border-gray-200 px-4 py-3 sm:p-0">
+
+      <Separator />
+
+      {/* Consultas Table */}
+      <div className="space-y-4">
         <CustomerConsultasTable />
       </div>
     </div>

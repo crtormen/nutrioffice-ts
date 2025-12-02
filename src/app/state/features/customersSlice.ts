@@ -45,7 +45,8 @@ export const customersSlice = firestoreApi
               }));
 
               updateCachedData((draft) => {
-                draft.push(...customers);
+                // Clear the draft and replace with fresh data
+                draft.splice(0, draft.length, ...customers);
               });
             });
           } catch (err) {
@@ -147,7 +148,7 @@ export const customersSlice = firestoreApi
         void,
         { uid: string; customerId: string; customerData: Partial<ICustomer> }
       >({
-        invalidatesTags: ["Customers"],
+        // Don't invalidate tags - real-time listener will update automatically
         queryFn: async ({ uid, customerId, customerData }) => {
           try {
             // Convert date fields to Firestore Timestamp

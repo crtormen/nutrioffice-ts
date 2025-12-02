@@ -3,6 +3,8 @@ import { Loader2 } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 
 import { columns } from "./columns";
+import { customerFuzzyFilter } from "./customerFilter";
+import { CustomerSearchInput } from "./CustomerSearchInput";
 import { useFillCustomerTable } from "./hooks";
 
 const CustomersTable = () => {
@@ -18,8 +20,10 @@ const CustomersTable = () => {
       <DataTable
         columns={columns}
         data={customers}
-        filterField="name"
-        filterPlaceholder="nome"
+        customSearchComponent={
+          <CustomerSearchInput value="" onChange={() => {}} />
+        }
+        globalFilterFn={customerFuzzyFilter}
       />
     )
   );

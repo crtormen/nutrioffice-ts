@@ -1,265 +1,149 @@
-import { Plus } from "lucide-react";
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Plus, Edit, Trash2, FileText } from "lucide-react";
+import React, { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { useShowAnamnesisData } from "@/components/Anamnesis/hooks/useShowAnamnesisData";
-// import { useGetCustomerData } from "@/components/Customers/hooks";
+import { useGetAnamnesisData } from "@/components/Anamnesis/hooks/useGetAnamnesisData";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Separator } from "@/components/ui/separator";
+import { ROUTES } from "@/app/router/routes";
 
 const CustomerAnamnesisTab: React.FC = () => {
   const navigate = useNavigate();
+  const { customerId } = useParams();
   const anamnesis = useShowAnamnesisData();
+  const anamnesisData = useGetAnamnesisData(customerId);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const handleEdit = () => {
+    // TODO: Navigate to edit page when implemented
+    console.log("Edit anamnesis:", anamnesisData?.id);
+  };
+
+  const handleDelete = async () => {
+    // TODO: Implement delete functionality
+    console.log("Delete anamnesis:", anamnesisData?.id);
+    setShowDeleteDialog(false);
+  };
 
   return anamnesis ? (
     <div className="space-y-6">
-      <div className="flex w-full justify-between">
-        <h3 className="text-xl font-medium">Anamnese</h3>
-        <div className="flex gap-1">
-          {/* TODO */}
-          <Button size="sm" variant="outline">
-            Editar Anamnese
+      {/* Header with actions */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h3 className="text-2xl font-bold tracking-tight">Anamnese</h3>
+          <p className="text-sm text-muted-foreground">
+            Histórico de saúde e alimentação do paciente
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={handleEdit}>
+            <Edit className="mr-2 h-4 w-4" />
+            Editar
           </Button>
-          <Button size="sm" variant="default">
-            + Nova Anamnese
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => navigate(ROUTES.CUSTOMERS.CREATEANAMNESIS(customerId!))}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Nova Anamnese
           </Button>
-          <Button size="sm" variant="destructive">
-            Excluir Anamnese
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => setShowDeleteDialog(true)}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Excluir
           </Button>
         </div>
       </div>
-      <div className="mt-6 border-t border-gray-200 px-4 py-3 sm:p-0">
-        <dl className="flex flex-wrap divide-y divide-gray-200">
-          {anamnesis.map((field, i) => (
-            <div
-              key={i}
-              className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3"
+
+      <Separator />
+
+      {/* Anamnesis Data */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Informações da Anamnese</CardTitle>
+          {anamnesisData?.createdAt && (
+            <CardDescription>
+              Criada em {anamnesisData.createdAt}
+            </CardDescription>
+          )}
+        </CardHeader>
+        <CardContent>
+          <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            {anamnesis.map((field, i) => (
+              <div key={i} className="space-y-1">
+                <dt className="text-xs font-medium text-muted-foreground uppercase">
+                  {field.label}
+                </dt>
+                <dd className="text-sm font-medium text-foreground">
+                  {Array.isArray(field.value)
+                    ? field.value.join(", ")
+                    : field.value || "-"}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </CardContent>
+      </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta anamnese? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              <dt className="text-xs font-medium text-muted-foreground">
-                {field.label.toUpperCase()}
-              </dt>
-              <dd className="mt-1 text-sm font-semibold leading-6 text-foreground sm:col-span-2 sm:mt-0">
-                {Array.isArray(field.value)
-                  ? field.value.map((value) => value).join(", ")
-                  : field.value}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </div>
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   ) : (
-    <div className="space-y-4">
-      <div>
-        <h4 className="text-md space-y-2 font-medium">
-          Nenhuma anamnese cadastrada.
-        </h4>
-        <p className="text-sm text-muted-foreground">
-          Clique no botão abaixo para criar uma nova anamnese.
-        </p>
-      </div>
-      <Button
-        variant="outline"
-        className="flex items-center"
-        onClick={() => navigate("../create-anamnesis")}
-      >
-        <Plus size="16" /> <span>Nova Anamnese</span>
-      </Button>
-    </div>
+    <Card className="border-dashed">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <FileText className="h-5 w-5 text-muted-foreground" />
+          <CardTitle>Nenhuma anamnese cadastrada</CardTitle>
+        </div>
+        <CardDescription>
+          Registre a anamnese do paciente para acompanhar seu histórico de saúde e alimentação
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button
+          variant="outline"
+          onClick={() => navigate(ROUTES.CUSTOMERS.CREATEANAMNESIS(customerId!))}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Criar Anamnese
+        </Button>
+      </CardContent>
+    </Card>
   );
 };
 
 export default CustomerAnamnesisTab;
-// eslint-disable-next-line no-lone-blocks
-{
-  /* <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-            <dt className="text-xs font-medium text-gray-500">OBJETIVOS</dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {anamnesis.objetivos}
-            </dd>
-          </div>
-          <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-            <dt className="text-xs font-medium text-gray-500">
-              ATIVIDADES FÍSICAS
-            </dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {anamnesis.atividades}
-            </dd>
-          </div>
-          <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-            <dt className="text-xs font-medium text-gray-500">
-              CONSUMO DE ÁGUA
-            </dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {anamnesis.agua}
-            </dd>
-          </div>
-          <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-            <dt className="text-xs font-medium text-gray-500">PATOLOGIAS</dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {anamnesis.patologias}
-            </dd>
-          </div>
-          <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-            <dt className="text-xs font-medium text-gray-500">MEDICAMENTOS</dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {anamnesis.medicamentos}
-            </dd>
-          </div>
-          <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-            <dt className="text-xs font-medium text-gray-500">SUPLEMENTOS</dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {anamnesis.suplementos}
-            </dd>
-          </div>
-          <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-            <dt className="text-xs font-medium text-gray-500">
-              CONSUMO DE ALCOOL
-            </dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {anamnesis.bebida}
-            </dd>
-          </div>
-          <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-            <dt className="text-xs font-medium text-gray-500">FUMANTE</dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {anamnesis.fumante}
-            </dd>
-          </div>
-          <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-            <dt className="text-xs font-medium text-gray-500">
-              ALERGIAS/INTOLERÂNCIAS
-            </dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {anamnesis.alergias}
-            </dd>
-          </div>
-          <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-            <dt className="text-xs font-medium text-gray-500">
-              NÍVEL DE ESTRESSE
-            </dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {anamnesis.estresse}
-            </dd>
-          </div>
-          <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-            <dt className="text-xs font-medium text-gray-500">INFÂNCIA</dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {anamnesis.infancia}
-            </dd>
-          </div>
-          <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-            <dt className="text-xs font-medium text-gray-500">INTESTINO</dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {anamnesis.intestino}
-            </dd>
-          </div>
-          <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-            <dt className="text-xs font-medium text-gray-500">HORAS DE SONO</dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {anamnesis.horas_sono}
-            </dd>
-          </div>
-          <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-            <dt className="text-xs font-medium text-gray-500">
-              QUALIDADE DO SONO
-            </dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {anamnesis.sono}
-            </dd>
-          </div>
-          <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-            <dt className="text-xs font-medium text-gray-500">
-              FATORES EMOCIONAIS
-            </dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {anamnesis.emocional}
-            </dd>
-          </div>
-        </dl>
-      </div>
-      {customer?.gender === "H" && (
-        <div className="mt-6 border-t border-gray-200 px-4 py-3 sm:p-0">
-          <dl className="flex flex-wrap divide-y divide-gray-200">
-            <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-              <dt className="text-xs font-medium text-gray-500">LIBIDO</dt>
-              <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                {anamnesis.libido}
-              </dd>
-            </div>
-            <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-              <dt className="text-xs font-medium text-gray-500">CALVICIE</dt>
-              <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                {anamnesis.calvicie}
-              </dd>
-            </div>
-          </dl>
-        </div>
-      )}
-      {customer?.gender === "M" && (
-        <div className="mt-6 border-t border-gray-200 px-4 py-3 sm:p-0">
-          <dl className="flex flex-wrap divide-y divide-gray-200">
-            <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-              <dt className="text-xs font-medium text-gray-500">
-                JÁ FOI/ É GESTANTE
-              </dt>
-              <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                {anamnesis.gestante}
-              </dd>
-            </div>
-            <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-              <dt className="text-xs font-medium text-gray-500">
-                NÍVEL DE TPM
-              </dt>
-              <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                {anamnesis.tpm}
-              </dd>
-            </div>
-            <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-              <dt className="text-xs font-medium text-gray-500">
-                USOU / USA ANTICONCEPCIONAL
-              </dt>
-              <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                {anamnesis.anticoncepcional}
-              </dd>
-            </div>
-            <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-              <dt className="text-xs font-medium text-gray-500">
-                QUANDO INICIOU O ANTI
-              </dt>
-              <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                {anamnesis.idade_anti}
-              </dd>
-            </div>
-            <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-              <dt className="text-xs font-medium text-gray-500">FLACIDEZ</dt>
-              <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                {anamnesis.flacidez}
-              </dd>
-            </div>
-            <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-              <dt className="text-xs font-medium text-gray-500">CELULITE</dt>
-              <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                {anamnesis.celulite}
-              </dd>
-            </div>
-            <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-              <dt className="text-xs font-medium text-gray-500">
-                QUEDA DE CABELO
-              </dt>
-              <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                {anamnesis.queda_cabelo}
-              </dd>
-            </div>
-            <div className="flex w-1/2 flex-col items-start justify-between gap-4 py-3 sm:px-0 sm:py-3">
-              <dt className="text-xs font-medium text-gray-500">
-                UNHAS FRACAS
-              </dt>
-              <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                {anamnesis.unhas}
-              </dd>
-            </div>
-          </dl>
-        </div>
-      )} 
-    </div> */
-}

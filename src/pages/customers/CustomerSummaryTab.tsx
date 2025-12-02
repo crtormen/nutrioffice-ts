@@ -99,6 +99,12 @@ const CustomerSummaryTab: React.FC = () => {
     return <div>Carregando...</div>;
   }
 
+  if (!customerId) {
+    console.error("No customerId defined")
+    navigate(`/${ROUTES.CUSTOMERS.BASE}`)
+    return;
+  }
+
   return (
     <div className="space-y-6">
       {/* Quick Actions */}
@@ -285,7 +291,7 @@ const CustomerSummaryTab: React.FC = () => {
       </Card>
 
       {/* Important Anamnesis Info */}
-      {lastAnamnesis && (
+      {lastAnamnesis ? (
         <Card>
           <CardHeader>
             <CardTitle>Informações da Anamnese</CardTitle>
@@ -315,6 +321,27 @@ const CustomerSummaryTab: React.FC = () => {
                 </Button>
               )}
             </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-dashed">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              <CardTitle>Anamnese não cadastrada</CardTitle>
+            </div>
+            <CardDescription>
+              Registre a anamnese do paciente para acompanhar seu histórico de saúde e alimentação
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              variant="outline"
+              onClick={() => navigate(ROUTES.CUSTOMERS.CREATEANAMNESIS(customerId!))}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Criar Anamnese
+            </Button>
           </CardContent>
         </Card>
       )}

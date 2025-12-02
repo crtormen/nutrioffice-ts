@@ -17,6 +17,8 @@ export type CustomerData = {
   id: EntityId | undefined;
   name: string | undefined;
   email: string | undefined;
+  phone: string | undefined;
+  cpf: string | undefined;
   credits: number | undefined;
 };
 

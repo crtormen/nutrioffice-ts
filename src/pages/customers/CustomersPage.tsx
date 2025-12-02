@@ -1,33 +1,43 @@
-import { Plus } from "lucide-react";
+import { Plus, Users } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
 import CustomersTable from "@/components/Customers/CustomersTable";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/PageHeader";
+import { ROUTES } from "@/app/router/routes";
 
 const CustomersPage: React.FC = () => {
   const navigate = useNavigate();
 
+  const breadcrumbs = [
+    { label: "Dashboard", href: ROUTES.DASHBOARD },
+    { label: "Clientes" },
+  ];
+
   return (
-    <div className="flex-col space-y-8 p-8 md:flex">
-      <div className="flex items-center justify-between space-y-2">
-        <div>
+    <div className="space-y-6 p-6 md:p-10">
+      <PageHeader breadcrumbs={breadcrumbs} showBackButton={false} />
+
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
           <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <Users className="h-5 w-5 text-primary" />
+            </div>
             <h2 className="text-3xl font-bold tracking-tight">Clientes</h2>
-            <Button
-              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-1.5 py-1 text-xs text-white"
-              onClick={() => navigate("create")}
-            >
-              <Plus className="size-3" />
-              Novo Cliente
-            </Button>
           </div>
-          <p className="text-muted-foreground">Lista de clientes</p>
+          <p className="text-muted-foreground">
+            Gerencie seus clientes e acompanhe seu histórico
+          </p>
         </div>
+        <Button onClick={() => navigate("create")} size="default">
+          <Plus className="mr-2 h-4 w-4" />
+          Novo Cliente
+        </Button>
       </div>
-      <div className="container mx-auto py-10">
-        <CustomersTable />
-      </div>
+
+      <CustomersTable />
     </div>
   );
 };

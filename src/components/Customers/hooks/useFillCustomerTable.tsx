@@ -19,6 +19,8 @@ export const useFillCustomerTable = () => {
         id: record.id,
         name: record.name,
         email: record.email,
+        phone: record.phone,
+        cpf: record.cpf,
         credits: record.credits,
       }));
     };
