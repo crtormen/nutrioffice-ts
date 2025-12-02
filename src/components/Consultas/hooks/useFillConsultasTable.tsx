@@ -4,7 +4,7 @@ import { useFetchAllConsultasQuery } from "@/app/state/features/consultasSlice";
 import { IConsulta } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
 
-import { ConsultaData } from "../columns";
+import { ConsultaData } from "../customerColumns";
 
 const setTableData = (
   data: IConsulta[],
@@ -15,6 +15,9 @@ const setTableData = (
     id: record.id,
     date: record.date,
     index: data.length - i,
+    peso: record.peso,
+    online: record.online,
+    createdAt: record.createdAt,
   }));
 
   return consultaDataList;

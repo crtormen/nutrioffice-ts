@@ -16,6 +16,19 @@ type mutationArgs = {
   newAnamnesis?: IAnamnesis;
 };
 
+type updateArgs = {
+  uid?: string;
+  customerId?: string;
+  anamnesisId?: string;
+  updatedAnamnesis?: Partial<IAnamnesis>;
+};
+
+type deleteArgs = {
+  uid?: string;
+  customerId?: string;
+  anamnesisId?: string;
+};
+
 export const anamnesisSlice = firestoreApi
   .enhanceEndpoints({
     addTagTypes: ["Anamnesis"],
@@ -61,11 +74,46 @@ export const anamnesisSlice = firestoreApi
           }
         },
       }),
+      updateAnamnesis: builder.mutation<void, updateArgs>({
+        invalidatesTags: ["Anamnesis"],
+        queryFn: async ({ uid, customerId, anamnesisId, updatedAnamnesis }) => {
+          if (!uid || !customerId || !anamnesisId || !updatedAnamnesis)
+            return { error: "Args not provided" };
+
+          try {
+            await AnamnesisService(uid, customerId)?.updateOne(
+              anamnesisId,
+              updatedAnamnesis,
+            );
+            return { data: undefined };
+          } catch (err: unknown) {
+            return { error: err };
+          }
+        },
+      }),
+      deleteAnamnesis: builder.mutation<void, deleteArgs>({
+        invalidatesTags: ["Anamnesis"],
+        queryFn: async ({ uid, customerId, anamnesisId }) => {
+          if (!uid || !customerId || !anamnesisId)
+            return { error: "Args not provided" };
+
+          try {
+            await AnamnesisService(uid, customerId)?.deleteOne(anamnesisId);
+            return { data: undefined };
+          } catch (err: unknown) {
+            return { error: err };
+          }
+        },
+      }),
     }),
   });
 
-export const { useFetchAnamnesisQuery, useAddAnamnesisMutation } =
-  anamnesisSlice;
+export const {
+  useFetchAnamnesisQuery,
+  useAddAnamnesisMutation,
+  useUpdateAnamnesisMutation,
+  useDeleteAnamnesisMutation,
+} = anamnesisSlice;
 
 export const selectAnamnesis = (uid?: string, customerId?: string) =>
   createSelector(

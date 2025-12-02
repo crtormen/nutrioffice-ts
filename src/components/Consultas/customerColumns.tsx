@@ -1,9 +1,10 @@
 import { EntityId } from "@reduxjs/toolkit";
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Wifi, WifiOff } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,18 +18,26 @@ import { ROUTES } from "@/app/router/routes";
 export type ConsultaData = {
   id: EntityId;
   customerId: EntityId;
+  name: string;
   date: string | undefined;
   index: number;
+  peso: string | undefined;
+  online: boolean | undefined;
+  createdAt: string | undefined;
 };
 
 export const columns: ColumnDef<ConsultaData>[] = [
   {
     accessorKey: "Consulta",
+    header: "Consulta",
     cell: ({ row }) => {
       const consulta = row.original;
       return (
         <div className="text-left font-medium">
-          <Link to={`/${ROUTES.CONSULTAS.DETAILS(consulta.customerId as string, consulta.id as string)}`}>
+          <Link
+            to={`/${ROUTES.CONSULTAS.DETAILS(consulta.customerId as string, consulta.id as string)}`}
+            className="hover:underline"
+          >
             Consulta nº {consulta.index}
           </Link>
         </div>
@@ -36,13 +45,52 @@ export const columns: ColumnDef<ConsultaData>[] = [
     },
   },
   {
+    accessorKey: "name",
+    header: "Cliente",
+    cell: ({ row }) => {
+      return <div className="font-medium">{row.getValue("name")}</div>;
+    },
+  },
+  {
     accessorKey: "date",
     header: "Data",
   },
   {
+    accessorKey: "peso",
+    header: "Peso",
+    cell: ({ row }) => {
+      const peso = row.getValue("peso") as string | undefined;
+      return peso ? `${peso} kg` : "-";
+    },
+  },
+  {
+    accessorKey: "online",
+    header: "Tipo",
+    cell: ({ row }) => {
+      const online = row.getValue("online") as boolean | undefined;
+      return online !== undefined ? (
+        <Badge variant={online ? "default" : "secondary"} className="gap-1">
+          {online ? (
+            <>
+              <Wifi className="h-3 w-3" />
+              Online
+            </>
+          ) : (
+            <>
+              <WifiOff className="h-3 w-3" />
+              Presencial
+            </>
+          )}
+        </Badge>
+      ) : (
+        "-"
+      );
+    },
+  },
+  {
     id: "actions",
-    cell: () => {
-      // const consulta = row.original;
+    cell: ({ row }) => {
+      const consulta = row.original;
 
       return (
         <DropdownMenu>
@@ -55,8 +103,16 @@ export const columns: ColumnDef<ConsultaData>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Ações</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
-            <DropdownMenuItem>Excluir</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link
+                to={`/${ROUTES.CONSULTAS.DETAILS(consulta.customerId as string, consulta.id as string)}`}
+              >
+                Ver Detalhes
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive">
+              Excluir
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

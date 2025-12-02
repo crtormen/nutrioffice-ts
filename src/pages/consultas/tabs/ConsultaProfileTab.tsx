@@ -22,19 +22,19 @@ const ConsultaProfileTab: React.FC = () => {
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">Resultados</CardTitle>
+              <CardTitle className="text-base font-semibold">Resultados</CardTitle>
               <Scale className="h-4 w-4 text-muted-foreground" />
             </div>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-0">
             {consulta.results ? (
               <>
                 {Object.entries(consulta.results).map(([key, value]) => {
                   const label = RESULTS.find(r => r.value === key)?.label || key;
                   return (
-                    <div key={key} className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">{label}:</span>
-                      <span className="font-medium">{value}</span>
+                    <div key={key} className="flex justify-between py-1.5 border-b border-dotted border-border/50 last:border-0">
+                      <span className="text-sm text-muted-foreground uppercase tracking-wide">{label}</span>
+                      <span className="font-medium text-sm">{value}</span>
                     </div>
                   );
                 })}
@@ -49,25 +49,25 @@ const ConsultaProfileTab: React.FC = () => {
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">Dobras</CardTitle>
+              <CardTitle className="text-base font-semibold">Dobras</CardTitle>
               <Ruler className="h-4 w-4 text-muted-foreground" />
             </div>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-0">
             {consulta.dobras ? (
               <>
                 {consulta.results?.dobras && (
-                  <div className="flex justify-between text-sm font-semibold border-b pb-2 mb-2">
-                    <span>Soma Total:</span>
-                    <span>{consulta.results.dobras} mm</span>
+                  <div className="flex justify-between py-1.5 border-b-2 border-primary/30">
+                    <span className="text-sm font-semibold uppercase tracking-wide">Soma de Dobras</span>
+                    <span className="text-sm font-bold">{consulta.results.dobras} mm</span>
                   </div>
                 )}
                 {Object.entries(consulta.dobras).map(([key, value]) => {
                   const label = FOLDS.find(f => f.value === key)?.label || key;
                   return (
-                    <div key={key} className="flex justify-between text-sm">
-                      <span className="text-muted-foreground capitalize">{label}:</span>
-                      <span className="font-medium">{value} mm</span>
+                    <div key={key} className="flex justify-between py-1.5 border-b border-dotted border-border/50 last:border-0">
+                      <span className="text-sm text-muted-foreground uppercase tracking-wide">{label}</span>
+                      <span className="font-medium text-sm">{value} mm</span>
                     </div>
                   );
                 })}
@@ -82,19 +82,19 @@ const ConsultaProfileTab: React.FC = () => {
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">Medidas</CardTitle>
+              <CardTitle className="text-base font-semibold">Medidas</CardTitle>
               <Activity className="h-4 w-4 text-muted-foreground" />
             </div>
           </CardHeader>
-          <CardContent className="space-y-2 max-h-[300px] overflow-y-auto">
+          <CardContent className="space-y-0">
             {consulta.medidas ? (
               <>
                 {Object.entries(consulta.medidas).map(([key, value]) => {
                   const label = MEASURES.find(m => m.value === key)?.label || key;
                   return (
-                    <div key={key} className="flex justify-between text-sm">
-                      <span className="text-muted-foreground capitalize">{label}:</span>
-                      <span className="font-medium">{value} cm</span>
+                    <div key={key} className="flex justify-between py-1.5 border-b border-dotted border-border/50 last:border-0">
+                      <span className="text-sm text-muted-foreground uppercase tracking-wide">{label}</span>
+                      <span className="font-medium text-sm">{value} cm</span>
                     </div>
                   );
                 })}
@@ -109,41 +109,41 @@ const ConsultaProfileTab: React.FC = () => {
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">Estrutura</CardTitle>
+              <CardTitle className="text-base font-semibold">Estrutura</CardTitle>
               <User className="h-4 w-4 text-muted-foreground" />
             </div>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-0">
             {consulta.structure ? (
               <>
                 {consulta.structure.altura && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Altura:</span>
-                    <span className="font-medium">{consulta.structure.altura} cm</span>
+                  <div className="flex justify-between py-1.5 border-b border-dotted border-border/50">
+                    <span className="text-sm text-muted-foreground uppercase tracking-wide">Altura</span>
+                    <span className="font-medium text-sm">{consulta.structure.altura} cm</span>
                   </div>
                 )}
                 {consulta.structure.punho && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Punho:</span>
-                    <span className="font-medium">{consulta.structure.punho} cm</span>
+                  <div className="flex justify-between py-1.5 border-b border-dotted border-border/50">
+                    <span className="text-sm text-muted-foreground uppercase tracking-wide">Punho</span>
+                    <span className="font-medium text-sm">{consulta.structure.punho} cm</span>
                   </div>
                 )}
                 {consulta.structure.joelho && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Joelho:</span>
-                    <span className="font-medium">{consulta.structure.joelho} cm</span>
+                  <div className="flex justify-between py-1.5 border-b border-dotted border-border/50">
+                    <span className="text-sm text-muted-foreground uppercase tracking-wide">Joelho</span>
+                    <span className="font-medium text-sm">{consulta.structure.joelho} cm</span>
                   </div>
                 )}
                 {consulta.peso && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Peso:</span>
-                    <span className="font-medium">{consulta.peso} kg</span>
+                  <div className="flex justify-between py-1.5 border-b border-dotted border-border/50">
+                    <span className="text-sm text-muted-foreground uppercase tracking-wide">Peso</span>
+                    <span className="font-medium text-sm">{consulta.peso} kg</span>
                   </div>
                 )}
                 {consulta.idade && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Idade:</span>
-                    <span className="font-medium">{consulta.idade} anos</span>
+                  <div className="flex justify-between py-1.5 border-b border-dotted border-border/50 last:border-0">
+                    <span className="text-sm text-muted-foreground uppercase tracking-wide">Idade</span>
+                    <span className="font-medium text-sm">{consulta.idade} anos</span>
                   </div>
                 )}
               </>

@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ConsultaProfileTab from "./tabs/ConsultaProfileTab";
 import ConsultaResultsTab from "./tabs/ConsultaResultsTab";
 import ConsultaPhotosTab from "./tabs/ConsultaPhotosTab";
+import { EditConsultaDialog } from "@/components/Consultas/EditConsultaDialog";
 
 const ConsultaDetailsPage: React.FC = () => {
   const { customerId, consultaId } = useParams<{ customerId: string; consultaId: string }>();
@@ -85,10 +86,13 @@ const ConsultaDetailsPage: React.FC = () => {
         backTo={`/${ROUTES.CUSTOMERS.DETAILS(customerId!)}`}
       />
 
-      {/* Page subtitle with date */}
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <Calendar className="h-4 w-4" />
-        <p>Consulta realizada em {consultaDate}</p>
+      {/* Page subtitle with date and edit button */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Calendar className="h-4 w-4" />
+          <p>Consulta realizada em {consultaDate}</p>
+        </div>
+        <EditConsultaDialog consulta={consulta} />
       </div>
 
       {/* Horizontal tabs navigation and content */}

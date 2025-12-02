@@ -1,17 +1,19 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { FileText, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { format, parse } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useGetCustomerConsultaData } from "@/components/Consultas/hooks/useGetCustomerConsultas";
+import { useGetCustomerData } from "@/components/Customers/hooks";
 import { useFetchCustomerConsultasQuery } from "@/app/state/features/customerConsultasSlice";
 import { useFetchGoalsQuery } from "@/app/state/features/goalsSlice";
 import { useAuth } from "@/infra/firebase/hooks/useAuth";
 import { GoalProgressCard } from "@/components/Results/GoalProgressCard";
 import { GoalsList } from "@/components/Results/GoalsList";
 import { NewGoalDialog } from "@/components/Consultas/NewGoalDialog";
+import { ConsultaPDFReport } from "@/components/Consultas/ConsultaPDFReport";
 import {
   BodyCompositionBarChart,
   WeightProgressAreaChart,
@@ -26,6 +28,7 @@ const ConsultaResultsTab: React.FC = () => {
   const { customerId, consultaId } = useParams<{ customerId: string; consultaId: string }>();
   const { dbUid } = useAuth();
   const consulta = useGetCustomerConsultaData(customerId, consultaId);
+  const customer = useGetCustomerData(customerId);
 
   // Fetch all consultas for comparison tables
   const { data: consultas } = useFetchCustomerConsultasQuery({
@@ -79,10 +82,7 @@ const ConsultaResultsTab: React.FC = () => {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">Metas e Resultados</h3>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <FileText className="mr-2 h-4 w-4" />
-            Gerar PDF
-          </Button>
+          {consulta && <ConsultaPDFReport consulta={consulta} customer={customer} />}
           <NewGoalDialog>
             <Button size="sm">
               <Plus className="mr-2 h-4 w-4" />
@@ -104,53 +104,58 @@ const ConsultaResultsTab: React.FC = () => {
       )}
 
       {/* Charts Section - Body Composition & Progress */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-7">
+        {/* Current Composition Pie Chart */}
+        <Card className="col-span-4">
+          <CardHeader>
+            <CardTitle className="text-base">Composição Corporal Atual</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {consulta.results ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                {/* Pie Chart */}
+                <div className="flex justify-center">
+                  <CompositionChart consulta={consulta} />
+                </div>
+
+                {/* Data Table */}
+                <div className="space-y-0">
+                  <div className="flex justify-between py-1.5 border-b border-dotted border-border/50">
+                    <span className="text-sm text-muted-foreground uppercase tracking-wide">Peso</span>
+                    <span className="font-medium text-sm">{consulta.peso || "-"} kg</span>
+                  </div>
+                  <div className="flex justify-between py-1.5 border-b border-dotted border-border/50">
+                    <span className="text-sm text-muted-foreground uppercase tracking-wide">Massa Gorda</span>
+                    <span className="font-medium text-sm">{consulta.results.mg || "-"} kg</span>
+                  </div>
+                  <div className="flex justify-between py-1.5 border-b border-dotted border-border/50">
+                    <span className="text-sm text-muted-foreground uppercase tracking-wide">Massa Magra</span>
+                    <span className="font-medium text-sm">{consulta.results.mm || "-"} kg</span>
+                  </div>
+                  <div className="flex justify-between py-1.5 border-b border-dotted border-border/50">
+                    <span className="text-sm text-muted-foreground uppercase tracking-wide">Massa Residual</span>
+                    <span className="font-medium text-sm">{consulta.results.mr || "-"} kg</span>
+                  </div>
+                  <div className="flex justify-between py-1.5 border-b border-dotted border-border/50 last:border-0">
+                    <span className="text-sm text-muted-foreground uppercase tracking-wide">Massa Óssea</span>
+                    <span className="font-medium text-sm">{consulta.results.mo || "-"} kg</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Dados indisponíveis</p>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Body Fat % Chart */}
-        <Card className="col-span-2">
+        <Card className="col-span-3">
           <CardHeader>
             <CardTitle className="text-base">Evolução do Percentual de Gordura</CardTitle>
             <CardDescription>Últimas 6 consultas</CardDescription>
           </CardHeader>
           <CardContent>
             <ResultsChart param="fat" goal={activeGoal} />
-          </CardContent>
-        </Card>
-
-        {/* Current Composition Pie Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Composição Corporal Atual</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {consulta.results ? (
-              <>
-                <CompositionChart />
-                <div className="mt-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Peso:</span>
-                    <span className="font-medium">{consulta.peso || "-"} kg</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Massa Gorda:</span>
-                    <span className="font-medium">{consulta.results.mg || "-"} kg</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Massa Magra:</span>
-                    <span className="font-medium">{consulta.results.mm || "-"} kg</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Massa Residual:</span>
-                    <span className="font-medium">{consulta.results.mr || "-"} kg</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Massa Óssea:</span>
-                    <span className="font-medium">{consulta.results.mo || "-"} kg</span>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">Dados indisponíveis</p>
-            )}
           </CardContent>
         </Card>
       </div>

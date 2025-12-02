@@ -1,28 +1,52 @@
-import React from "react";
+import { Calendar } from "lucide-react";
 
 import { ConsultasTable } from "@/components/Consultas/ConsultasTable";
+import { ConsultasStats } from "@/components/Consultas/ConsultasStats";
+import { ConsultasChart } from "@/components/Consultas/ConsultasChart";
+import { PageHeader } from "@/components/PageHeader";
+import { ROUTES } from "@/app/router/routes";
+import { useFetchAllConsultasQuery } from "@/app/state/features/consultasSlice";
+import { useAuth } from "@/infra/firebase";
+import { Separator } from "@/components/ui/separator";
 
 const ConsultasPage = () => {
-  // const navigate = useNavigate();
+  const auth = useAuth();
+  const uid = auth.user?.uid;
+  const { data: consultas } = useFetchAllConsultasQuery({ uid });
+
+  const breadcrumbs = [
+    { label: "Dashboard", href: ROUTES.DASHBOARD },
+    { label: "Consultas" },
+  ];
 
   return (
-    <div className="flex-col space-y-8 p-8 md:flex">
-      <div className="flex items-center justify-between space-y-2">
-        <div>
+    <div className="space-y-6 p-6 md:p-10">
+      <PageHeader breadcrumbs={breadcrumbs} showBackButton={false} />
+
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
           <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <Calendar className="h-5 w-5 text-primary" />
+            </div>
             <h2 className="text-3xl font-bold tracking-tight">Consultas</h2>
-            {/* <Button
-              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-1.5 py-1 text-xs text-white"
-              onClick={() => navigate("create")}
-            >
-              <Plus className="size-3" />
-              Nova Consulta
-            </Button> */}
           </div>
-          <p className="text-muted-foreground">Lista de Consultas</p>
+          <p className="text-muted-foreground">
+            Gerencie suas consultas e acompanhe estatísticas
+          </p>
         </div>
       </div>
-      <div className="container mx-auto py-10">
+
+      <Separator />
+
+      <ConsultasStats consultas={consultas || []} />
+
+      <ConsultasChart />
+
+      <Separator />
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Todas as Consultas</h3>
         <ConsultasTable />
       </div>
     </div>
