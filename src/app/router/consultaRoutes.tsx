@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Route } from "react-router-dom";
 import { ConsultaProvider } from "@/components/Consultas/context/ConsultaContext";
 const ConsultasPage = React.lazy(() => import("@/pages/consultas/ConsultasPage"));
@@ -7,20 +7,28 @@ const ConsultaDetailsPage = React.lazy(() => import("@/pages/consultas/ConsultaD
 import RequireAuthLayout from "@/pages/_layouts/RequireAuthLayout";
 import { ROUTES } from "./routes";
 
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-screen">Loading...</div>
+);
+
 export const ConsultaRoutes = (
   <Route path={ROUTES.CONSULTAS.BASE}>
     <Route index element={
-      <RequireAuthLayout allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}>      
-        <ConsultasPage />
+      <RequireAuthLayout allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}>
+        <Suspense fallback={<LoadingFallback />}>
+          <ConsultasPage />
+        </Suspense>
       </RequireAuthLayout>
     } />
     <Route
       path=":customerId/create"
       element={
       <RequireAuthLayout allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}>
-        <ConsultaProvider>
-          <NewConsultaPage />
-        </ConsultaProvider>
+        <Suspense fallback={<LoadingFallback />}>
+          <ConsultaProvider>
+            <NewConsultaPage />
+          </ConsultaProvider>
+        </Suspense>
       </RequireAuthLayout>
       }
     />
@@ -28,7 +36,9 @@ export const ConsultaRoutes = (
       path=":customerId/:consultaId/*"
       element={
         <RequireAuthLayout allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}>
-          <ConsultaDetailsPage />
+          <Suspense fallback={<LoadingFallback />}>
+            <ConsultaDetailsPage />
+          </Suspense>
         </RequireAuthLayout>
       }
     />

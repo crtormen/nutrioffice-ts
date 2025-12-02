@@ -7,11 +7,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-import { useTheme } from "./theme-provider";
+import { useAppTheme } from "@/contexts/ThemeContext";
+import { useUpdateThemeMutation } from "@/app/state/features/themeSlice";
+import { useAuth } from "@/infra/firebase";
+import { ThemeMode } from "@/domain/entities";
 
 export function ThemeToggle() {
-  const { setTheme } = useTheme();
+  const { theme } = useAppTheme();
+  const { dbUid } = useAuth();
+  const [updateTheme] = useUpdateThemeMutation();
+
+  const handleThemeChange = async (mode: ThemeMode) => {
+    if (!dbUid) return;
+
+    try {
+      await updateTheme({
+        uid: dbUid,
+        theme: { mode },
+      }).unwrap();
+    } catch (error) {
+      console.error("Error updating theme mode:", error);
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -23,13 +40,13 @@ export function ThemeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
+        <DropdownMenuItem onClick={() => handleThemeChange("light")}>
           Light
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
+        <DropdownMenuItem onClick={() => handleThemeChange("dark")}>
           Dark
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
+        <DropdownMenuItem onClick={() => handleThemeChange("system")}>
           System
         </DropdownMenuItem>
       </DropdownMenuContent>

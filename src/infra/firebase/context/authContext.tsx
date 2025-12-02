@@ -57,6 +57,7 @@ interface AuthContextModel {
     successCallback: (res: UserCredential) => void,
     errorCallback: (error: AuthError) => void,
   ) => Promise<void>;
+  refreshToken: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextModel>(
@@ -170,6 +171,26 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
     [],
   );
 
+  const refreshToken = useCallback(async (): Promise<void> => {
+    if (!user) {
+      console.warn("Cannot refresh token: no user logged in");
+      return;
+    }
+
+    try {
+      // Force refresh the token and get new custom claims
+      await user.getIdToken(true);
+      const tokenResult = await user.getIdTokenResult();
+
+      // Update dbUid with new custom claims
+      setDbUid((tokenResult.claims.contributesTo as string) || user.uid);
+      console.log("Token refreshed successfully");
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+      throw error;
+    }
+  }, [user]);
+
   const contextValue = useMemo(
     () => ({
       loading,
@@ -179,8 +200,9 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
       signinWithGoogle,
       signout,
       createAccount,
+      refreshToken,
     }),
-    [loading, user, dbUid, signin, signinWithGoogle, signout, createAccount],
+    [loading, user, dbUid, signin, signinWithGoogle, signout, createAccount, refreshToken],
   );
 
   // const recaptchaVerifier = new RecaptchaVerifier(

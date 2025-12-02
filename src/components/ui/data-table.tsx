@@ -1,6 +1,7 @@
 import {
   ColumnDef,
   ColumnFiltersState,
+  FilterFn,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -37,6 +38,8 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   filterField?: string;
   filterPlaceholder?: string;
+  customSearchComponent?: React.ReactNode;
+  globalFilterFn?: FilterFn<TData>;
 }
 
 export function DataTable<TData, TValue>({
@@ -44,9 +47,12 @@ export function DataTable<TData, TValue>({
   data,
   filterField,
   filterPlaceholder,
+  customSearchComponent,
+  globalFilterFn,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
   const [rowSelection, setRowSelection] = useState({});
   let shifted = false;
 
@@ -60,9 +66,12 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: globalFilterFn,
     state: {
       sorting,
       columnFilters,
+      globalFilter,
       rowSelection,
     },
   });
@@ -135,7 +144,18 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
-      {filterField && (
+      {/* Custom search component takes precedence */}
+      {customSearchComponent && (
+        <div className="py-4">
+          {React.cloneElement(customSearchComponent as React.ReactElement, {
+            value: globalFilter,
+            onChange: setGlobalFilter,
+          })}
+        </div>
+      )}
+
+      {/* Fallback to simple filter if no custom component */}
+      {!customSearchComponent && filterField && (
         <div className="flex items-center py-4">
           <Input
             placeholder={`Filtrar por ${filterPlaceholder}...`}
@@ -149,53 +169,53 @@ export function DataTable<TData, TValue>({
           />
         </div>
       )}
-      <div className="rounder-md border">
+      <div className="rounded-md border" style={{ minHeight: '600px' }}>
         <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
       </div>
       {table.getRowCount() > 10 && (
         <Pagination>

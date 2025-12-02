@@ -698,6 +698,7 @@ const DateTimePicker = React.forwardRef<DateTimePickerRef, DateTimePickerProps>(
     ref,
   ) => {
     const [month, setMonth] = React.useState<Date>(value ?? new Date());
+    const [open, setOpen] = React.useState<boolean>(false);
     const buttonRef = useRef<HTMLButtonElement>(null);
     /**
      * carry over the current time when a user clicks a new day
@@ -708,6 +709,10 @@ const DateTimePicker = React.forwardRef<DateTimePickerRef, DateTimePickerProps>(
       if (!value) {
         onChange?.(newDay);
         setMonth(newDay);
+        // Close popover if granularity is day only
+        if (granularity === "day") {
+          setOpen(false);
+        }
         return;
       }
       const diff = newDay.getTime() - value.getTime();
@@ -715,6 +720,10 @@ const DateTimePicker = React.forwardRef<DateTimePickerRef, DateTimePickerProps>(
       const newDateFull = add(value, { days: Math.ceil(diffInDays) });
       onChange?.(newDateFull);
       setMonth(newDateFull);
+      // Close popover if granularity is day only
+      if (granularity === "day") {
+        setOpen(false);
+      }
     };
 
     useImperativeHandle(
@@ -732,7 +741,7 @@ const DateTimePicker = React.forwardRef<DateTimePickerRef, DateTimePickerProps>(
     };
 
     return (
-      <Popover modal={modal}>
+      <Popover modal={modal} open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild disabled={disabled}>
           <Button
             variant="outline"

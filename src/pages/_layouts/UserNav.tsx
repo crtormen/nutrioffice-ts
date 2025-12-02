@@ -16,12 +16,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/infra/firebase";
 import { getInitials } from "@/lib/utils";
+import { useFetchUserQuery } from "@/app/state/features/userSlice";
 
 export function UserNav() {
-  const { user, signout } = useAuth();
+  const { user, signout, dbUid } = useAuth();
+  const { data: userProfile } = useFetchUserQuery(dbUid, { skip: !dbUid });
   const navigate = useNavigate();
 
-  const image = user?.photoURL ? user.photoURL : undefined;
+  const image = userProfile?.avatarUrl || user?.photoURL || undefined;
 
   // Handle user logout
   const handleSignOut = () => {
@@ -35,8 +37,12 @@ export function UserNav() {
   return (
     <div className="flex items-center gap-3">
       <div className="flex flex-col items-end gap-0.5">
-        <span className="text-sm font-medium">{user?.displayName}</span>
-        <span className="text-xs text-muted-foreground">{user?.email}</span>
+        <span className="text-sm font-medium">
+          {userProfile?.name || user?.displayName}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {userProfile?.email || user?.email}
+        </span>
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -45,8 +51,10 @@ export function UserNav() {
             className="relative h-8 w-8 select-none rounded-full"
           >
             <Avatar className="h-8 w-8">
-              <AvatarImage src={image} alt="@shadcn" />
-              <AvatarFallback>{getInitials(user?.displayName)}</AvatarFallback>
+              <AvatarImage src={image} alt="Foto do usuário" />
+              <AvatarFallback>
+                {getInitials(userProfile?.name || user?.displayName)}
+              </AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
@@ -54,10 +62,10 @@ export function UserNav() {
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">
-                {user?.displayName}
+                {userProfile?.name || user?.displayName}
               </p>
               <p className="text-xs leading-none text-muted-foreground">
-                {user?.email}
+                {userProfile?.email || user?.email}
               </p>
             </div>
           </DropdownMenuLabel>
