@@ -4,13 +4,14 @@ import { useFetchCustomerConsultasQuery } from "@/app/state/features/customerCon
 import { useAuth } from "@/infra/firebase";
 
 export const useSetCustomerConsultas = () => {
-  const { id: customerId } = useParams();
-  const { user } = useAuth();
+  const params = useParams();
+  const customerId = params.customerId || params.id;
+  const { dbUid } = useAuth();
 
-  if (!user || !customerId) return undefined;
+  if (!dbUid || !customerId) return undefined;
 
   const { data: consultas } = useFetchCustomerConsultasQuery({
-    uid: user.uid,
+    uid: dbUid,
     customerId,
   });
 

@@ -73,7 +73,9 @@ export const ResultsChart = ({ param, goal }: resultsChartProps) => {
           type="monotone"
           data={chartData}
           dataKey={param}
-          stroke="var(--color-peso)"
+          stroke={`var(--color-${param})`}
+          strokeWidth={2}
+          dot={{ fill: `var(--color-${param})`, r: 4 }}
           isAnimationActive={false}
         />
         {goal && (
@@ -82,6 +84,9 @@ export const ResultsChart = ({ param, goal }: resultsChartProps) => {
             name="META"
             type="monotone"
             stroke="var(--color-META)"
+            strokeWidth={2}
+            strokeDasharray="5 5"
+            dot={{ fill: "var(--color-META)", r: 4 }}
             data={[{ date: endDate, [param]: goal.params![param] }]}
           />
         )}

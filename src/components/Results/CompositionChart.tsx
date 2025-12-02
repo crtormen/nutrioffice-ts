@@ -1,13 +1,15 @@
-import { PieChart, Pie } from "recharts";
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  type ChartConfig,
-} from "@/components/ui/chart";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { useSetLastConsulta } from "./hooks/useSetLastConsulta";
 
 const RADIAN = Math.PI / 180;
+
+// Vibrant colors matching the design
+const COLORS = {
+  mg: "hsl(var(--chart-1))", // Blue for fat mass
+  mm: "hsl(var(--chart-2))", // Teal for lean mass
+  mr: "hsl(var(--chart-3))", // Orange for residual mass
+  mo: "hsl(var(--chart-4))", // Coral for bone mass
+};
 
 type PieLabelProps = {
   cx: number;
@@ -29,6 +31,10 @@ const renderCustomizedLabel = ({
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  // Only show label if percentage is significant enough
+  if (percent < 0.05) return null;
+
   return (
     <text
       x={x}
@@ -36,62 +42,72 @@ const renderCustomizedLabel = ({
       fill="white"
       textAnchor={x > cx ? "start" : "end"}
       dominantBaseline="central"
+      fontSize={14}
+      fontWeight="600"
     >
       {`${(percent * 100).toFixed(0)}%`}
     </text>
   );
 };
 
-const CompositionChart = () => {
-  const consulta = useSetLastConsulta();
+interface CompositionChartProps {
+  consulta?: {
+    results?: {
+      mg?: number;
+      mm?: number;
+      mr?: number;
+      mo?: number;
+    };
+  };
+}
+
+const CompositionChart = ({ consulta: consultaProp }: CompositionChartProps = {}) => {
+  const lastConsulta = useSetLastConsulta();
+  const consulta = consultaProp || lastConsulta;
+
   if (!consulta || !consulta.results) return null;
 
   const data = [
-    { name: "mg", value: consulta.results.mg, fill: "var(--color-mg)" },
-    { name: "mm", value: consulta.results.mm, fill: "var(--color-mm)" },
-    { name: "mr", value: consulta.results.mr, fill: "var(--color-mr)" },
-    { name: "mo", value: consulta.results.mo, fill: "var(--color-mo)" },
-  ];
-
-  const chartConfig = {
-    mg: {
-      label: "Massa Gorda",
-      color: "hsl(var(--chart-1))",
-    },
-    mm: {
-      label: "Massa Magra",
-      color: "hsl(var(--chart-2))",
-    },
-    mr: {
-      label: "Massa Residual",
-      color: "hsl(var(--chart-3))",
-    },
-    mo: {
-      label: "Massa Óssea",
-      color: "hsl(var(--chart-4))",
-    },
-  } satisfies ChartConfig;
+    { name: "Massa Gorda", key: "mg", value: consulta.results.mg },
+    { name: "Massa Magra", key: "mm", value: consulta.results.mm },
+    { name: "Massa Residual", key: "mr", value: consulta.results.mr },
+    { name: "Massa Óssea", key: "mo", value: consulta.results.mo },
+  ].filter(item => item.value && item.value > 0); // Only show non-zero values
 
   return (
-    <ChartContainer config={chartConfig} className="h-[220px] w-full">
-      <PieChart>
-        <Pie
-          data={data}
-          cy="50%"
-          cx="50%"
-          labelLine={false}
-          label={renderCustomizedLabel}
-          outerRadius={80}
-          dataKey="value"
-          isAnimationActive={false}
-        />
-        <ChartLegend
-          content={<ChartLegendContent />}
-          verticalAlign="middle"
-          className="flex-col items-start gap-2"
-        />
-      </PieChart>
-    </ChartContainer>
+    <div className="w-full flex flex-col">
+      {/* Pie Chart */}
+      <ResponsiveContainer width="100%" height={200}>
+        <PieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            labelLine={false}
+            label={renderCustomizedLabel}
+            outerRadius={90}
+            dataKey="value"
+            isAnimationActive={false}
+          >
+            {data.map((entry) => (
+              <Cell key={entry.key} fill={COLORS[entry.key as keyof typeof COLORS]} />
+            ))}
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+            {/* Legend */}
+      <div className="flex flex-wrap gap-3 mb-4">
+        {data.map((entry) => (
+          <div key={entry.key} className="flex items-center gap-2">
+            <div
+              className="w-3 h-3 rounded-sm"
+              style={{ backgroundColor: COLORS[entry.key as keyof typeof COLORS] }}
+            />
+            <span className="text-sm text-muted-foreground">{entry.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 
