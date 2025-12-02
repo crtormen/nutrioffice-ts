@@ -28,3 +28,28 @@ export {
   checkCustomClaims,
   updateLastConsultaDate,
 } from "./new.js";
+
+// Export analytics functions
+export {
+  onCustomerCreated,
+  onCustomerDeleted,
+  onConsultaCreated,
+  onConsultaDeleted,
+  onFinanceCreated,
+  onFinanceUpdated,
+  onFinanceDeleted,
+  aggregateDailyMetrics,
+  aggregateMonthlyMetrics,
+  triggerMonthlyAggregation,
+  initializeAnalytics,
+} from "./analytics.js";
+
+// Export subscription functions
+export {
+  createSubscription,
+  cancelSubscription,
+  changeSubscription,
+  mercadoPagoWebhook,
+  updateCustomerCount,
+  checkSubscriptionLimits,
+} from "./subscriptions.js";
