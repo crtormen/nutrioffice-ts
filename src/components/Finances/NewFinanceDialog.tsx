@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus, Trash2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
-import { Plus, Trash2, X } from "lucide-react";
 
-import { FormInput } from "@/components/form";
+import { useAddCustomerFinanceMutation } from "@/app/state/features/customerFinancesSlice";
+import { useFetchSettingsQuery } from "@/app/state/features/settingsSlice";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -24,19 +27,36 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/infra/firebase/hooks";
-import { useFetchSettingsQuery } from "@/app/state/features/settingsSlice";
-import { useAddCustomerFinanceMutation } from "@/app/state/features/customerFinancesSlice";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useToast } from "@/components/ui/use-toast";
-import { IServiceConfig, IAllSettings } from "@/domain/entities/settings";
-import { IFinanceItem, PAYMENT_METHODS } from "@/domain/entities/finances";
+import {
+  IFinanceItem,
+  INSTALLMENT_ENABLED_METHODS,
+  PAYMENT_METHODS,
+} from "@/domain/entities/finances";
+import { IServiceConfig } from "@/domain/entities/settings";
+import { useAuth } from "@/infra/firebase/hooks";
+import { formatDateForInput } from "@/lib/utils";
+
+const paymentSchema = z.object({
+  method: z.string().optional(),
+  paymentDate: z.string().optional(),
+  amount: z.coerce.number().min(0).optional(),
+  obs: z.string().optional(),
+  hasInstallments: z.boolean().default(false),
+  installmentsCount: z.coerce.number().min(1).max(24).optional(),
+});
 
 const financeSchema = z.object({
   discount: z.coerce.number().min(0).optional(),
   obs: z.string().optional(),
-  paymentMethod: z.string().optional(),
-  paymentAmount: z.coerce.number().min(0).optional(),
-  paymentObs: z.string().optional(),
+  payments: z.array(paymentSchema),
 });
 
 type FinanceFormInputs = z.infer<typeof financeSchema>;
@@ -69,16 +89,32 @@ export const NewFinanceDialog = ({
     reset,
     watch,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = useForm<FinanceFormInputs>({
     resolver: zodResolver(financeSchema),
     defaultValues: {
       discount: 0,
       obs: "",
-      paymentMethod: "",
-      paymentAmount: 0,
-      paymentObs: "",
+      payments: [
+        {
+          method: "",
+          paymentDate: formatDateForInput(),
+          amount: 0,
+          obs: "",
+          hasInstallments: false,
+          installmentsCount: 1,
+        },
+      ],
     },
+  });
+
+  const {
+    fields: paymentFields,
+    append: appendPayment,
+    remove: removePayment,
+  } = useFieldArray({
+    name: "payments",
+    control,
   });
 
   // Get all active services
@@ -88,7 +124,7 @@ export const NewFinanceDialog = ({
   };
 
   const activeServices = Object.entries(allServices).filter(
-    ([_, service]) => service.active
+    ([, service]) => service.active,
   );
 
   // Calculate totals
@@ -101,7 +137,7 @@ export const NewFinanceDialog = ({
         unitPrice: service.price,
         totalPrice: service.price * quantity,
         credits: (service.credits || 0) * quantity,
-      })
+      }),
     );
 
     const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
@@ -112,7 +148,8 @@ export const NewFinanceDialog = ({
     return { items, subtotal, discount, total, creditsGranted };
   };
 
-  const { items, subtotal, discount, total, creditsGranted } = calculateTotals();
+  const { items, subtotal, discount, total, creditsGranted } =
+    calculateTotals();
 
   // Add service to sale
   const addService = (serviceId: string) => {
@@ -161,11 +198,34 @@ export const NewFinanceDialog = ({
     }).format(value);
   };
 
+  // Check if payment method can have installments
+  const canHaveInstallments = (method: string | undefined) => {
+    if (!method) return false;
+    return (INSTALLMENT_ENABLED_METHODS as readonly string[]).includes(method);
+  };
+
   // Reset form when dialog closes
   useEffect(() => {
     if (!isOpen) {
-      setSelectedServices({});
-      reset();
+      // Use setTimeout to avoid flushSync warning
+      const timeoutId = setTimeout(() => {
+        setSelectedServices({});
+        reset({
+          discount: 0,
+          obs: "",
+          payments: [
+            {
+              method: "",
+              paymentDate: formatDateForInput(),
+              amount: 0,
+              obs: "",
+              hasInstallments: false,
+              installmentsCount: 1,
+            },
+          ],
+        });
+      }, 0);
+      return () => clearTimeout(timeoutId);
     }
   }, [isOpen, reset]);
 
@@ -180,25 +240,21 @@ export const NewFinanceDialog = ({
         return;
       }
 
-      const paymentAmount = data.paymentAmount || 0;
-      const pago = paymentAmount;
-      const saldo = total - pago;
-
-      let status: "pending" | "partial" | "paid" = "pending";
-      if (pago >= total) status = "paid";
-      else if (pago > 0) status = "partial";
-
-      const payments =
-        paymentAmount > 0 && data.paymentMethod
-          ? [
-              {
-                createdAt: new Date().toISOString(),
-                method: data.paymentMethod,
-                obs: data.paymentObs,
-                valor: paymentAmount,
-              },
-            ]
-          : undefined;
+      // Process payments - filter out empty payments
+      const validPayments = data.payments
+        .filter((p) => p.method && p.amount && p.amount > 0)
+        .map((p) => ({
+          createdAt: p.paymentDate
+            ? new Date(p.paymentDate).toISOString()
+            : new Date().toISOString(),
+          method: p.method!,
+          obs: p.obs,
+          valor: p.amount!,
+          hasInstallments: p.hasInstallments,
+          installmentsCount: p.hasInstallments
+            ? p.installmentsCount
+            : undefined,
+        }));
 
       await addCustomerFinance({
         uid: dbUid!,
@@ -209,25 +265,28 @@ export const NewFinanceDialog = ({
           subtotal,
           discount: data.discount,
           total,
-          pago,
-          saldo,
+          pago: 0, // Will be calculated by mutation
+          saldo: 0, // Will be calculated by mutation
           creditsGranted,
-          status,
+          status: "pending", // Will be calculated by mutation
           obs: data.obs,
-          payments,
           createdAt: new Date().toISOString(),
         },
+        payments: validPayments.length > 0 ? validPayments : undefined,
       }).unwrap();
 
       toast({
         title: "Venda registrada",
         description: `Venda de ${formatCurrency(total)} criada com sucesso.${
-          creditsGranted > 0 ? ` ${creditsGranted} crédito(s) adicionado(s).` : ""
+          creditsGranted > 0
+            ? ` ${creditsGranted} crédito(s) adicionado(s).`
+            : ""
         }`,
       });
 
       setIsOpen(false);
     } catch (error) {
+      console.error("Error creating finance:", error);
       toast({
         title: "Erro",
         description: "Não foi possível registrar a venda. Tente novamente.",
@@ -246,11 +305,13 @@ export const NewFinanceDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[800px]">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>Nova Venda</DialogTitle>
-            <DialogDescription>Registrar uma nova venda para o cliente</DialogDescription>
+            <DialogDescription>
+              Registrar uma nova venda para o cliente
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
@@ -265,7 +326,9 @@ export const NewFinanceDialog = ({
                   {activeServices.map(([serviceId, service]) => (
                     <SelectItem key={serviceId} value={serviceId}>
                       {service.name} - {formatCurrency(service.price)}
-                      {service.credits && service.credits > 0 && ` (${service.credits} crédito${service.credits > 1 ? "s" : ""})`}
+                      {service.credits &&
+                        service.credits > 0 &&
+                        ` (${service.credits} crédito${service.credits > 1 ? "s" : ""})`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -276,34 +339,45 @@ export const NewFinanceDialog = ({
             {Object.keys(selectedServices).length > 0 && (
               <div className="space-y-2">
                 <Label>Serviços Adicionados</Label>
-                <div className="border rounded-lg divide-y">
-                  {Object.entries(selectedServices).map(([serviceId, { service, quantity }]) => (
-                    <div key={serviceId} className="p-3 flex items-center justify-between">
-                      <div className="flex-1">
-                        <p className="font-medium">{service.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {formatCurrency(service.price)} x {quantity} = {formatCurrency(service.price * quantity)}
-                        </p>
+                <div className="divide-y rounded-lg border">
+                  {Object.entries(selectedServices).map(
+                    ([serviceId, { service, quantity }]) => (
+                      <div
+                        key={serviceId}
+                        className="flex items-center justify-between p-3"
+                      >
+                        <div className="flex-1">
+                          <p className="font-medium">{service.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {formatCurrency(service.price)} x {quantity} ={" "}
+                            {formatCurrency(service.price * quantity)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="1"
+                            value={quantity}
+                            onChange={(e) =>
+                              updateQuantity(
+                                serviceId,
+                                parseInt(e.target.value) || 1,
+                              )
+                            }
+                            className="w-16 rounded border px-2 py-1 text-center"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeService(serviceId)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          min="1"
-                          value={quantity}
-                          onChange={(e) => updateQuantity(serviceId, parseInt(e.target.value) || 1)}
-                          className="w-16 px-2 py-1 border rounded text-center"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeService(serviceId)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               </div>
             )}
@@ -320,17 +394,16 @@ export const NewFinanceDialog = ({
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-2">
                   <Label htmlFor="discount">Desconto (R$)</Label>
-                  <FormInput
+                  <Input
                     type="number"
-                    name="discount"
+                    step="0.01"
                     placeholder="0.00"
-                    register={register}
-                    errors={errors}
+                    {...register("discount")}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>Total</Label>
-                  <div className="h-10 px-3 flex items-center border rounded-md bg-muted font-bold text-lg">
+                  <div className="flex h-10 items-center rounded-md border bg-muted px-3 text-lg font-bold">
                     {formatCurrency(total)}
                   </div>
                 </div>
@@ -338,81 +411,215 @@ export const NewFinanceDialog = ({
 
               {creditsGranted > 0 && (
                 <div className="text-sm text-muted-foreground">
-                  Esta venda concederá {creditsGranted} crédito{creditsGranted > 1 ? "s" : ""} ao cliente
+                  Esta venda concederá {creditsGranted} crédito
+                  {creditsGranted > 1 ? "s" : ""} ao cliente
                 </div>
               )}
             </div>
 
             <Separator />
 
-            {/* Payment */}
-            <div className="space-y-2">
-              <Label className="text-base font-semibold">Pagamento (Opcional)</Label>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="paymentMethod">Método de Pagamento</Label>
-                  <Controller
-                    control={control}
-                    name="paymentMethod"
-                    render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {PAYMENT_METHODS.map((method) => (
-                            <SelectItem key={method.value} value={method.value}>
-                              {method.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+            {/* Payments Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold">
+                  Pagamentos (Opcional)
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    appendPayment({
+                      method: "",
+                      paymentDate: formatDateForInput(),
+                      amount: 0,
+                      obs: "",
+                      hasInstallments: false,
+                      installmentsCount: 1,
+                    })
+                  }
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Adicionar Pagamento
+                </Button>
+              </div>
+
+              {paymentFields.map((field, index) => (
+                <div
+                  key={field.id}
+                  className="space-y-4 rounded-lg border bg-muted/30 p-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">Pagamento {index + 1}</h4>
+                    {index > 0 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removePayment(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     )}
-                  />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Método</Label>
+                      <Controller
+                        control={control}
+                        name={`payments.${index}.method`}
+                        render={({ field }) => (
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {PAYMENT_METHODS.map((method) => (
+                                <SelectItem
+                                  key={method.value}
+                                  value={method.value}
+                                >
+                                  {method.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Valor (R$)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...register(`payments.${index}.amount`)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Data do Pagamento</Label>
+                    <Input
+                      type="date"
+                      {...register(`payments.${index}.paymentDate`)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Data em que o pagamento foi realizado
+                    </p>
+                  </div>
+
+                  {canHaveInstallments(watch(`payments.${index}.method`)) && (
+                    <>
+                      <div className="flex items-center space-x-2">
+                        <Controller
+                          control={control}
+                          name={`payments.${index}.hasInstallments`}
+                          render={({ field }) => (
+                            <Checkbox
+                              id={`installments-${index}`}
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          )}
+                        />
+                        <Label
+                          htmlFor={`installments-${index}`}
+                          className="cursor-pointer"
+                        >
+                          Parcelar este pagamento
+                        </Label>
+                      </div>
+
+                      {watch(`payments.${index}.hasInstallments`) && (
+                        <div className="space-y-2 border-l-2 border-primary/20 pl-6">
+                          <Label>Número de Parcelas</Label>
+                          <Input
+                            type="number"
+                            min="2"
+                            max="24"
+                            {...register(`payments.${index}.installmentsCount`)}
+                            placeholder="6"
+                          />
+                          {watch(`payments.${index}.installmentsCount`) &&
+                            watch(`payments.${index}.installmentsCount`)! > 1 &&
+                            watch(`payments.${index}.amount`) &&
+                            watch(`payments.${index}.amount`)! > 0 && (
+                              <p className="text-sm text-muted-foreground">
+                                {watch(`payments.${index}.installmentsCount`)}x
+                                de{" "}
+                                {formatCurrency(
+                                  watch(`payments.${index}.amount`)! /
+                                    watch(
+                                      `payments.${index}.installmentsCount`,
+                                    )!,
+                                )}
+                              </p>
+                            )}
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label>Observações do Pagamento</Label>
+                    <Textarea
+                      {...register(`payments.${index}.obs`)}
+                      placeholder="Observações sobre este pagamento"
+                      rows={2}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="paymentAmount">Valor Pago (R$)</Label>
-                  <FormInput
-                    type="number"
-                    name="paymentAmount"
-                    placeholder="0.00"
-                    register={register}
-                    errors={errors}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="paymentObs">Observações do Pagamento</Label>
-                <FormInput
-                  type="textarea"
-                  name="paymentObs"
-                  placeholder="Observações sobre o pagamento"
-                  register={register}
-                  errors={errors}
-                />
-              </div>
+              ))}
             </div>
+
+            <Separator />
 
             {/* General Observations */}
             <div className="space-y-2">
               <Label htmlFor="obs">Observações Gerais</Label>
-              <FormInput
-                type="textarea"
-                name="obs"
+              <Textarea
+                {...register("obs")}
                 placeholder="Observações sobre a venda"
-                register={register}
-                errors={errors}
+                rows={3}
               />
             </div>
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsOpen(false)}
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting || items.length === 0}>
-              {isSubmitting ? "Salvando..." : "Registrar Venda"}
-            </Button>
+            {items.length === 0 ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <Button type="button" disabled={true}>
+                        Registrar Venda
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Adicione pelo menos um serviço para continuar</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Salvando..." : "Registrar Venda"}
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
