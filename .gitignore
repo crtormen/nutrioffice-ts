@@ -32,3 +32,11 @@ firestore-debug.log*
 /production-export
 /datasets
 emulator-data-backup-*
+
+# Firebase secrets and credentials (NEVER commit these!)
+serviceAccount.json
+functions/serviceAccount.json
+functions/src/serviceAccount.json
+functions/lib/serviceAccount.json
+.runtimeconfig.json
+functions/.runtimeconfig.json
