@@ -1,9 +1,12 @@
+import { Calendar, DollarSign, TrendingUp, Users } from "lucide-react";
 import React from "react";
-import { Users, Calendar, DollarSign, TrendingUp } from "lucide-react";
-import { MetricCard } from "@/components/Dashboard/MetricCard";
+
 import { useFetchAnalyticsCountersQuery } from "@/app/state/features/analyticsSlice";
-import { useAuth } from "@/infra/firebase/hooks";
+import { MetricCard } from "@/components/Dashboard/MetricCard";
+import { OverduePaymentsCard } from "@/components/Dashboard/OverduePaymentsCard";
+import { PendingSubmissionsCard } from "@/components/Dashboard/PendingSubmissionsCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/infra/firebase/hooks";
 
 const Dashboard = () => {
   const { dbUid } = useAuth();
@@ -11,7 +14,7 @@ const Dashboard = () => {
     dbUid || "",
     {
       skip: !dbUid,
-    }
+    },
   );
 
   // Format currency
@@ -76,6 +79,15 @@ const Dashboard = () => {
           />
         </div>
       )}
+
+      {/* Cards Grid */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Overdue Payments List */}
+        <OverduePaymentsCard />
+
+        {/* Pending Submissions */}
+        <PendingSubmissionsCard />
+      </div>
 
       {/* Additional sections can be added here */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
