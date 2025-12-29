@@ -1,14 +1,14 @@
+import { isValid, isWithinInterval, parse } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
-import { parse, isWithinInterval, isValid } from "date-fns";
 
 import { useFillConsultasTable } from "@/components/Consultas/hooks";
 import { DataTable } from "@/components/ui/data-table";
 
-import { columns } from "./customerColumns";
-import { ConsultaSearchInput } from "./ConsultaSearchInput";
 import { consultaFuzzyFilter } from "./consultaFilter";
-import { DateRangePicker, DateRange } from "./DateRangePicker";
+import { ConsultaSearchInput } from "./ConsultaSearchInput";
+import { columns } from "./customerColumns";
+import { DateRange, DateRangePicker } from "./DateRangePicker";
 
 export const ConsultasTable = () => {
   const { consultas, isLoading } = useFillConsultasTable();

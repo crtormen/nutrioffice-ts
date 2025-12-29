@@ -1,4 +1,10 @@
 import { useState } from "react";
+
+import {
+  DateRange,
+  DateRangePicker,
+} from "@/components/Consultas/DateRangePicker";
+import { DataTable } from "@/components/ui/data-table";
 import {
   Select,
   SelectContent,
@@ -7,19 +13,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { DataTable } from "@/components/ui/data-table";
-import { FinanceSearchInput } from "./FinanceSearchInput";
-import { DateRangePicker, DateRange } from "@/components/Consultas/DateRangePicker";
 import { financesColumns } from "./financesColumns";
+import { FinanceSearchInput } from "./FinanceSearchInput";
 import { useFillFinancesTable } from "./hooks/useFillFinancesTable";
 
 export const FinancesTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "partial" | "paid">("all");
-  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "pending" | "partial" | "paid"
+  >("all");
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: undefined,
+    to: undefined,
+  });
 
   // Hook now handles filtering and transformation internally
-  const { tableData, isLoading } = useFillFinancesTable(searchTerm, statusFilter, dateRange);
+  const { tableData, isLoading } = useFillFinancesTable(
+    searchTerm,
+    statusFilter,
+    dateRange,
+  );
 
   if (isLoading) {
     return (
@@ -41,7 +54,10 @@ export const FinancesTable = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <DateRangePicker value={dateRange} onChange={setDateRange} />
 
-          <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+          <Select
+            value={statusFilter}
+            onValueChange={(value: any) => setStatusFilter(value)}
+          >
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Filtrar por status" />
             </SelectTrigger>

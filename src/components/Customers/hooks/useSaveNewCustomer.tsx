@@ -36,7 +36,10 @@ export const useSaveNewCustomer = () => {
         .unwrap()
         .then((dataRef) => {
           toast.success("Cliente cadastrado com sucesso!");
-          navigate(`/customers/${dataRef.id}`, { replace: true });
+          // Small delay to allow real-time listener to update cache
+          setTimeout(() => {
+            navigate(`/customers/${dataRef.id}`, { replace: true });
+          }, 300);
         })
         .catch((error) => {
           console.error(error);

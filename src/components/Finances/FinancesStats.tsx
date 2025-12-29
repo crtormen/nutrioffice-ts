@@ -1,11 +1,14 @@
-import { DollarSign, TrendingUp, AlertCircle, CreditCard } from "lucide-react";
 import { subMonths } from "date-fns";
+import { AlertCircle, CreditCard, DollarSign, TrendingUp } from "lucide-react";
 
+import {
+  useFetchAnalyticsCountersQuery,
+  useFetchMonthlyTrendsQuery,
+} from "@/app/state/features/analyticsSlice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { IFinance } from "@/domain/entities";
-import { useFetchAnalyticsCountersQuery, useFetchMonthlyTrendsQuery } from "@/app/state/features/analyticsSlice";
-import { useAuth } from "@/infra/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
+import { IFinance } from "@/domain/entities";
+import { useAuth } from "@/infra/firebase";
 
 interface FinancesStatsProps {
   finances: IFinance[];
@@ -13,13 +16,15 @@ interface FinancesStatsProps {
 
 export const FinancesStats = ({ finances }: FinancesStatsProps) => {
   const { dbUid } = useAuth();
-  const { data: counters, isLoading: isLoadingCounters } = useFetchAnalyticsCountersQuery(dbUid || "", {
-    skip: !dbUid,
-  });
-  const { data: monthlyTrends, isLoading: isLoadingTrends } = useFetchMonthlyTrendsQuery(
-    { uid: dbUid || "", months: 2 },
-    { skip: !dbUid }
-  );
+  const { data: counters, isLoading: isLoadingCounters } =
+    useFetchAnalyticsCountersQuery(dbUid || "", {
+      skip: !dbUid,
+    });
+  const { data: monthlyTrends, isLoading: isLoadingTrends } =
+    useFetchMonthlyTrendsQuery(
+      { uid: dbUid || "", months: 2 },
+      { skip: !dbUid },
+    );
   // Use analytics data for main metrics
   const currentYear = new Date().getFullYear();
   const yearlyRevenue = counters?.totalRevenue || 0;
@@ -29,7 +34,7 @@ export const FinancesStats = ({ finances }: FinancesStatsProps) => {
   // Get last month revenue from monthly trends
   const now = new Date();
   const lastMonthKey = subMonths(now, 1).toISOString().slice(0, 7);
-  const lastMonthData = monthlyTrends?.find(m => m.month === lastMonthKey);
+  const lastMonthData = monthlyTrends?.find((m) => m.month === lastMonthKey);
   const lastMonthRevenue = lastMonthData?.revenue || 0;
 
   // Payment status (still calculated from finances prop as it's not in analytics)
@@ -49,9 +54,7 @@ export const FinancesStats = ({ finances }: FinancesStatsProps) => {
 
   // Payment rate
   const paymentRate =
-    finances.length > 0
-      ? ((paidFinances.length / finances.length) * 100)
-      : 0;
+    finances.length > 0 ? (paidFinances.length / finances.length) * 100 : 0;
 
   // Growth calculation
   const growth =
@@ -88,9 +91,12 @@ export const FinancesStats = ({ finances }: FinancesStatsProps) => {
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(yearlyRevenue)}</div>
+          <div className="text-2xl font-bold">
+            {formatCurrency(yearlyRevenue)}
+          </div>
           <p className="text-xs text-muted-foreground">
-            {currentYearFinances.length} venda{currentYearFinances.length !== 1 ? "s" : ""} em {currentYear}
+            {currentYearFinances.length} venda
+            {currentYearFinances.length !== 1 ? "s" : ""} em {currentYear}
           </p>
         </CardContent>
       </Card>
@@ -101,7 +107,9 @@ export const FinancesStats = ({ finances }: FinancesStatsProps) => {
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(currentMonthRevenue)}</div>
+          <div className="text-2xl font-bold">
+            {formatCurrency(currentMonthRevenue)}
+          </div>
           <p className="text-xs text-muted-foreground">
             {growth >= 0 ? "+" : ""}
             {growth.toFixed(1)}% em relação ao mês passado
@@ -115,22 +123,33 @@ export const FinancesStats = ({ finances }: FinancesStatsProps) => {
           <AlertCircle className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(totalPendingBalance)}</div>
+          <div className="text-2xl font-bold">
+            {formatCurrency(totalPendingBalance)}
+          </div>
           <p className="text-xs text-muted-foreground">
-            {pendingFinances.length + partialFinances.length} venda{(pendingFinances.length + partialFinances.length) !== 1 ? "s" : ""} pendente{(pendingFinances.length + partialFinances.length) !== 1 ? "s" : ""}
+            {pendingFinances.length + partialFinances.length} venda
+            {pendingFinances.length + partialFinances.length !== 1
+              ? "s"
+              : ""}{" "}
+            pendente
+            {pendingFinances.length + partialFinances.length !== 1 ? "s" : ""}
           </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Taxa de Pagamento</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Taxa de Pagamento
+          </CardTitle>
           <CreditCard className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{paymentRate.toFixed(1)}%</div>
           <p className="text-xs text-muted-foreground">
-            {paidFinances.length} de {finances.length} venda{finances.length !== 1 ? "s" : ""} paga{paidFinances.length !== 1 ? "s" : ""}
+            {paidFinances.length} de {finances.length} venda
+            {finances.length !== 1 ? "s" : ""} paga
+            {paidFinances.length !== 1 ? "s" : ""}
           </p>
         </CardContent>
       </Card>

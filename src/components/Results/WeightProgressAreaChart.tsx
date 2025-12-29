@@ -1,13 +1,22 @@
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ReferenceLine } from "recharts";
+import { format, parse } from "date-fns";
 import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ReferenceLine,
+  XAxis,
+  YAxis,
+} from "recharts";
+
+import {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from "@/components/ui/chart";
-import { useSetChartData } from "./hooks/useSetChartData";
-import { format, parse } from "date-fns";
 import { IGoal } from "@/domain/entities";
+
+import { useSetChartData } from "./hooks/useSetChartData";
 
 interface WeightProgressAreaChartProps {
   goal?: IGoal;
@@ -24,7 +33,9 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export const WeightProgressAreaChart = ({ goal }: WeightProgressAreaChartProps) => {
+export const WeightProgressAreaChart = ({
+  goal,
+}: WeightProgressAreaChartProps) => {
   const chartData = useSetChartData("peso", goal?.createdAt);
   let endDate: string | undefined;
   let targetWeight: number | undefined;
@@ -32,12 +43,12 @@ export const WeightProgressAreaChart = ({ goal }: WeightProgressAreaChartProps) 
   if (goal) {
     endDate = format(
       parse(goal.endDate!, "dd/MM/yyyy", new Date()),
-      "dd/MM/yy"
+      "dd/MM/yy",
     );
     targetWeight = goal.params?.peso || goal.params?.weight;
   }
 
-  if (chartData.length === 0) {
+  if (!chartData || chartData.length === 0) {
     return (
       <div className="flex h-[350px] w-full items-center justify-center text-muted-foreground">
         Sem dados de peso disponíveis
@@ -58,16 +69,20 @@ export const WeightProgressAreaChart = ({ goal }: WeightProgressAreaChartProps) 
       >
         <defs>
           <linearGradient id="colorPeso" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8} />
-            <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.1} />
+            <stop
+              offset="5%"
+              stopColor="hsl(var(--chart-1))"
+              stopOpacity={0.8}
+            />
+            <stop
+              offset="95%"
+              stopColor="hsl(var(--chart-1))"
+              stopOpacity={0.1}
+            />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis
-          dataKey="date"
-          type="category"
-          interval={"preserveStartEnd"}
-        />
+        <XAxis dataKey="date" type="category" interval={"preserveStartEnd"} />
         <YAxis
           tickCount={10}
           domain={["dataMin - 5", "dataMax + 5"]}

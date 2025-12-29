@@ -1,14 +1,17 @@
-import { createContext, useContext, useEffect, ReactNode } from "react";
-import { useAuth } from "@/infra/firebase";
+import { createContext, ReactNode, useContext, useEffect } from "react";
+
 import { useFetchThemeQuery } from "@/app/state/features/themeSlice";
-import { ThemeConfig, DEFAULT_THEME, FONT_PRESETS } from "@/domain/entities";
+import { DEFAULT_THEME, FONT_PRESETS, ThemeConfig } from "@/domain/entities";
+import { useAuth } from "@/infra/firebase";
 
 interface AppThemeContextType {
   theme: ThemeConfig;
   isLoading: boolean;
 }
 
-const AppThemeContext = createContext<AppThemeContextType | undefined>(undefined);
+const AppThemeContext = createContext<AppThemeContextType | undefined>(
+  undefined,
+);
 
 /**
  * Apply theme configuration to the document
@@ -30,7 +33,9 @@ const applyTheme = (theme: ThemeConfig) => {
   // Apply theme mode (light/dark/system)
   root.classList.remove("light", "dark");
   if (theme.mode === "system") {
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
     root.classList.add(prefersDark ? "dark" : "light");
   } else {
     root.classList.add(theme.mode);

@@ -229,29 +229,111 @@ export const setDefaultSettingsOnFirestore = onRequest(
   },
 );
 
-export const reloadDefaultSettingsToUser = onCall(async (request) => {
-  const userId = request.auth?.uid;
+/**
+ * Inicializa configurações para usuários existentes que não possuem configurações
+ * Útil para migrar usuários existentes ou corrigir usuários importados da produção
+ *
+ * Pode ser chamado por:
+ * - O próprio usuário (inicializa suas próprias configurações)
+ * - Um administrador (pode inicializar configurações para qualquer usuário passando targetUserId)
+ */
+export const initializeUserSettings = onCall(async (request) => {
+  const callerId = request.auth?.uid;
+  const targetUserId = request.data?.userId || callerId;
   const db = getFirestore();
-  const settingsRef = getFirestore().collection("/settings");
-  const professionalRef = settingsRef.doc("professional");
 
-  const userSettingsRef = db.doc("/users/" + userId + "/settings/default");
+  if (!callerId) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "Usuário deve estar autenticado"
+    );
+  }
+
+  // Se estiver inicializando configurações de outro usuário, o chamador deve ser admin
+  if (targetUserId !== callerId) {
+    const callerDoc = await db.doc(`/users/${callerId}`).get();
+    const callerData = callerDoc.data() as IUser;
+
+    if (callerData?.roles?.ability !== "PROFESSIONAL") {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "Apenas profissionais podem inicializar configurações para outros usuários"
+      );
+    }
+  }
 
   try {
-    // load default settings to user firestore db
-    db.runTransaction(async (t) => {
-      const settingsDoc = await t.get(professionalRef);
-      const defaultSettings = settingsDoc.data();
+    // Buscar documento do usuário alvo
+    const userRef = db.doc(`/users/${targetUserId}`);
+    const userDoc = await userRef.get();
 
-      t.set(userSettingsRef, defaultSettings);
+    if (!userDoc.exists) {
+      throw new functions.https.HttpsError(
+        "not-found",
+        `Usuário ${targetUserId} não encontrado`
+      );
+    }
+
+    const user = userDoc.data() as IUser;
+    const isProfessional = user.roles?.ability === "PROFESSIONAL";
+
+    // Determinar quais configurações padrão carregar
+    const settingsPath = isProfessional ? "professional" : "contributor";
+    const settingsRef = db.doc(`/settings/${settingsPath}`);
+    const settingsDoc = await settingsRef.get();
+
+    if (!settingsDoc.exists) {
+      throw new functions.https.HttpsError(
+        "not-found",
+        `Configurações padrão não encontradas em /settings/${settingsPath}`
+      );
+    }
+
+    const defaultSettings = settingsDoc.data();
+
+    // Verificar se o usuário já possui configurações
+    const userDefaultSettingsRef = db.doc(`/users/${targetUserId}/settings/default`);
+    const userCustomSettingsRef = db.doc(`/users/${targetUserId}/settings/custom`);
+
+    const existingDefaultSettings = await userDefaultSettingsRef.get();
+    const existingCustomSettings = await userCustomSettingsRef.get();
+
+    // Usar transação para criar/atualizar configurações atomicamente
+    await db.runTransaction(async (t) => {
+      if (!existingDefaultSettings.exists) {
+        t.set(userDefaultSettingsRef, defaultSettings || {});
+        functions.logger.info(`Configurações padrão criadas para usuário ${targetUserId}`);
+      } else {
+        t.update(userDefaultSettingsRef, defaultSettings || {});
+        functions.logger.info(`Configurações padrão atualizadas para usuário ${targetUserId}`);
+      }
+
+      if (!existingCustomSettings.exists) {
+        t.set(userCustomSettingsRef, {});
+        functions.logger.info(`Configurações personalizadas criadas para usuário ${targetUserId}`);
+      }
     });
-    functions.logger.info("Default settings loaded to user " + userId);
-    return true;
-  } catch (err) {
+
+    return {
+      success: true,
+      userId: targetUserId,
+      role: user.roles?.ability,
+      settingsType: settingsPath,
+      fieldsCount: defaultSettings?.anamnesis ? Object.keys(defaultSettings.anamnesis).length : 0,
+      created: !existingDefaultSettings.exists
+    };
+  } catch (err: any) {
     functions.logger.error(
-      "Default settings couldn't be loaded to user " + userId,
+      `Erro ao inicializar configurações para usuário ${targetUserId}:`,
+      err
     );
-    throw err;
+    if (err instanceof functions.https.HttpsError) {
+      throw err;
+    }
+    throw new functions.https.HttpsError(
+      "internal",
+      `Falha ao inicializar configurações: ${err.message}`
+    );
   }
 });
 

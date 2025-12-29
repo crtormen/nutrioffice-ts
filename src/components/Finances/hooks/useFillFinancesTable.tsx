@@ -1,13 +1,15 @@
 import { useMemo } from "react";
-import { FinanceTableData } from "../financesColumns";
-import { useAuth } from "@/infra/firebase";
+
 import { useFetchAllFinancesQuery } from "@/app/state/features/financesSlice";
-import { IFinance } from "@/domain/entities";
-import { filterFinances } from "../financeFilter";
 import { DateRange } from "@/components/Consultas/DateRangePicker";
+import { IFinance } from "@/domain/entities";
+import { useAuth } from "@/infra/firebase";
+
+import { filterFinances } from "../financeFilter";
+import { FinanceTableData } from "../financesColumns";
 
 const transformToTableData = (
-  data: IFinance[] | undefined
+  data: IFinance[] | undefined,
 ): FinanceTableData[] => {
   if (!data) return [];
 
@@ -26,15 +28,13 @@ const transformToTableData = (
 export const useFillFinancesTable = (
   searchTerm: string = "",
   statusFilter: "all" | "pending" | "partial" | "paid" = "all",
-  dateRange?: DateRange
+  dateRange?: DateRange,
 ) => {
   const auth = useAuth();
   const uid = auth.dbUid;
 
-  const { data, isLoading, isSuccess, isError, error } = useFetchAllFinancesQuery(
-    { uid: uid || "" },
-    { skip: !uid }
-  );
+  const { data, isLoading, isSuccess, isError, error } =
+    useFetchAllFinancesQuery({ uid: uid || "" }, { skip: !uid });
 
   // Filter the raw data first
   const filteredData = useMemo(() => {

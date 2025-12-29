@@ -1,0 +1,463 @@
+{
+    "jp3folds": {
+        "name": "Jackson-Pollock 3 Dobras",
+        "description": "Protocolo rápido com 3 medidas de dobras cutâneas. Ideal para avaliações rápidas e acompanhamento regular.",
+        "formula": "jp3",
+        "fields": {
+            "weight": {
+                "enabled": true,
+                "label": "Peso",
+                "required": true
+            },
+            "height": {
+                "enabled": true,
+                "label": "Altura",
+                "required": true
+            },
+            "folds": {
+                "enabled": true,
+                "protocol": "jp3",
+                "points": [
+                    {
+                        "id": "peitoral",
+                        "label": "Peitoral",
+                        "enabled": true
+                    },
+                    {
+                        "id": "abdominal",
+                        "label": "Abdominal",
+                        "enabled": true
+                    },
+                    {
+                        "id": "coxa",
+                        "label": "Coxa",
+                        "enabled": true
+                    }
+                ]
+            },
+            "measures": {
+                "enabled": true,
+                "points": [
+                    {
+                        "id": "abdomen",
+                        "label": "Abdômen",
+                        "enabled": true
+                    },
+                    {
+                        "id": "cintura",
+                        "label": "Cintura",
+                        "enabled": true
+                    },
+                    {
+                        "id": "ombro",
+                        "label": "Ombro",
+                        "enabled": true
+                    },
+                    {
+                        "id": "gluteo",
+                        "label": "Glúteo",
+                        "enabled": true
+                    },
+                    {
+                        "id": "peito",
+                        "label": "Peito",
+                        "enabled": true
+                    },
+                    {
+                        "id": "braco_dir",
+                        "label": "Braço Direito",
+                        "enabled": true
+                    },
+                    {
+                        "id": "braco_esq",
+                        "label": "Braço Esquerdo",
+                        "enabled": true
+                    },
+                    {
+                        "id": "coxa_dir",
+                        "label": "Coxa Direita",
+                        "enabled": true
+                    },
+                    {
+                        "id": "coxa_esq",
+                        "label": "Coxa Esquerda",
+                        "enabled": true
+                    },
+                    {
+                        "id": "panturrilha_dir",
+                        "label": "Panturrilha Direita",
+                        "enabled": true
+                    },
+                    {
+                        "id": "panturrilha_esq",
+                        "label": "Panturrilha Esquerda",
+                        "enabled": true
+                    }
+                ]
+            },
+            "photos": {
+                "enabled": true,
+                "label": "Fotos",
+                "positions": ["front", "back", "side"]
+            }
+        }
+    },
+    "jp7folds": {
+        "name": "Jackson-Pollock 7 Dobras",
+        "description": "Protocolo completo com 7 medidas de dobras cutâneas. Fornece análise detalhada da composição corporal.",
+        "formula": "jp7",
+        "fields": {
+            "weight": {
+                "enabled": true,
+                "label": "Peso",
+                "required": true
+            },
+            "height": {
+                "enabled": true,
+                "label": "Altura",
+                "required": true
+            },
+            "folds": {
+                "enabled": true,
+                "protocol": "jp7",
+                "points": [
+                    {
+                        "id": "triceps",
+                        "label": "Tríceps",
+                        "enabled": true
+                    },
+                    {
+                        "id": "peitoral",
+                        "label": "Peitoral",
+                        "enabled": true
+                    },
+                    {
+                        "id": "subescapular",
+                        "label": "Subescapular",
+                        "enabled": true
+                    },
+                    {
+                        "id": "axilar",
+                        "label": "Axilar Média",
+                        "enabled": true
+                    },
+                    {
+                        "id": "supra",
+                        "label": "Suprailíaca",
+                        "enabled": true
+                    },
+                    {
+                        "id": "abdominal",
+                        "label": "Abdominal",
+                        "enabled": true
+                    },
+                    {
+                        "id": "coxa",
+                        "label": "Coxa",
+                        "enabled": true
+                    }
+                ]
+            },
+            "measures": {
+                "enabled": true,
+                "points": [
+                    {
+                        "id": "abdomen",
+                        "label": "Abdômen",
+                        "enabled": true
+                    },
+                    {
+                        "id": "cintura",
+                        "label": "Cintura",
+                        "enabled": true
+                    },
+                    {
+                        "id": "ombro",
+                        "label": "Ombro",
+                        "enabled": true
+                    },
+                    {
+                        "id": "gluteo",
+                        "label": "Glúteo",
+                        "enabled": true
+                    },
+                    {
+                        "id": "peito",
+                        "label": "Peito",
+                        "enabled": true
+                    },
+                    {
+                        "id": "braco_dir",
+                        "label": "Braço Direito",
+                        "enabled": true
+                    },
+                    {
+                        "id": "braco_esq",
+                        "label": "Braço Esquerdo",
+                        "enabled": true
+                    },
+                    {
+                        "id": "coxa_dir",
+                        "label": "Coxa Direita",
+                        "enabled": true
+                    },
+                    {
+                        "id": "coxa_esq",
+                        "label": "Coxa Esquerda",
+                        "enabled": true
+                    },
+                    {
+                        "id": "panturrilha_dir",
+                        "label": "Panturrilha Direita",
+                        "enabled": true
+                    },
+                    {
+                        "id": "panturrilha_esq",
+                        "label": "Panturrilha Esquerda",
+                        "enabled": true
+                    }
+                ]
+            },
+            "photos": {
+                "enabled": true,
+                "label": "Fotos",
+                "positions": ["front", "back", "side"]
+            }
+        }
+    },
+    "dw4folds": {
+        "name": "Durnin-Womersley 4 Dobras",
+        "description": "Protocolo com 4 medidas de dobras cutâneas. Método validado para população geral com ajuste por idade.",
+        "formula": "dw4",
+        "fields": {
+            "weight": {
+                "enabled": true,
+                "label": "Peso",
+                "required": true
+            },
+            "height": {
+                "enabled": true,
+                "label": "Altura",
+                "required": true
+            },
+            "folds": {
+                "enabled": true,
+                "protocol": "dw4",
+                "points": [
+                    {
+                        "id": "triceps",
+                        "label": "Tríceps",
+                        "enabled": true
+                    },
+                    {
+                        "id": "biceps",
+                        "label": "Bíceps",
+                        "enabled": true
+                    },
+                    {
+                        "id": "subescapular",
+                        "label": "Subescapular",
+                        "enabled": true
+                    },
+                    {
+                        "id": "supra",
+                        "label": "Suprailíaca",
+                        "enabled": true
+                    }
+                ]
+            },
+            "measures": {
+                "enabled": true,
+                "points": [
+                    {
+                        "id": "abdomen",
+                        "label": "Abdômen",
+                        "enabled": true
+                    },
+                    {
+                        "id": "cintura",
+                        "label": "Cintura",
+                        "enabled": true
+                    },
+                    {
+                        "id": "ombro",
+                        "label": "Ombro",
+                        "enabled": true
+                    },
+                    {
+                        "id": "gluteo",
+                        "label": "Glúteo",
+                        "enabled": true
+                    },
+                    {
+                        "id": "peito",
+                        "label": "Peito",
+                        "enabled": true
+                    },
+                    {
+                        "id": "braco_dir",
+                        "label": "Braço Direito",
+                        "enabled": true
+                    },
+                    {
+                        "id": "braco_esq",
+                        "label": "Braço Esquerdo",
+                        "enabled": true
+                    },
+                    {
+                        "id": "coxa_dir",
+                        "label": "Coxa Direita",
+                        "enabled": true
+                    },
+                    {
+                        "id": "coxa_esq",
+                        "label": "Coxa Esquerda",
+                        "enabled": true
+                    },
+                    {
+                        "id": "panturrilha_dir",
+                        "label": "Panturrilha Direita",
+                        "enabled": true
+                    },
+                    {
+                        "id": "panturrilha_esq",
+                        "label": "Panturrilha Esquerda",
+                        "enabled": true
+                    }
+                ]
+            },
+            "photos": {
+                "enabled": true,
+                "label": "Fotos",
+                "positions": ["front", "back", "side"]
+            }
+        }
+    },
+    "bioimpedance": {
+        "name": "Bioimpedância",
+        "description": "Avaliação por bioimpedância elétrica. Resultados diretos do equipamento sem medição de dobras.",
+        "formula": "bioimpedance",
+        "fields": {
+            "weight": {
+                "enabled": true,
+                "label": "Peso",
+                "required": true
+            },
+            "height": {
+                "enabled": true,
+                "label": "Altura",
+                "required": true
+            },
+            "bioimpedance": {
+                "enabled": true,
+                "fields": [
+                    {
+                        "id": "bodyFatPercentage",
+                        "label": "% Gordura Corporal",
+                        "enabled": true
+                    },
+                    {
+                        "id": "leanMass",
+                        "label": "Massa Magra (kg)",
+                        "enabled": true
+                    },
+                    {
+                        "id": "fatMass",
+                        "label": "Massa Gorda (kg)",
+                        "enabled": true
+                    },
+                    {
+                        "id": "waterPercentage",
+                        "label": "% Água Corporal",
+                        "enabled": true
+                    },
+                    {
+                        "id": "bmr",
+                        "label": "Taxa Metabólica Basal (kcal)",
+                        "enabled": true
+                    },
+                    {
+                        "id": "metabolicAge",
+                        "label": "Idade Metabólica",
+                        "enabled": true
+                    },
+                    {
+                        "id": "visceralFat",
+                        "label": "Gordura Visceral",
+                        "enabled": true
+                    },
+                    {
+                        "id": "boneMass",
+                        "label": "Massa Óssea (kg)",
+                        "enabled": true
+                    }
+                ]
+            },
+            "measures": {
+                "enabled": true,
+                "points": [
+                    {
+                        "id": "abdomen",
+                        "label": "Abdômen",
+                        "enabled": true
+                    },
+                    {
+                        "id": "cintura",
+                        "label": "Cintura",
+                        "enabled": true
+                    },
+                    {
+                        "id": "ombro",
+                        "label": "Ombro",
+                        "enabled": true
+                    },
+                    {
+                        "id": "gluteo",
+                        "label": "Glúteo",
+                        "enabled": true
+                    },
+                    {
+                        "id": "peito",
+                        "label": "Peito",
+                        "enabled": true
+                    },
+                    {
+                        "id": "braco_dir",
+                        "label": "Braço Direito",
+                        "enabled": true
+                    },
+                    {
+                        "id": "braco_esq",
+                        "label": "Braço Esquerdo",
+                        "enabled": true
+                    },
+                    {
+                        "id": "coxa_dir",
+                        "label": "Coxa Direita",
+                        "enabled": true
+                    },
+                    {
+                        "id": "coxa_esq",
+                        "label": "Coxa Esquerda",
+                        "enabled": true
+                    },
+                    {
+                        "id": "panturrilha_dir",
+                        "label": "Panturrilha Direita",
+                        "enabled": true
+                    },
+                    {
+                        "id": "panturrilha_esq",
+                        "label": "Panturrilha Esquerda",
+                        "enabled": true
+                    }
+                ]
+            },
+            "photos": {
+                "enabled": true,
+                "label": "Fotos",
+                "positions": ["front", "back", "side"]
+            }
+        }
+    }
+}

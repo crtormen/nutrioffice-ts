@@ -1,7 +1,8 @@
-import { useAuth } from "@/infra/firebase";
 import { useParams } from "react-router-dom";
+
 import { useFetchGoalsQuery } from "@/app/state/features/goalsSlice";
 import { IGoal } from "@/domain/entities";
+import { useAuth } from "@/infra/firebase";
 
 export const useSetCustomerGoals = () => {
   const { id: customerId } = useParams();

@@ -1,6 +1,7 @@
 import { Loader2 } from "lucide-react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 
+import { ROUTES } from "@/app/router/routes";
 import { Button } from "@/components/ui/button";
 import { UserAuthForm } from "@/components/User/UserAuthForm";
 import { useAuth } from "@/infra/firebase";
@@ -9,7 +10,16 @@ const LoginPage = () => {
   const { loading, user } = useAuth();
   const { state } = useLocation();
 
-  const from = state?.from?.pathname || "/";
+  // Check if user came from pricing page with a plan selection
+  const getRedirectPath = () => {
+    const selectedPlan = sessionStorage.getItem("selectedPlan");
+    if (selectedPlan) {
+      return ROUTES.SUBSCRIPTION.PRICING;
+    }
+    return state?.from?.pathname || "/";
+  };
+
+  const from = getRedirectPath();
 
   if (loading)
     return (

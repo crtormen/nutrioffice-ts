@@ -1,4 +1,4 @@
-import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { useAppSelector } from "@/app/state";
@@ -7,6 +7,7 @@ import {
   useSetSettingsMutation,
 } from "@/app/state/features/settingsSlice";
 import { SetServiceDialog } from "@/components/Settings/SetServiceDialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
@@ -25,10 +26,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
 import { IServiceConfig, SERVICE_CATEGORIES } from "@/domain/entities/settings";
 import { useAuth } from "@/infra/firebase/hooks";
-import { useToast } from "@/components/ui/use-toast";
 
 const ServicesSettingsTab = () => {
   const { dbUid } = useAuth();
@@ -37,8 +37,14 @@ const ServicesSettingsTab = () => {
   const [updateSettings] = useSetSettingsMutation();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [serviceToDelete, setServiceToDelete] = useState<{ key: string; name: string } | null>(null);
-  const [editingService, setEditingService] = useState<{ service: IServiceConfig; key: string } | null>(null);
+  const [serviceToDelete, setServiceToDelete] = useState<{
+    key: string;
+    name: string;
+  } | null>(null);
+  const [editingService, setEditingService] = useState<{
+    service: IServiceConfig;
+    key: string;
+  } | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   // Merge custom and default services
@@ -52,7 +58,8 @@ const ServicesSettingsTab = () => {
 
     try {
       // Get all custom services except the one to delete
-      const { [serviceToDelete.key]: removed, ...remainingServices } = settings?.custom?.services || {};
+      const { [serviceToDelete.key]: removed, ...remainingServices } =
+        settings?.custom?.services || {};
 
       await updateSettings({
         uid: dbUid,
@@ -136,13 +143,17 @@ const ServicesSettingsTab = () => {
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">
-                        {SERVICE_CATEGORIES[service.category]?.text || service.category}
+                        {SERVICE_CATEGORIES[service.category]?.text ||
+                          service.category}
                       </Badge>
                     </TableCell>
                     <TableCell>{formatCurrency(service.price)}</TableCell>
                     <TableCell>
                       {service.credits ? (
-                        <span>{service.credits} crédito{service.credits > 1 ? "s" : ""}</span>
+                        <span>
+                          {service.credits} crédito
+                          {service.credits > 1 ? "s" : ""}
+                        </span>
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}
@@ -180,7 +191,10 @@ const ServicesSettingsTab = () => {
                               <DropdownMenuItem
                                 className="text-destructive"
                                 onClick={() => {
-                                  setServiceToDelete({ key, name: service.name });
+                                  setServiceToDelete({
+                                    key,
+                                    name: service.name,
+                                  });
                                   setDeleteDialogOpen(true);
                                 }}
                               >

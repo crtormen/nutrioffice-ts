@@ -1,4 +1,4 @@
-import { format, subMonths, startOfMonth, subYears } from "date-fns";
+import { format, startOfMonth, subMonths, subYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   Bar,
@@ -11,16 +11,16 @@ import {
   YAxis,
 } from "recharts";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFetchMonthlyTrendsQuery } from "@/app/state/features/analyticsSlice";
-import { useAuth } from "@/infra/firebase";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/infra/firebase";
 
 export const ConsultasChart = () => {
   const { dbUid } = useAuth();
   const { data: monthlyTrends, isLoading } = useFetchMonthlyTrendsQuery(
     { uid: dbUid || "", months: 24 }, // Get last 24 months for year comparison
-    { skip: !dbUid }
+    { skip: !dbUid },
   );
 
   if (isLoading) {
@@ -51,19 +51,29 @@ export const ConsultasChart = () => {
 
   // Debug logging
   console.log("ConsultasChart - Monthly trends:", monthlyTrends);
-  console.log("ConsultasChart - Looking for months:", months.map(m => m.monthKey));
+  console.log(
+    "ConsultasChart - Looking for months:",
+    months.map((m) => m.monthKey),
+  );
   if (monthlyTrends && monthlyTrends.length > 0) {
-    console.log("ConsultasChart - Available months in data:", monthlyTrends.map(m => m.month));
+    console.log(
+      "ConsultasChart - Available months in data:",
+      monthlyTrends.map((m) => m.month),
+    );
   }
 
   // Build chart data from analytics monthly rollups
   const chartData = months.map((month) => {
-    const currentYearData = monthlyTrends?.find(m => m.month === month.monthKey);
-    const lastYearData = monthlyTrends?.find(m => m.month === month.lastYearKey);
+    const currentYearData = monthlyTrends?.find(
+      (m) => m.month === month.monthKey,
+    );
+    const lastYearData = monthlyTrends?.find(
+      (m) => m.month === month.lastYearKey,
+    );
 
     console.log(`Month ${month.monthKey}:`, {
       found: !!currentYearData,
-      consultas: currentYearData?.totalConsultations
+      consultas: currentYearData?.totalConsultations,
     });
 
     return {
@@ -104,7 +114,11 @@ export const ConsultasChart = () => {
               }}
             />
             <Legend />
-            <Bar dataKey="Ano Atual" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+            <Bar
+              dataKey="Ano Atual"
+              fill="hsl(var(--primary))"
+              radius={[4, 4, 0, 0]}
+            />
             <Bar
               dataKey="Ano Passado"
               fill="hsl(var(--muted-foreground))"

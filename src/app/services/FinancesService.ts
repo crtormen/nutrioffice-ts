@@ -54,14 +54,25 @@ export const FinancesService = (uid: string | undefined) => {
         const payments: IPayment[] | undefined = data.payments
           ? data.payments.map((payment) => ({
               ...payment,
-              createdAt: payment.createdAt?.toDate().toISOString() || "",
+              createdAt: payment.createdAt?.toDate?.().toISOString() ||
+                         (typeof payment.createdAt === 'string' ? payment.createdAt : ""),
             }))
           : undefined;
+
+        // Handle both Timestamp and string formats for backwards compatibility
+        let createdAtString = "";
+        if (data.createdAt) {
+          if (typeof data.createdAt === 'string') {
+            createdAtString = data.createdAt;
+          } else if (data.createdAt.toDate) {
+            createdAtString = data.createdAt.toDate().toISOString();
+          }
+        }
 
         return {
           id: snapshot.id,
           ...data,
-          createdAt: data.createdAt?.toDate().toISOString() || "",
+          createdAt: createdAtString,
           payments,
         };
       },

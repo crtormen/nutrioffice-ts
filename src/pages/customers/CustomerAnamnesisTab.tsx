@@ -1,11 +1,10 @@
-import { Plus, Edit, Trash2, FileText } from "lucide-react";
+import { Edit, FileText, Plus, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { useShowAnamnesisData } from "@/components/Anamnesis/hooks/useShowAnamnesisData";
+import { ROUTES } from "@/app/router/routes";
 import { useGetAnamnesisData } from "@/components/Anamnesis/hooks/useGetAnamnesisData";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useShowAnamnesisData } from "@/components/Anamnesis/hooks/useShowAnamnesisData";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,8 +15,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ROUTES } from "@/app/router/routes";
 
 const CustomerAnamnesisTab: React.FC = () => {
   const navigate = useNavigate();
@@ -55,7 +61,9 @@ const CustomerAnamnesisTab: React.FC = () => {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => navigate(ROUTES.CUSTOMERS.CREATEANAMNESIS(customerId!))}
+            onClick={() =>
+              navigate(ROUTES.CUSTOMERS.CREATEANAMNESIS(customerId!))
+            }
           >
             <Plus className="mr-2 h-4 w-4" />
             Nova Anamnese
@@ -84,10 +92,10 @@ const CustomerAnamnesisTab: React.FC = () => {
           )}
         </CardHeader>
         <CardContent>
-          <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
             {anamnesis.map((field, i) => (
               <div key={i} className="space-y-1">
-                <dt className="text-xs font-medium text-muted-foreground uppercase">
+                <dt className="text-xs font-medium uppercase text-muted-foreground">
                   {field.label}
                 </dt>
                 <dd className="text-sm font-medium text-foreground">
@@ -107,7 +115,8 @@ const CustomerAnamnesisTab: React.FC = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir esta anamnese? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir esta anamnese? Esta ação não pode
+              ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -130,13 +139,16 @@ const CustomerAnamnesisTab: React.FC = () => {
           <CardTitle>Nenhuma anamnese cadastrada</CardTitle>
         </div>
         <CardDescription>
-          Registre a anamnese do paciente para acompanhar seu histórico de saúde e alimentação
+          Registre a anamnese do paciente para acompanhar seu histórico de saúde
+          e alimentação
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Button
           variant="outline"
-          onClick={() => navigate(ROUTES.CUSTOMERS.CREATEANAMNESIS(customerId!))}
+          onClick={() =>
+            navigate(ROUTES.CUSTOMERS.CREATEANAMNESIS(customerId!))
+          }
         >
           <Plus className="mr-2 h-4 w-4" />
           Criar Anamnese

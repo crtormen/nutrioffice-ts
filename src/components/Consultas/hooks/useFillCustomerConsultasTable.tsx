@@ -15,23 +15,25 @@ const setTableData = (
   return data.map((record, i) => ({
     id: record.id,
     customerId,
+    name: "", // Name comes from customer, not consulta
     date: record.date,
     index: data.length - i,
+    peso: record.peso?.toString(),
+    online: record.online,
+    createdAt: record.createdAt,
   }));
 };
 
 export const useFillCustomerConsultasTable = (customerId?: string) => {
   const [consultas, setConsultas] = useState<ConsultaData[] | undefined>([]);
-  const auth = useAuth();
-  const uid = auth.user?.uid;
+  const { dbUid } = useAuth();
 
-  const { data, isLoading, isSuccess, isError, error } = useFetchCustomerConsultasQuery(
-    { uid, customerId },
-  );
+  const { data, isLoading, isSuccess, isError, error } =
+    useFetchCustomerConsultasQuery({ uid: dbUid, customerId });
 
   useEffect(() => {
     if (!data || !customerId) {
-      return
+      return;
     }
     const consultasData = setTableData(data, customerId);
     setConsultas(consultasData);

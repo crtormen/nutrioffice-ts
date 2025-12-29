@@ -1,8 +1,10 @@
-import { Progress } from "@/components/ui/progress";
+import { ArrowDown, ArrowUp, Minus } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
-import { ResultsChart, WeightProgressAreaChart } from "./charts";
+import { Progress } from "@/components/ui/progress";
 import { IGoal } from "@/domain/entities";
-import { ArrowUp, ArrowDown, Minus } from "lucide-react";
+
+import { ResultsChart, WeightProgressAreaChart } from "./charts";
 
 interface GoalParameterTabProps {
   parameter: string;
@@ -26,15 +28,19 @@ const parameterLabels: Record<string, { label: string; unit: string }> = {
 const getTrendIcon = (trend: "up" | "down" | "stable") => {
   switch (trend) {
     case "up":
-      return <ArrowUp className="h-4 w-4 text-chart-3" />;
+      return <ArrowUp className="text-chart-3 h-4 w-4" />;
     case "down":
-      return <ArrowDown className="h-4 w-4 text-chart-2" />;
+      return <ArrowDown className="text-chart-2 h-4 w-4" />;
     case "stable":
       return <Minus className="h-4 w-4 text-muted-foreground" />;
   }
 };
 
-const getProgressColor = (progress: number, isOnTrack: boolean, isAchieved: boolean) => {
+const getProgressColor = (
+  progress: number,
+  isOnTrack: boolean,
+  isAchieved: boolean,
+) => {
   if (isAchieved) return "bg-chart-2"; // Green
   if (isOnTrack) return "bg-chart-2"; // Green
   if (progress > 50) return "bg-chart-5"; // Orange

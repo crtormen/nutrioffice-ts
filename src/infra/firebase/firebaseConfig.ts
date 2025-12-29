@@ -57,6 +57,10 @@ export const reloadDefaultSettingsToUser = httpsCallable(
   "reloadDefaultSettingsToUser",
 );
 
+export const initializeUserSettings = httpsCallable(
+  functions,
+  "initializeUserSettings"
+);
 
 // CONNECT EMULATORS
 if (location.hostname === "localhost") {

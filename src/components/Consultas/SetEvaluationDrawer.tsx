@@ -154,7 +154,7 @@ export const SetEvaluationDrawer = ({ online }: { online: boolean }) => {
             Object.entries(consulta.results).map(([key, value], i) => (
               <div key={i} className="flex items-center justify-start gap-4">
                 <div className="text-sm font-medium text-muted-foreground">
-                  {RESULTS[key].text}
+                  {RESULTS.find((r) => r.value === key)?.label || key}
                 </div>
                 <div className="text-sm font-semibold leading-6 text-foreground">
                   {value}

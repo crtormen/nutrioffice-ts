@@ -1,23 +1,29 @@
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
 import {
-  Palette,
-  Type,
-  Radius,
-  Sun,
-  Moon,
+  Image as ImageIcon,
+  Info,
+  Loader2,
   Monitor,
+  Moon,
+  Palette,
+  Radius,
   RotateCcw,
   Save,
-  Info,
-  Image as ImageIcon,
+  Sun,
+  Type,
+  Upload,
+  X,
 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { storage } from "@/infra/firebase/firebaseConfig";
 
 import {
   useFetchThemeQuery,
-  useUpdateThemeMutation,
   useResetThemeMutation,
+  useUpdateThemeMutation,
 } from "@/app/state/features/themeSlice";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,22 +32,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import {
-  ColorPreset,
-  RadiusPreset,
-  FontPreset,
-  ThemeMode,
   COLOR_PRESETS,
-  RADIUS_PRESETS,
+  ColorPreset,
+  DEFAULT_THEME,
   FONT_PRESETS,
+  FontPreset,
+  RADIUS_PRESETS,
+  RadiusPreset,
   THEME_MODES,
   ThemeConfig,
-  DEFAULT_THEME,
+  ThemeMode,
 } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
 import { cn } from "@/lib/utils";
@@ -55,6 +60,8 @@ const ThemeSettingsTab = () => {
   const [resetTheme, { isLoading: isResetting }] = useResetThemeMutation();
 
   const [localTheme, setLocalTheme] = useState<ThemeConfig>(DEFAULT_THEME);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (fetchedTheme) {
@@ -87,6 +94,93 @@ const ThemeSettingsTab = () => {
       toast.success("Tema restaurado para o padrão!");
     } catch (error: any) {
       toast.error("Erro ao restaurar tema", {
+        description: error.message || "Tente novamente mais tarde.",
+      });
+    }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !dbUid) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor, selecione uma imagem válida");
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Imagem muito grande", {
+        description: "O tamanho máximo é 2MB",
+      });
+      return;
+    }
+
+    setUploadingLogo(true);
+
+    try {
+      // Upload to Firebase Storage
+      const storageRef = ref(storage, `logos/${dbUid}/brand-logo`);
+      await uploadBytes(storageRef, file);
+
+      // Get download URL
+      const downloadURL = await getDownloadURL(storageRef);
+
+      // Get image dimensions
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+
+      // Update local theme
+      setLocalTheme({
+        ...localTheme,
+        logo: {
+          url: downloadURL,
+          width: img.width,
+          height: img.height,
+        },
+      });
+
+      toast.success("Logo carregada com sucesso!");
+    } catch (error: any) {
+      console.error("Error uploading logo:", error);
+      toast.error("Erro ao fazer upload da logo", {
+        description: error.message || "Tente novamente mais tarde.",
+      });
+    } finally {
+      setUploadingLogo(false);
+      // Reset file input
+      if (logoInputRef.current) {
+        logoInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    if (!dbUid) return;
+
+    try {
+      // Delete from Storage if logo exists
+      if (localTheme.logo?.url) {
+        const storageRef = ref(storage, `logos/${dbUid}/brand-logo`);
+        await deleteObject(storageRef).catch(() => {
+          // Ignore if file doesn't exist
+        });
+      }
+
+      // Remove from local theme
+      setLocalTheme({
+        ...localTheme,
+        logo: undefined,
+      });
+
+      toast.success("Logo removida com sucesso!");
+    } catch (error: any) {
+      console.error("Error removing logo:", error);
+      toast.error("Erro ao remover logo", {
         description: error.message || "Tente novamente mais tarde.",
       });
     }
@@ -167,14 +261,14 @@ const ThemeSettingsTab = () => {
                   "flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all hover:scale-105",
                   localTheme.colorPreset === key
                     ? "border-primary ring-2 ring-primary/20"
-                    : "border-muted hover:border-muted-foreground/50"
+                    : "border-muted hover:border-muted-foreground/50",
                 )}
               >
                 <div
                   className="h-12 w-12 rounded-full shadow-md"
                   style={{ backgroundColor: primary }}
                 />
-                <span className="text-xs font-medium text-center">{name}</span>
+                <span className="text-center text-xs font-medium">{name}</span>
               </button>
             ))}
           </div>
@@ -200,26 +294,31 @@ const ThemeSettingsTab = () => {
             }
           >
             <div className="grid gap-3 sm:grid-cols-2">
-              {Object.entries(RADIUS_PRESETS).map(([key, { name, example }]) => (
-                <div key={key} className="flex items-center space-x-3 space-y-0">
-                  <RadioGroupItem value={key} id={`radius-${key}`} />
-                  <Label
-                    htmlFor={`radius-${key}`}
-                    className="flex flex-1 cursor-pointer flex-col gap-1"
+              {Object.entries(RADIUS_PRESETS).map(
+                ([key, { name, example }]) => (
+                  <div
+                    key={key}
+                    className="flex items-center space-x-3 space-y-0"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{name}</span>
-                      <div
-                        className="h-8 w-16 border-2 border-primary bg-primary/10"
-                        style={{ borderRadius: `${key}rem` }}
-                      />
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {example}
-                    </span>
-                  </Label>
-                </div>
-              ))}
+                    <RadioGroupItem value={key} id={`radius-${key}`} />
+                    <Label
+                      htmlFor={`radius-${key}`}
+                      className="flex flex-1 cursor-pointer flex-col gap-1"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{name}</span>
+                        <div
+                          className="h-8 w-16 border-2 border-primary bg-primary/10"
+                          style={{ borderRadius: `${key}rem` }}
+                        />
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {example}
+                      </span>
+                    </Label>
+                  </div>
+                ),
+              )}
             </div>
           </RadioGroup>
         </CardContent>
@@ -244,23 +343,28 @@ const ThemeSettingsTab = () => {
             }
           >
             <div className="grid gap-3">
-              {Object.entries(FONT_PRESETS).map(([key, { name, fontFamily }]) => (
-                <div key={key} className="flex items-center space-x-3 space-y-0">
-                  <RadioGroupItem value={key} id={`font-${key}`} />
-                  <Label
-                    htmlFor={`font-${key}`}
-                    className="flex flex-1 cursor-pointer items-center justify-between"
+              {Object.entries(FONT_PRESETS).map(
+                ([key, { name, fontFamily }]) => (
+                  <div
+                    key={key}
+                    className="flex items-center space-x-3 space-y-0"
                   >
-                    <span className="font-medium">{name}</span>
-                    <span
-                      className="text-sm text-muted-foreground"
-                      style={{ fontFamily }}
+                    <RadioGroupItem value={key} id={`font-${key}`} />
+                    <Label
+                      htmlFor={`font-${key}`}
+                      className="flex flex-1 cursor-pointer items-center justify-between"
                     >
-                      O rato roeu a roupa do rei
-                    </span>
-                  </Label>
-                </div>
-              ))}
+                      <span className="font-medium">{name}</span>
+                      <span
+                        className="text-sm text-muted-foreground"
+                        style={{ fontFamily }}
+                      >
+                        O rato roeu a roupa do rei
+                      </span>
+                    </Label>
+                  </div>
+                ),
+              )}
             </div>
           </RadioGroup>
         </CardContent>
@@ -273,9 +377,7 @@ const ThemeSettingsTab = () => {
             <Sun className="h-5 w-5" />
             Modo do Tema
           </CardTitle>
-          <CardDescription>
-            Preferência de tema claro ou escuro
-          </CardDescription>
+          <CardDescription>Preferência de tema claro ou escuro</CardDescription>
         </CardHeader>
         <CardContent>
           <RadioGroup
@@ -285,27 +387,32 @@ const ThemeSettingsTab = () => {
             }
           >
             <div className="grid gap-3">
-              {Object.entries(THEME_MODES).map(([key, { name, description }]) => {
-                const Icon =
-                  key === "light" ? Sun : key === "dark" ? Moon : Monitor;
-                return (
-                  <div key={key} className="flex items-center space-x-3 space-y-0">
-                    <RadioGroupItem value={key} id={`mode-${key}`} />
-                    <Label
-                      htmlFor={`mode-${key}`}
-                      className="flex flex-1 cursor-pointer items-center gap-3"
+              {Object.entries(THEME_MODES).map(
+                ([key, { name, description }]) => {
+                  const Icon =
+                    key === "light" ? Sun : key === "dark" ? Moon : Monitor;
+                  return (
+                    <div
+                      key={key}
+                      className="flex items-center space-x-3 space-y-0"
                     >
-                      <Icon className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">{name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {description}
-                        </p>
-                      </div>
-                    </Label>
-                  </div>
-                );
-              })}
+                      <RadioGroupItem value={key} id={`mode-${key}`} />
+                      <Label
+                        htmlFor={`mode-${key}`}
+                        className="flex flex-1 cursor-pointer items-center gap-3"
+                      >
+                        <Icon className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">{name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {description}
+                          </p>
+                        </div>
+                      </Label>
+                    </div>
+                  );
+                },
+              )}
             </div>
           </RadioGroup>
         </CardContent>
@@ -342,12 +449,82 @@ const ThemeSettingsTab = () => {
 
             <Separator />
 
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                Upload de logo personalizada será disponibilizado em breve.
-              </AlertDescription>
-            </Alert>
+            {/* Logo Upload Section */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Logo da Marca</Label>
+                <p className="text-xs text-muted-foreground">
+                  Faça upload de uma logo personalizada (PNG, JPG ou SVG, máx. 2MB)
+                </p>
+              </div>
+
+              {/* Logo Preview */}
+              {localTheme.logo?.url && (
+                <div className="flex items-center gap-4 rounded-lg border p-4">
+                  <div className="flex-shrink-0">
+                    <img
+                      src={localTheme.logo.url}
+                      alt="Logo da marca"
+                      className="h-16 w-auto max-w-[200px] object-contain"
+                    />
+                  </div>
+                  <div className="flex-1 text-sm text-muted-foreground">
+                    <p>Dimensões: {localTheme.logo.width} × {localTheme.logo.height}px</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleRemoveLogo}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+
+              {/* Upload Button */}
+              <div className="flex gap-2">
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => logoInputRef.current?.click()}
+                  disabled={uploadingLogo}
+                >
+                  {uploadingLogo ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-4 w-4" />
+                      {localTheme.logo ? "Alterar Logo" : "Fazer Upload"}
+                    </>
+                  )}
+                </Button>
+                {localTheme.logo && (
+                  <Button
+                    variant="ghost"
+                    onClick={handleRemoveLogo}
+                  >
+                    Remover Logo
+                  </Button>
+                )}
+              </div>
+
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                  A logo será exibida no cabeçalho do sistema e em documentos gerados.
+                </AlertDescription>
+              </Alert>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -355,7 +532,10 @@ const ThemeSettingsTab = () => {
       {/* Save Button (Bottom) */}
       {hasChanges && (
         <div className="flex justify-end gap-2 rounded-lg border bg-muted/30 p-4">
-          <Button variant="outline" onClick={() => setLocalTheme(fetchedTheme!)}>
+          <Button
+            variant="outline"
+            onClick={() => setLocalTheme(fetchedTheme!)}
+          >
             Cancelar
           </Button>
           <Button onClick={handleSave} disabled={isUpdating}>

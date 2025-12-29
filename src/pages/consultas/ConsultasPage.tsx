@@ -1,18 +1,17 @@
 import { Calendar } from "lucide-react";
 
-import { ConsultasTable } from "@/components/Consultas/ConsultasTable";
-import { ConsultasStats } from "@/components/Consultas/ConsultasStats";
-import { ConsultasChart } from "@/components/Consultas/ConsultasChart";
-import { PageHeader } from "@/components/PageHeader";
 import { ROUTES } from "@/app/router/routes";
 import { useFetchAllConsultasQuery } from "@/app/state/features/consultasSlice";
-import { useAuth } from "@/infra/firebase";
+import { ConsultasChart } from "@/components/Consultas/ConsultasChart";
+import { ConsultasStats } from "@/components/Consultas/ConsultasStats";
+import { ConsultasTable } from "@/components/Consultas/ConsultasTable";
+import { PageHeader } from "@/components/PageHeader";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/infra/firebase";
 
 const ConsultasPage = () => {
-  const auth = useAuth();
-  const uid = auth.user?.uid;
-  const { data: consultas } = useFetchAllConsultasQuery({ uid });
+  const { dbUid } = useAuth();
+  const { data: consultas } = useFetchAllConsultasQuery({ uid: dbUid });
 
   const breadcrumbs = [
     { label: "Dashboard", href: ROUTES.DASHBOARD },

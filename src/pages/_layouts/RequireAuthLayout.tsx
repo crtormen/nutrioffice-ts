@@ -1,15 +1,17 @@
 import { ReactNode } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
+
+import { ROUTES } from "@/app/router/routes";
 import { useFetchSettingsQuery } from "@/app/state/features/settingsSlice";
+import { useFetchUserQuery } from "@/app/state/features/userSlice";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useAuth } from "@/infra/firebase/hooks";
+
 import MainHeader from "./MainHeader";
 import { MainNav } from "./MainNav";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { ROUTES } from "@/app/router/routes";
-import { useFetchUserQuery } from "@/app/state/features/userSlice";
 
 interface AuthProps {
-  allowedRoles?: string[],
+  allowedRoles?: string[];
   // redirectPath: string,
   children?: ReactNode;
 }
@@ -17,7 +19,9 @@ interface AuthProps {
 const RequireAuthLayout = ({ allowedRoles, children }: AuthProps) => {
   const { user, loading: authLoading } = useAuth();
   const location = useLocation();
-  const { data: userProfile, isLoading: profileLoading } = useFetchUserQuery(user?.uid);
+  const { data: userProfile, isLoading: profileLoading } = useFetchUserQuery(
+    user?.uid,
+  );
   // Load default settings from DB
   useFetchSettingsQuery(user?.uid);
 
@@ -25,12 +29,14 @@ const RequireAuthLayout = ({ allowedRoles, children }: AuthProps) => {
   const isAuthenticated = !!user && !!userProfile && !profileLoading;
 
   if (loading) return <LoadingSpinner />;
-  if (!isAuthenticated) return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />;
+  if (!isAuthenticated)
+    return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />;
 
   if (allowedRoles && userProfile) {
-    const userHasRequiredRole = userProfile.roles && allowedRoles.includes(userProfile.roles.ability);
+    const userHasRequiredRole =
+      userProfile.roles && allowedRoles.includes(userProfile.roles.ability);
     if (!userHasRequiredRole) {
-      return <Navigate to="/unauthorized" replace />
+      return <Navigate to="/unauthorized" replace />;
     }
   }
   return (

@@ -1,10 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Calendar, Target } from "lucide-react";
+
 import { useFetchGoalsQuery } from "@/app/state/features/goalsSlice";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+
 import { GoalStatusBadge } from "./GoalStatusBadge";
 import { useGoalProgress } from "./hooks/useGoalProgress";
-import { Calendar, Target } from "lucide-react";
 
 interface GoalsListProps {
   customerId: string;
@@ -25,7 +27,9 @@ export const GoalsList = ({ customerId, userId }: GoalsListProps) => {
   });
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Carregando metas...</div>;
+    return (
+      <div className="text-sm text-muted-foreground">Carregando metas...</div>
+    );
   }
 
   if (goals.length === 0) {

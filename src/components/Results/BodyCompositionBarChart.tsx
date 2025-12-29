@@ -1,14 +1,15 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
+import { format, parse } from "date-fns";
+import { Bar, BarChart, CartesianGrid, Legend, XAxis, YAxis } from "recharts";
+
+import { useFetchCustomerConsultasQuery } from "@/app/state/features/customerConsultasSlice";
 import {
+  type ChartConfig,
   ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
-  type ChartConfig,
+  ChartTooltip,
+  ChartTooltipContent,
 } from "@/components/ui/chart";
-import { useFetchCustomerConsultasQuery } from "@/app/state/features/customerConsultasSlice";
-import { format, parse } from "date-fns";
 
 interface BodyCompositionBarChartProps {
   customerId: string;
@@ -50,11 +51,10 @@ export const BodyCompositionBarChart = ({
     .slice(-limit)
     .map((consulta) => {
       let date;
-      if (consulta.date){
+      if (consulta.date) {
         try {
           date = parse(consulta.date, "dd/MM/yyyy", new Date());
-        }
-        catch {
+        } catch {
           date = undefined;
         }
       }
@@ -64,7 +64,7 @@ export const BodyCompositionBarChart = ({
         mm: consulta.results?.mm || 0,
         mr: consulta.results?.mr || 0,
         mo: consulta.results?.mo || 0,
-      }
+      };
     });
 
   if (chartData.length === 0) {
@@ -83,9 +83,24 @@ export const BodyCompositionBarChart = ({
         <YAxis label={{ value: "kg", angle: -90, position: "insideLeft" }} />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
-        <Bar dataKey="mg" stackId="a" fill="var(--color-mg)" radius={[0, 0, 0, 0]} />
-        <Bar dataKey="mm" stackId="a" fill="var(--color-mm)" radius={[0, 0, 0, 0]} />
-        <Bar dataKey="mr" stackId="a" fill="var(--color-mr)" radius={[0, 0, 0, 0]} />
+        <Bar
+          dataKey="mg"
+          stackId="a"
+          fill="var(--color-mg)"
+          radius={[0, 0, 0, 0]}
+        />
+        <Bar
+          dataKey="mm"
+          stackId="a"
+          fill="var(--color-mm)"
+          radius={[0, 0, 0, 0]}
+        />
+        <Bar
+          dataKey="mr"
+          stackId="a"
+          fill="var(--color-mr)"
+          radius={[0, 0, 0, 0]}
+        />
         <Bar
           dataKey="mo"
           stackId="a"

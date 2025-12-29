@@ -1,21 +1,23 @@
+import { format, parse } from "date-fns";
 import React from "react";
 import {
   CartesianGrid,
+  ComposedChart,
   Line,
+  ReferenceLine,
   XAxis,
   YAxis,
-  ReferenceLine,
-  ComposedChart,
 } from "recharts";
+
 import {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from "@/components/ui/chart";
-import { useSetChartData } from "./hooks/useSetChartData";
-import { format, parse } from "date-fns";
 import { IGoal } from "@/domain/entities";
+
+import { useSetChartData } from "./hooks/useSetChartData";
 
 interface resultsChartProps {
   param: string;
@@ -29,7 +31,7 @@ export const ResultsChart = ({ param, goal }: resultsChartProps) => {
   if (goal) {
     endDate = format(
       parse(goal.endDate!, "dd/MM/yyyy", new Date()),
-      "dd/MM/yy"
+      "dd/MM/yy",
     );
   }
 
@@ -91,7 +93,11 @@ export const ResultsChart = ({ param, goal }: resultsChartProps) => {
           />
         )}
         {goal && (
-          <ReferenceLine x={endDate} stroke="hsl(var(--chart-3))" strokeDasharray="3 1" />
+          <ReferenceLine
+            x={endDate}
+            stroke="hsl(var(--chart-3))"
+            strokeDasharray="3 1"
+          />
         )}
         {goal && (
           <ReferenceLine

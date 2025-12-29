@@ -17,6 +17,7 @@ export const ROUTES = {
   },
   FINANCES: {
     BASE: "finances",
+    DETAILS: (financeId: string) => `finances/details/${financeId}`,
   },
   USER: {
     BASE: "user",
@@ -26,6 +27,12 @@ export const ROUTES = {
   SUBSCRIPTION: {
     BASE: "subscription",
     PRICING: "subscription/pricing",
+    PROCESSING: "subscription/processing",
     CALLBACK: "subscription/callback",
+    MANAGE: "subscription/manage",
   },
+  PUBLIC: {
+    ANAMNESIS_FORM: (token: string) => `/anamnesis/public/${token}`,
+  },
+  FORM_SUBMISSIONS: "form-submissions",
 };

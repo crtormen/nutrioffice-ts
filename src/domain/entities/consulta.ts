@@ -15,13 +15,16 @@ export const IMG_OPTIONS = ["img_costas", "img_frente", "img_lado"] as const;
 export type ImageOptions = (typeof IMG_OPTIONS)[number];
 
 export interface IFolds {
-  abdominal: number;
-  axilar: number;
-  coxa: number;
-  peitoral: number;
-  subescapular: number;
-  supra: number;
-  triceps: number;
+  // Fixed properties for backward compatibility (JP7 protocol)
+  abdominal?: number;
+  axilar?: number;
+  coxa?: number;
+  peitoral?: number;
+  subescapular?: number;
+  supra?: number;
+  triceps?: number;
+  // Dynamic properties for custom protocols
+  [foldId: string]: number | undefined;
 }
 
 export const FOLDS = [
@@ -35,6 +38,7 @@ export const FOLDS = [
 ] as const;
 
 export interface IMeasures {
+  // Fixed properties for backward compatibility
   circ_abdomen?: number;
   circ_braco_dir?: number;
   circ_braco_esq?: number;
@@ -46,6 +50,8 @@ export interface IMeasures {
   circ_panturrilha_dir?: number;
   circ_panturrilha_esq?: number;
   circ_peito?: number;
+  // Dynamic properties for custom measure points
+  [measureId: string]: number | undefined;
 }
 
 export const MEASURES = [
@@ -80,6 +86,20 @@ export const RESULTS = [
   { label: "Massa Residual", value: "mr" },
 ] as const;
 
+export interface IBioimpedance {
+  bodyFatPercentage?: number;
+  leanMass?: number;
+  fatMass?: number;
+  waterPercentage?: number;
+  bmr?: number;
+  metabolicAge?: number;
+  visceralFat?: number;
+  boneMass?: number;
+  muscleMass?: number;
+  // Support custom bioimpedance fields
+  [key: string]: number | undefined;
+}
+
 export interface IStructure {
   altura: number;
   joelho: number;
@@ -111,6 +131,8 @@ export interface ICustomerConsulta {
   results?: IResults;
   meals?: IMeal[];
   structure?: IStructure;
+  bioimpedance?: IBioimpedance;
+  evaluationProtocol?: string; // Which preset/protocol was used (e.g., "jp3", "jp7", "dw4", "bioimpedance", "custom", "patient_submitted")
 }
 
 export interface ICustomerConsultaFirebase {
@@ -132,6 +154,8 @@ export interface ICustomerConsultaFirebase {
   results?: IResults;
   meals?: IMeal[];
   structure?: IStructure;
+  bioimpedance?: IBioimpedance;
+  evaluationProtocol?: string;
 }
 
 export interface IConsulta {

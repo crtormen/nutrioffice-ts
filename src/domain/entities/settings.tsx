@@ -12,7 +12,12 @@ export type FieldValuesSetting = {
 
 export type FieldSetting = Record<string, FieldValuesSetting>;
 
-export const serviceCategories = ["consulta", "pacote", "produto", "outro"] as const;
+export const serviceCategories = [
+  "consulta",
+  "pacote",
+  "produto",
+  "outro",
+] as const;
 export type ServiceCategory = (typeof serviceCategories)[number];
 
 export interface IServiceConfig {
@@ -38,7 +43,10 @@ export interface IAllSettings {
   default?: ISettings;
 }
 
-export const SERVICE_CATEGORIES: Record<ServiceCategory, { text: string; value: string }> = {
+export const SERVICE_CATEGORIES: Record<
+  ServiceCategory,
+  { text: string; value: string }
+> = {
   consulta: { text: "Consulta", value: "consulta" },
   pacote: { text: "Pacote", value: "pacote" },
   produto: { text: "Produto", value: "produto" },

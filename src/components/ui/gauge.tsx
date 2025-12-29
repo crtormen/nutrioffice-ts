@@ -75,7 +75,7 @@ export const Gauge = ({
         />
       </svg>
       {showValue ? (
-        <div className="animate-gauge_fadeIn absolute flex opacity-0">
+        <div className="absolute flex animate-gauge_fadeIn opacity-0">
           <p className={`text-gray-100 ${sizes[size].textSize}`}>{value}</p>
         </div>
       ) : null}

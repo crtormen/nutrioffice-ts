@@ -1,20 +1,22 @@
 /* eslint-disable prettier/prettier */
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useParams } from "react-router-dom";
 import { z } from "zod";
 
+import { ROUTES } from "@/app/router/routes";
 import { useConsultaContext } from "@/components/Consultas/context/ConsultaContext";
 import { MultiStepEvaluationFormProvider } from "@/components/Consultas/context/MultiStepEvaluationFormContext";
 import { NewGoalDialog } from "@/components/Consultas/NewGoalDialog";
-import { PageHeader } from "@/components/PageHeader";
 import { PersonalData } from "@/components/Consultas/PersonalData";
 import { SetEvaluationDrawer } from "@/components/Consultas/SetEvaluationDrawer";
 import { SetFeedingHistoryDrawer } from "@/components/Consultas/SetFeedingHistoryDrawer";
 import { SetFilesDrawer } from "@/components/Consultas/SetFilesDrawer";
 import { SetImagesDrawer } from "@/components/Consultas/SetImagesDrawer";
 import { ShowAnamnesis } from "@/components/Consultas/ShowAnamnesis";
+import Form, { FormInput, FormTextarea } from "@/components/form";
+import { PageHeader } from "@/components/PageHeader";
 import { GoalProgressCard } from "@/components/Results/GoalProgressCard";
 import { GoalsList } from "@/components/Results/GoalsList";
-import Form, { FormInput, FormTextarea } from "@/components/form";
 import {
   Accordion,
   AccordionContent,
@@ -32,8 +34,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/infra/firebase/hooks";
-import { ROUTES } from "@/app/router/routes";
-import { useParams } from "react-router-dom";
 /* eslint-disable spaced-comment */
 const getSidebarNavItems = (customerId: string, userId: string) => [
   {

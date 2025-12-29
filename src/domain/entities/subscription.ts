@@ -1,13 +1,72 @@
 import { Timestamp } from "firebase/firestore";
 
 // Plan tiers
-export type PlanTier = 'free' | 'starter' | 'professional' | 'enterprise';
+export const PLAN_TIERS = {
+  FREE: 'free',
+  STARTER: 'starter',
+  PROFESSIONAL: 'professional',
+  ENTERPRISE: 'enterprise',
+} as const;
+
+export type PlanTier = typeof PLAN_TIERS[keyof typeof PLAN_TIERS];
 
 // Subscription status
-export type SubscriptionStatus = 'active' | 'past_due' | 'canceled' | 'inactive';
+export const SUBSCRIPTION_STATUS = {
+  ACTIVE: 'active',
+  PAST_DUE: 'past_due',
+  CANCELED: 'canceled',
+  INACTIVE: 'inactive',
+} as const;
+
+export type SubscriptionStatus = typeof SUBSCRIPTION_STATUS[keyof typeof SUBSCRIPTION_STATUS];
 
 // Billing intervals
-export type BillingInterval = 'monthly' | 'annual';
+export const BILLING_INTERVALS = {
+  MONTHLY: 'monthly',
+  ANNUAL: 'annual',
+} as const;
+
+export type BillingInterval = typeof BILLING_INTERVALS[keyof typeof BILLING_INTERVALS];
+
+// Subscription payment methods
+export const SUBSCRIPTION_PAYMENT_METHODS = {
+  PIX: 'pix',
+  CREDIT_CARD: 'credit_card',
+  BOLETO: 'boleto',
+} as const;
+
+export type SubscriptionPaymentMethod = typeof SUBSCRIPTION_PAYMENT_METHODS[keyof typeof SUBSCRIPTION_PAYMENT_METHODS];
+
+// Payment status
+export const PAYMENT_STATUS = {
+  APPROVED: 'approved',
+  PENDING: 'pending',
+  REJECTED: 'rejected',
+} as const;
+
+export type PaymentStatus = typeof PAYMENT_STATUS[keyof typeof PAYMENT_STATUS];
+
+// Invoice status
+export const INVOICE_STATUS = {
+  PENDING: 'pending',
+  PAID: 'paid',
+  FAILED: 'failed',
+  REFUNDED: 'refunded',
+} as const;
+
+export type InvoiceStatus = typeof INVOICE_STATUS[keyof typeof INVOICE_STATUS];
+
+// Payment history events
+export const PAYMENT_EVENTS = {
+  SUBSCRIPTION_CREATED: 'subscription_created',
+  PAYMENT_SUCCEEDED: 'payment_succeeded',
+  PAYMENT_FAILED: 'payment_failed',
+  UPGRADED: 'upgraded',
+  DOWNGRADED: 'downgraded',
+  CANCELED: 'canceled',
+} as const;
+
+export type PaymentEvent = typeof PAYMENT_EVENTS[keyof typeof PAYMENT_EVENTS];
 
 // Plan configuration with limits
 export interface IPlanConfig {
@@ -20,8 +79,8 @@ export interface IPlanConfig {
 }
 
 export const PLAN_CONFIGS: Record<PlanTier, IPlanConfig> = {
-  free: {
-    tier: 'free',
+  [PLAN_TIERS.FREE]: {
+    tier: PLAN_TIERS.FREE,
     name: 'Gratuito',
     maxCustomers: 50,
     monthlyPrice: 0,
@@ -34,8 +93,8 @@ export const PLAN_CONFIGS: Record<PlanTier, IPlanConfig> = {
       'Composição corporal',
     ],
   },
-  starter: {
-    tier: 'starter',
+  [PLAN_TIERS.STARTER]: {
+    tier: PLAN_TIERS.STARTER,
     name: 'Iniciante',
     maxCustomers: 200,
     monthlyPrice: 79,
@@ -48,8 +107,8 @@ export const PLAN_CONFIGS: Record<PlanTier, IPlanConfig> = {
       'Backup automático',
     ],
   },
-  professional: {
-    tier: 'professional',
+  [PLAN_TIERS.PROFESSIONAL]: {
+    tier: PLAN_TIERS.PROFESSIONAL,
     name: 'Profissional',
     maxCustomers: 500,
     monthlyPrice: 149,
@@ -63,8 +122,8 @@ export const PLAN_CONFIGS: Record<PlanTier, IPlanConfig> = {
       'Personalização visual',
     ],
   },
-  enterprise: {
-    tier: 'enterprise',
+  [PLAN_TIERS.ENTERPRISE]: {
+    tier: PLAN_TIERS.ENTERPRISE,
     name: 'Corporativo',
     maxCustomers: Infinity,
     monthlyPrice: 299,
@@ -90,8 +149,8 @@ export interface ISubscriptionFirebase {
   cancelAtPeriodEnd: boolean;
   mercadoPagoSubscriptionId?: string;
   mercadoPagoCustomerId?: string;
-  paymentMethod?: 'pix' | 'credit_card' | 'boleto';
-  lastPaymentStatus?: 'approved' | 'pending' | 'rejected';
+  paymentMethod?: SubscriptionPaymentMethod;
+  lastPaymentStatus?: PaymentStatus;
   lastPaymentDate?: Timestamp;
   nextBillingDate?: Timestamp;
   createdAt: Timestamp;
@@ -108,8 +167,8 @@ export interface ISubscription {
   cancelAtPeriodEnd: boolean;
   mercadoPagoSubscriptionId?: string;
   mercadoPagoCustomerId?: string;
-  paymentMethod?: 'pix' | 'credit_card' | 'boleto';
-  lastPaymentStatus?: 'approved' | 'pending' | 'rejected';
+  paymentMethod?: SubscriptionPaymentMethod;
+  lastPaymentStatus?: PaymentStatus;
   lastPaymentDate?: string;
   nextBillingDate?: string;
   createdAt: string;
@@ -122,8 +181,8 @@ export interface IInvoiceFirebase {
   subscriptionId?: string;
   amount: number;
   currency: string;
-  status: 'pending' | 'paid' | 'failed' | 'refunded';
-  paymentMethod: 'pix' | 'boleto' | 'credit_card';
+  status: InvoiceStatus;
+  paymentMethod: SubscriptionPaymentMethod;
   mercadoPagoPaymentId?: string;
   pdfUrl?: string;
   dueDate: Timestamp;
@@ -137,8 +196,8 @@ export interface IInvoice {
   subscriptionId?: string;
   amount: number;
   currency: string;
-  status: 'pending' | 'paid' | 'failed' | 'refunded';
-  paymentMethod: 'pix' | 'boleto' | 'credit_card';
+  status: InvoiceStatus;
+  paymentMethod: SubscriptionPaymentMethod;
   mercadoPagoPaymentId?: string;
   pdfUrl?: string;
   dueDate: string;
@@ -149,7 +208,7 @@ export interface IInvoice {
 // Payment history - Firebase version
 export interface IPaymentHistoryFirebase {
   id?: string;
-  event: 'subscription_created' | 'payment_succeeded' | 'payment_failed' | 'upgraded' | 'downgraded' | 'canceled';
+  event: PaymentEvent;
   planTier?: PlanTier;
   amount?: number;
   metadata?: Record<string, unknown>;
@@ -159,7 +218,7 @@ export interface IPaymentHistoryFirebase {
 // Payment history - App version
 export interface IPaymentHistory {
   id?: string;
-  event: 'subscription_created' | 'payment_succeeded' | 'payment_failed' | 'upgraded' | 'downgraded' | 'canceled';
+  event: PaymentEvent;
   planTier?: PlanTier;
   amount?: number;
   metadata?: Record<string, unknown>;

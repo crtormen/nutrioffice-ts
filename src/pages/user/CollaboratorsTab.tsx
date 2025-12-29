@@ -1,12 +1,14 @@
-import { Plus, Users, Mail as MailIcon, InfoIcon } from "lucide-react";
+import { InfoIcon, Mail as MailIcon, Plus, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { useFetchInvitationsQuery } from "@/app/state/features/invitationsSlice";
 import {
   useFetchUserQuery,
   useUpdateUserMutation,
 } from "@/app/state/features/userSlice";
-import { useFetchInvitationsQuery } from "@/app/state/features/invitationsSlice";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   ConfirmDialog,
@@ -15,33 +17,32 @@ import {
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ABILITIES, IContributor } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
 
-import SetCollaboratorDialog from "../../components/User/SetCollaboratorDialog";
+import PermissionsBadges from "../../components/Permissions/PermissionsBadges";
 import InviteCollaboratorDialog from "../../components/User/InviteCollaboratorDialog";
 import PendingInvitationCard from "../../components/User/PendingInvitationCard";
-import PermissionsBadges from "../../components/Permissions/PermissionsBadges";
+import SetCollaboratorDialog from "../../components/User/SetCollaboratorDialog";
 
 const MAX_COLLABORATORS = 5;
 
 const CollaboratorsTab = () => {
   const { dbUid, user: authUser } = useAuth();
   const [updateUser] = useUpdateUserMutation();
-  const { data: user, refetch, isLoading: userLoading } = useFetchUserQuery(
-    dbUid,
-    { skip: !dbUid }
-  );
+  const {
+    data: user,
+    refetch,
+    isLoading: userLoading,
+  } = useFetchUserQuery(dbUid, { skip: !dbUid });
   const { data: invitations = [] } = useFetchInvitationsQuery(
     { userId: dbUid || "", status: "pending" },
-    { skip: !dbUid }
+    { skip: !dbUid },
   );
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [collabToEdit, setCollabToEdit] = useState<IContributor | undefined>(
-    undefined
+    undefined,
   );
 
   // Check if user is PROFESSIONAL using persisted profile (fallback to auth user just in case)
@@ -161,12 +162,12 @@ const CollaboratorsTab = () => {
         </div>
 
         {activeCollaboratorsCount === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center border rounded-lg bg-muted/20">
-            <Users className="h-12 w-12 text-muted-foreground mb-3" />
+          <div className="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-12 text-center">
+            <Users className="mb-3 h-12 w-12 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
               Nenhum colaborador ativo
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="mt-1 text-xs text-muted-foreground">
               Convide membros para sua equipe usando o botão acima
             </p>
           </div>
@@ -201,7 +202,7 @@ const CollaboratorsTab = () => {
                                 name: name || "",
                                 email: email || "",
                                 phone: phone || "",
-                                roles
+                                roles,
                               });
                             }
                             setDialogOpen(true);
@@ -222,7 +223,7 @@ const CollaboratorsTab = () => {
                         </ConfirmDialog>
                       </TableCell>
                     </TableRow>
-                  )
+                  ),
               )}
             </TableBody>
           </Table>
@@ -241,8 +242,8 @@ const CollaboratorsTab = () => {
         </div>
 
         {invitations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center border rounded-lg bg-muted/20">
-            <MailIcon className="h-12 w-12 text-muted-foreground mb-3" />
+          <div className="flex flex-col items-center justify-center rounded-lg border bg-muted/20 py-12 text-center">
+            <MailIcon className="mb-3 h-12 w-12 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
               Nenhum convite pendente
             </p>

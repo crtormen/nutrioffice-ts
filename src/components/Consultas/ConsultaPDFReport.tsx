@@ -1,11 +1,16 @@
-import React, { useRef } from "react";
-import { FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ICustomerConsulta } from "@/domain/entities/consulta";
-import { ICustomer } from "@/domain/entities/customer";
-import { FOLDS, MEASURES, RESULTS } from "@/domain/entities/consulta";
 import { format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { FileText } from "lucide-react";
+import React, { useRef } from "react";
+
+import { Button } from "@/components/ui/button";
+import {
+  FOLDS,
+  ICustomerConsulta,
+  MEASURES,
+  RESULTS,
+} from "@/domain/entities/consulta";
+import { ICustomer } from "@/domain/entities/customer";
 
 interface ConsultaPDFReportProps {
   consulta: ICustomerConsulta;
@@ -103,10 +108,12 @@ export const ConsultaPDFReport: React.FC<ConsultaPDFReportProps> = ({
 
       {/* Hidden content for printing */}
       <div ref={printRef} className="hidden">
-        <div className="p-8 bg-white text-black">
+        <div className="bg-white p-8 text-black">
           {/* Header */}
-          <div className="mb-8 text-center border-b-2 border-gray-300 pb-4">
-            <h1 className="text-3xl font-bold mb-2">Relatório de Avaliação Nutricional</h1>
+          <div className="mb-8 border-b-2 border-gray-300 pb-4 text-center">
+            <h1 className="mb-2 text-3xl font-bold">
+              Relatório de Avaliação Nutricional
+            </h1>
             <p className="text-lg text-gray-600">
               {customer?.name} - {formatDate(consulta.date)}
             </p>
@@ -114,7 +121,7 @@ export const ConsultaPDFReport: React.FC<ConsultaPDFReportProps> = ({
 
           {/* Patient Info */}
           <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4 border-b border-gray-300 pb-2">
+            <h2 className="mb-4 border-b border-gray-300 pb-2 text-xl font-bold">
               Dados do Paciente
             </h2>
             <div className="grid grid-cols-2 gap-4">
@@ -125,32 +132,37 @@ export const ConsultaPDFReport: React.FC<ConsultaPDFReportProps> = ({
                 <span className="font-semibold">Email:</span> {customer?.email}
               </div>
               <div>
-                <span className="font-semibold">Telefone:</span> {customer?.phone}
+                <span className="font-semibold">Telefone:</span>{" "}
+                {customer?.phone}
               </div>
               <div>
-                <span className="font-semibold">Data de Nascimento:</span> {customer?.birthday}
+                <span className="font-semibold">Data de Nascimento:</span>{" "}
+                {customer?.birthday}
               </div>
             </div>
           </div>
 
           {/* Consultation Data */}
           <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4 border-b border-gray-300 pb-2">
+            <h2 className="mb-4 border-b border-gray-300 pb-2 text-xl font-bold">
               Dados da Consulta
             </h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="font-semibold">Data:</span> {formatDate(consulta.date)}
+                <span className="font-semibold">Data:</span>{" "}
+                {formatDate(consulta.date)}
               </div>
               <div>
                 <span className="font-semibold">Peso:</span> {consulta.peso} kg
               </div>
               <div>
-                <span className="font-semibold">Idade:</span> {consulta.idade} anos
+                <span className="font-semibold">Idade:</span> {consulta.idade}{" "}
+                anos
               </div>
               {consulta.structure?.altura && (
                 <div>
-                  <span className="font-semibold">Altura:</span> {consulta.structure.altura} cm
+                  <span className="font-semibold">Altura:</span>{" "}
+                  {consulta.structure.altura} cm
                 </div>
               )}
             </div>
@@ -159,14 +171,18 @@ export const ConsultaPDFReport: React.FC<ConsultaPDFReportProps> = ({
           {/* Results */}
           {consulta.results && Object.keys(consulta.results).length > 0 && (
             <div className="mb-8">
-              <h2 className="text-xl font-bold mb-4 border-b border-gray-300 pb-2">
+              <h2 className="mb-4 border-b border-gray-300 pb-2 text-xl font-bold">
                 Composição Corporal
               </h2>
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="border border-gray-300 p-2 text-left">Métrica</th>
-                    <th className="border border-gray-300 p-2 text-right">Valor</th>
+                    <th className="border border-gray-300 p-2 text-left">
+                      Métrica
+                    </th>
+                    <th className="border border-gray-300 p-2 text-right">
+                      Valor
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -175,7 +191,9 @@ export const ConsultaPDFReport: React.FC<ConsultaPDFReportProps> = ({
                     if (!value) return null;
                     return (
                       <tr key={result.value}>
-                        <td className="border border-gray-300 p-2">{result.label}</td>
+                        <td className="border border-gray-300 p-2">
+                          {result.label}
+                        </td>
                         <td className="border border-gray-300 p-2 text-right font-semibold">
                           {value} {result.value === "fat" ? "%" : "kg"}
                         </td>
@@ -193,14 +211,18 @@ export const ConsultaPDFReport: React.FC<ConsultaPDFReportProps> = ({
           {/* Dobras Cutâneas */}
           {consulta.dobras && Object.keys(consulta.dobras).length > 0 && (
             <div className="mb-8">
-              <h2 className="text-xl font-bold mb-4 border-b border-gray-300 pb-2">
+              <h2 className="mb-4 border-b border-gray-300 pb-2 text-xl font-bold">
                 Dobras Cutâneas
               </h2>
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="border border-gray-300 p-2 text-left">Dobra</th>
-                    <th className="border border-gray-300 p-2 text-right">Valor (mm)</th>
+                    <th className="border border-gray-300 p-2 text-left">
+                      Dobra
+                    </th>
+                    <th className="border border-gray-300 p-2 text-right">
+                      Valor (mm)
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -217,8 +239,12 @@ export const ConsultaPDFReport: React.FC<ConsultaPDFReportProps> = ({
                     if (!value) return null;
                     return (
                       <tr key={fold.value}>
-                        <td className="border border-gray-300 p-2 capitalize">{fold.label}</td>
-                        <td className="border border-gray-300 p-2 text-right">{value} mm</td>
+                        <td className="border border-gray-300 p-2 capitalize">
+                          {fold.label}
+                        </td>
+                        <td className="border border-gray-300 p-2 text-right">
+                          {value} mm
+                        </td>
                       </tr>
                     );
                   })}
@@ -230,14 +256,18 @@ export const ConsultaPDFReport: React.FC<ConsultaPDFReportProps> = ({
           {/* Circunferências */}
           {consulta.medidas && Object.keys(consulta.medidas).length > 0 && (
             <div className="mb-8">
-              <h2 className="text-xl font-bold mb-4 border-b border-gray-300 pb-2">
+              <h2 className="mb-4 border-b border-gray-300 pb-2 text-xl font-bold">
                 Circunferências
               </h2>
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="border border-gray-300 p-2 text-left">Medida</th>
-                    <th className="border border-gray-300 p-2 text-right">Valor (cm)</th>
+                    <th className="border border-gray-300 p-2 text-left">
+                      Medida
+                    </th>
+                    <th className="border border-gray-300 p-2 text-right">
+                      Valor (cm)
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -246,8 +276,12 @@ export const ConsultaPDFReport: React.FC<ConsultaPDFReportProps> = ({
                     if (!value) return null;
                     return (
                       <tr key={measure.value}>
-                        <td className="border border-gray-300 p-2">{measure.label}</td>
-                        <td className="border border-gray-300 p-2 text-right">{value} cm</td>
+                        <td className="border border-gray-300 p-2">
+                          {measure.label}
+                        </td>
+                        <td className="border border-gray-300 p-2 text-right">
+                          {value} cm
+                        </td>
                       </tr>
                     );
                   })}
@@ -259,7 +293,7 @@ export const ConsultaPDFReport: React.FC<ConsultaPDFReportProps> = ({
           {/* Observations */}
           {consulta.obs && (
             <div className="mb-8">
-              <h2 className="text-xl font-bold mb-4 border-b border-gray-300 pb-2">
+              <h2 className="mb-4 border-b border-gray-300 pb-2 text-xl font-bold">
                 Observações
               </h2>
               <p className="whitespace-pre-wrap">{consulta.obs}</p>
@@ -269,8 +303,10 @@ export const ConsultaPDFReport: React.FC<ConsultaPDFReportProps> = ({
           {/* Notes */}
           {consulta.notes && consulta.notes.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-xl font-bold mb-4 border-b border-gray-300 pb-2">Notas</h2>
-              <ul className="list-disc list-inside space-y-2">
+              <h2 className="mb-4 border-b border-gray-300 pb-2 text-xl font-bold">
+                Notas
+              </h2>
+              <ul className="list-inside list-disc space-y-2">
                 {consulta.notes.map((note, index) => (
                   <li key={index}>{note}</li>
                 ))}
@@ -281,20 +317,26 @@ export const ConsultaPDFReport: React.FC<ConsultaPDFReportProps> = ({
           {/* Food Recall */}
           {consulta.meals && consulta.meals.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-xl font-bold mb-4 border-b border-gray-300 pb-2">
+              <h2 className="mb-4 border-b border-gray-300 pb-2 text-xl font-bold">
                 Recordatório Alimentar
               </h2>
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="border border-gray-300 p-2 text-left">Horário</th>
-                    <th className="border border-gray-300 p-2 text-left">Refeição</th>
+                    <th className="border border-gray-300 p-2 text-left">
+                      Horário
+                    </th>
+                    <th className="border border-gray-300 p-2 text-left">
+                      Refeição
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {consulta.meals.map((meal, index) => (
                     <tr key={index}>
-                      <td className="border border-gray-300 p-2 font-semibold">{meal.time}</td>
+                      <td className="border border-gray-300 p-2 font-semibold">
+                        {meal.time}
+                      </td>
                       <td className="border border-gray-300 p-2">
                         {meal.description || meal.meal}
                       </td>
@@ -306,8 +348,11 @@ export const ConsultaPDFReport: React.FC<ConsultaPDFReportProps> = ({
           )}
 
           {/* Footer */}
-          <div className="mt-12 pt-4 border-t border-gray-300 text-center text-sm text-gray-600">
-            <p>Relatório gerado automaticamente em {format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+          <div className="mt-12 border-t border-gray-300 pt-4 text-center text-sm text-gray-600">
+            <p>
+              Relatório gerado automaticamente em{" "}
+              {format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+            </p>
             <p className="mt-2">NutriOffice - Sistema de Gestão Nutricional</p>
           </div>
         </div>

@@ -3,8 +3,9 @@ import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Wifi, WifiOff } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/app/router/routes";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ROUTES } from "@/app/router/routes";
 
 export type ConsultaData = {
   customerId: EntityId;

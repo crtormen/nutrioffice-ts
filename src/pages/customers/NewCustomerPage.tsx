@@ -3,13 +3,13 @@ import { UserPlus } from "lucide-react";
 import { Controller } from "react-hook-form";
 import * as zod from "zod";
 
+import { ROUTES } from "@/app/router/routes";
 import { useSaveNewCustomer } from "@/components/Customers/hooks/useSaveNewCustomer";
 import Form, { FormInput } from "@/components/form";
+import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { PageHeader } from "@/components/PageHeader";
-import { ROUTES } from "@/app/router/routes";
 import { Separator } from "@/components/ui/separator";
 
 const newCustomerValidationSchema = zod.object({

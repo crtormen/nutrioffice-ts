@@ -1,6 +1,7 @@
 import {
   Contact,
   DollarSign,
+  FileCheck,
   FileHeart,
   LayoutDashboard,
   Users,
@@ -30,6 +31,11 @@ const mainNavItems = [
     title: "Finanças",
     link: "/finances",
     icon: <DollarSign size="16" />,
+  },
+  {
+    title: "Submissões",
+    link: "/form-submissions",
+    icon: <FileCheck size="16" />,
   },
   {
     title: "CRM",

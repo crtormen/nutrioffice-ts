@@ -1,13 +1,20 @@
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
 import {
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+} from "recharts";
+
+import { useFetchCustomerConsultasQuery } from "@/app/state/features/customerConsultasSlice";
+import {
+  type ChartConfig,
   ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
-  type ChartConfig,
+  ChartTooltip,
+  ChartTooltipContent,
 } from "@/components/ui/chart";
-import { useFetchCustomerConsultasQuery } from "@/app/state/features/customerConsultasSlice";
 
 interface CircumferenceRadarChartProps {
   customerId: string;
@@ -46,7 +53,7 @@ export const CircumferenceRadarChart = ({
   });
 
   const consultasWithMeasures = consultas.filter(
-    (c) => c.measures && Object.keys(c.measures).length > 0
+    (c) => c.medidas && Object.keys(c.medidas).length > 0,
   );
 
   if (consultasWithMeasures.length === 0) {
@@ -57,15 +64,20 @@ export const CircumferenceRadarChart = ({
     );
   }
 
-  const latestConsulta = consultasWithMeasures[consultasWithMeasures.length - 1];
-  const previousConsulta = consultasWithMeasures[consultasWithMeasures.length - 2];
+  const latestConsulta =
+    consultasWithMeasures[consultasWithMeasures.length - 1];
+  const previousConsulta =
+    consultasWithMeasures[consultasWithMeasures.length - 2];
 
   const chartData = Object.entries(measurementLabels)
     .map(([key, label]) => {
-      const atual = latestConsulta.measures?.[key as keyof typeof latestConsulta.measures];
+      const atual =
+        latestConsulta.medidas?.[key as keyof typeof latestConsulta.medidas];
       const anterior =
         compareConsultations && previousConsulta
-          ? previousConsulta.measures?.[key as keyof typeof previousConsulta.measures]
+          ? previousConsulta.medidas?.[
+              key as keyof typeof previousConsulta.medidas
+            ]
           : undefined;
 
       if (!atual) return null;

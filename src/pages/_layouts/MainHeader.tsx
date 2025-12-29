@@ -3,6 +3,7 @@
 // import { Separator } from '@/components/ui/separator'
 import logo from "@/assets/images/logo.png";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { FormSubmissionsNotificationBadge } from "@/components/FormSubmissions/FormSubmissionsNotificationBadge";
 
 import { UserNav } from "./UserNav";
 
@@ -17,6 +18,7 @@ const MainHeader = () => (
           NutriOffice
         </div>
         <div className="ml-auto flex items-center space-x-4 px-10">
+          <FormSubmissionsNotificationBadge />
           <ThemeToggle />
           <UserNav />
         </div>

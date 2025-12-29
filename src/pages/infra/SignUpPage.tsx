@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { ROUTES } from "@/app/router/routes";
 import { FormInput } from "@/components/form";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -48,13 +49,28 @@ const SignUpPage = () => {
   async function handleSignUp(data: SignUpForm) {
     createUser(data)
       .then(() => {
-        toast.success("Usuário cadastrado com sucesso!", {
-          action: {
-            label: "Login",
-            onClick: () => navigate(`/login?email=${data.email}`),
-          },
-        });
-        navigate(`/login?email=${data.email}`);
+        // Check if user came from pricing page
+        const selectedPlan = sessionStorage.getItem("selectedPlan");
+        console.log(
+          "📝 SignUpPage - After signup, selectedPlan:",
+          selectedPlan,
+        );
+
+        if (selectedPlan) {
+          // User came from pricing, redirect to pricing page to complete subscription
+          toast.success("Conta criada! Finalizando sua assinatura...");
+          console.log("🎯 SignUpPage - Redirecting to pricing page");
+          navigate(`/${ROUTES.SUBSCRIPTION.PRICING}`);
+        } else {
+          // Normal signup flow - redirect to login
+          toast.success("Usuário cadastrado com sucesso!", {
+            action: {
+              label: "Login",
+              onClick: () => navigate(`/login?email=${data.email}`),
+            },
+          });
+          navigate(`/login?email=${data.email}`);
+        }
       })
       .catch((err: unknown) => {
         generateFirebaseAuthError(err as AuthError);

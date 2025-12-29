@@ -202,7 +202,16 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
       createAccount,
       refreshToken,
     }),
-    [loading, user, dbUid, signin, signinWithGoogle, signout, createAccount, refreshToken],
+    [
+      loading,
+      user,
+      dbUid,
+      signin,
+      signinWithGoogle,
+      signout,
+      createAccount,
+      refreshToken,
+    ],
   );
 
   // const recaptchaVerifier = new RecaptchaVerifier(

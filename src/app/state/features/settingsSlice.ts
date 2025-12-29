@@ -8,7 +8,7 @@ import { firestoreApi } from "../firestoreApi";
 type mutationArgs = {
   uid?: string;
   type: string;
-  setting: ISettings;
+  setting: ISettings | Partial<ISettings>;
   merge?: boolean;
 };
 
@@ -48,8 +48,8 @@ export const settingsSlice = firestoreApi
         invalidatesTags: ["Settings"],
         queryFn: async ({ uid, type, setting, merge }) => {
           try {
-            await SettingsService(uid)?.setOne(type, setting, merge);
-            return { data: setting };
+            await SettingsService(uid)?.setOne(type, setting as ISettings, merge);
+            return { data: setting as ISettings };
           } catch (error: unknown) {
             return { error };
           }

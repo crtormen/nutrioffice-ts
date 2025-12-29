@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { ROUTES } from "@/app/router/routes";
 import { FormInput } from "@/components/form";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
@@ -41,14 +42,32 @@ export function UserAuthForm() {
     resolver: zodResolver(loginForm),
   });
 
-  const from = location.state?.from?.pathname || "/";
+  const getRedirectPath = () => {
+    // Check if user came from pricing with plan selection
+    const selectedPlan = sessionStorage.getItem("selectedPlan");
+    console.log(
+      "🔍 UserAuthForm - getRedirectPath - selectedPlan:",
+      selectedPlan,
+    );
+    if (selectedPlan) {
+      console.log("✅ UserAuthForm - Redirecting to PRICING page");
+      return ROUTES.SUBSCRIPTION.PRICING;
+    }
+    console.log(
+      "➡️ UserAuthForm - Redirecting to:",
+      location.state?.from?.pathname || "/",
+    );
+    return location.state?.from?.pathname || "/";
+  };
 
   async function handleLogin(data: LoginForm) {
     auth.signin(
       { email: data.email, password: data.password },
       () => {
         toast.success("Login efetuado com sucesso!");
-        navigate(from, { replace: true });
+        const redirectPath = getRedirectPath();
+        console.log("🚀 UserAuthForm - Navigating to:", redirectPath);
+        navigate(redirectPath, { replace: true });
       },
       (error: AuthError) => {
         generateFirebaseAuthError(error);
@@ -58,7 +77,10 @@ export function UserAuthForm() {
 
   async function handleLoginWithGoogle() {
     auth.signinWithGoogle(
-      () => navigate(from, { replace: true }),
+      () => {
+        const redirectPath = getRedirectPath();
+        navigate(redirectPath, { replace: true });
+      },
       (error: AuthError) => {
         generateFirebaseAuthError(error);
       },

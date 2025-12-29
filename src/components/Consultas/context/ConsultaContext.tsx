@@ -175,27 +175,36 @@ function hasConsultaMeaningfulData(consulta: ICustomerConsulta): boolean {
   // Check images (at least one image uploaded)
   if (consulta.images) {
     const hasImages =
-      (consulta.images.img_frente && Object.keys(consulta.images.img_frente).length > 0) ||
-      (consulta.images.img_costas && Object.keys(consulta.images.img_costas).length > 0) ||
-      (consulta.images.img_lado && Object.keys(consulta.images.img_lado).length > 0);
+      (consulta.images.img_frente &&
+        Object.keys(consulta.images.img_frente).length > 0) ||
+      (consulta.images.img_costas &&
+        Object.keys(consulta.images.img_costas).length > 0) ||
+      (consulta.images.img_lado &&
+        Object.keys(consulta.images.img_lado).length > 0);
     if (hasImages) return true;
   }
 
   // Check folds (dobras) - at least one measurement
   if (consulta.dobras && Object.keys(consulta.dobras).length > 0) {
-    const hasValidFold = Object.values(consulta.dobras).some(val => val && val !== 0);
+    const hasValidFold = Object.values(consulta.dobras).some(
+      (val) => val && val !== 0,
+    );
     if (hasValidFold) return true;
   }
 
   // Check measures (medidas) - at least one measurement
   if (consulta.medidas && Object.keys(consulta.medidas).length > 0) {
-    const hasValidMeasure = Object.values(consulta.medidas).some(val => val && val !== 0);
+    const hasValidMeasure = Object.values(consulta.medidas).some(
+      (val) => val && val !== 0,
+    );
     if (hasValidMeasure) return true;
   }
 
   // Check results - at least one result
   if (consulta.results && Object.keys(consulta.results).length > 0) {
-    const hasValidResult = Object.values(consulta.results).some(val => val && val !== 0);
+    const hasValidResult = Object.values(consulta.results).some(
+      (val) => val && val !== 0,
+    );
     if (hasValidResult) return true;
   }
 
@@ -223,7 +232,9 @@ export const ConsultaProvider = ({
   const [goal, setGoal] = useState<IGoal>();
   const [consultaChanged, setConsultaChanged] = useState(false);
   const [consultaCreated, setConsultaCreated] = useState(false);
-  const previousConsultaRef = useRef<ICustomerConsulta>(initialState as ICustomerConsulta);
+  const previousConsultaRef = useRef<ICustomerConsulta>(
+    initialState as ICustomerConsulta,
+  );
 
   function consultaReducer(
     consulta: ICustomerConsulta,
@@ -420,7 +431,15 @@ export const ConsultaProvider = ({
       structure: IStructure,
       results: IResults,
     ) => {
-      const newData = { online, peso, idade, dobras, medidas, structure, results };
+      const newData = {
+        online,
+        peso,
+        idade,
+        dobras,
+        medidas,
+        structure,
+        results,
+      };
       const newConsulta = { ...previousConsultaRef.current, ...newData };
       if (!equal(newConsulta, previousConsultaRef.current)) {
         dispatch({
@@ -500,7 +519,13 @@ export const ConsultaProvider = ({
     console.log("Updating consulta", consulta);
     handleUpdateConsulta(consulta);
     setConsultaChanged(false);
-  }, [consultaChanged, customerId, consulta, consultaCreated, handleUpdateConsulta]);
+  }, [
+    consultaChanged,
+    customerId,
+    consulta,
+    consultaCreated,
+    handleUpdateConsulta,
+  ]);
 
   // se já tiver consulta_id, atualiza sempre que consulta atualizar
 

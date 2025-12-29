@@ -101,13 +101,13 @@ export const MultiStepEvaluationFormProvider = ({
 
   const calculateResults = useCallback(() => {
     const dobras =
-      folds.triceps +
-      folds.peitoral +
-      folds.axilar +
-      folds.abdominal +
-      folds.supra +
-      folds.subescapular +
-      folds.coxa;
+      (folds.triceps || 0) +
+      (folds.peitoral || 0) +
+      (folds.axilar || 0) +
+      (folds.abdominal || 0) +
+      (folds.supra || 0) +
+      (folds.subescapular || 0) +
+      (folds.coxa || 0);
 
     const densidade =
       customer?.gender === "H"

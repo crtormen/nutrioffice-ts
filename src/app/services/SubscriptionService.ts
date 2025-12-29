@@ -40,20 +40,24 @@ const subscriptionConverter = {
   }: PartialWithFieldValue<ISubscription>): DocumentData {
     return {
       ...data,
-      currentPeriodStart: currentPeriodStart
+      currentPeriodStart: currentPeriodStart && typeof currentPeriodStart === 'string'
         ? Timestamp.fromDate(new Date(currentPeriodStart))
-        : null,
-      currentPeriodEnd: currentPeriodEnd
+        : currentPeriodStart || null,
+      currentPeriodEnd: currentPeriodEnd && typeof currentPeriodEnd === 'string'
         ? Timestamp.fromDate(new Date(currentPeriodEnd))
-        : null,
-      lastPaymentDate: lastPaymentDate
+        : currentPeriodEnd || null,
+      lastPaymentDate: lastPaymentDate && typeof lastPaymentDate === 'string'
         ? Timestamp.fromDate(new Date(lastPaymentDate))
-        : null,
-      nextBillingDate: nextBillingDate
+        : lastPaymentDate || null,
+      nextBillingDate: nextBillingDate && typeof nextBillingDate === 'string'
         ? Timestamp.fromDate(new Date(nextBillingDate))
-        : null,
-      createdAt: createdAt ? Timestamp.fromDate(new Date(createdAt)) : Timestamp.now(),
-      updatedAt: updatedAt ? Timestamp.fromDate(new Date(updatedAt)) : Timestamp.now(),
+        : nextBillingDate || null,
+      createdAt: createdAt && typeof createdAt === 'string'
+        ? Timestamp.fromDate(new Date(createdAt))
+        : createdAt || Timestamp.now(),
+      updatedAt: updatedAt && typeof updatedAt === 'string'
+        ? Timestamp.fromDate(new Date(updatedAt))
+        : updatedAt || Timestamp.now(),
     };
   },
   fromFirestore(
@@ -89,9 +93,15 @@ const invoiceConverter = {
   }: PartialWithFieldValue<IInvoice>): DocumentData {
     return {
       ...data,
-      dueDate: dueDate ? Timestamp.fromDate(new Date(dueDate)) : null,
-      paidAt: paidAt ? Timestamp.fromDate(new Date(paidAt)) : null,
-      createdAt: createdAt ? Timestamp.fromDate(new Date(createdAt)) : Timestamp.now(),
+      dueDate: dueDate && typeof dueDate === 'string'
+        ? Timestamp.fromDate(new Date(dueDate))
+        : dueDate || null,
+      paidAt: paidAt && typeof paidAt === 'string'
+        ? Timestamp.fromDate(new Date(paidAt))
+        : paidAt || null,
+      createdAt: createdAt && typeof createdAt === 'string'
+        ? Timestamp.fromDate(new Date(createdAt))
+        : createdAt || Timestamp.now(),
     };
   },
   fromFirestore(
@@ -122,7 +132,9 @@ const paymentHistoryConverter = {
   }: PartialWithFieldValue<IPaymentHistory>): DocumentData {
     return {
       ...data,
-      createdAt: createdAt ? Timestamp.fromDate(new Date(createdAt)) : Timestamp.now(),
+      createdAt: createdAt && typeof createdAt === 'string'
+        ? Timestamp.fromDate(new Date(createdAt))
+        : createdAt || Timestamp.now(),
     };
   },
   fromFirestore(
@@ -260,7 +272,7 @@ export const SubscriptionService = (uid?: string) => {
       );
 
       return onSnapshot(q, (snapshot) => {
-        const invoices = snapshot.docs.map((doc) => doc.data());
+        const invoices = snapshot.docs.map((doc) => doc.data() as IInvoice);
         callback(invoices);
       });
     },
@@ -275,7 +287,7 @@ export const SubscriptionService = (uid?: string) => {
       );
 
       const snapshot = await getDocs(q);
-      return snapshot.docs.map((doc) => doc.data());
+      return snapshot.docs.map((doc) => doc.data() as IInvoice);
     },
 
     /**
@@ -313,7 +325,7 @@ export const SubscriptionService = (uid?: string) => {
       );
 
       return onSnapshot(q, (snapshot) => {
-        const history = snapshot.docs.map((doc) => doc.data());
+        const history = snapshot.docs.map((doc) => doc.data() as IPaymentHistory);
         callback(history);
       });
     },

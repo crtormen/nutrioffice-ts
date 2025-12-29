@@ -1,18 +1,20 @@
 import { DollarSign } from "lucide-react";
 
-import { FinancesTable } from "@/components/Finances/FinancesTable";
-import { FinancesStats } from "@/components/Finances/FinancesStats";
-import { FinancesChart } from "@/components/Finances/FinancesChart";
-import { PageHeader } from "@/components/PageHeader";
 import { ROUTES } from "@/app/router/routes";
 import { useFetchAllFinancesQuery } from "@/app/state/features/financesSlice";
-import { useAuth } from "@/infra/firebase";
+import { FinancesChart } from "@/components/Finances/FinancesChart";
+import { FinancesStats } from "@/components/Finances/FinancesStats";
+import { FinancesTable } from "@/components/Finances/FinancesTable";
+import { PageHeader } from "@/components/PageHeader";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/infra/firebase";
 
 const FinancesPage = () => {
-  const auth = useAuth();
-  const uid = auth.dbUid;
-  const { data: finances } = useFetchAllFinancesQuery({ uid: uid! });
+  const { dbUid }  = useAuth();
+  const { data: finances } = useFetchAllFinancesQuery(
+    { uid: dbUid || "" },
+    { skip: !dbUid }
+  );
 
   const breadcrumbs = [
     { label: "Dashboard", href: ROUTES.DASHBOARD },

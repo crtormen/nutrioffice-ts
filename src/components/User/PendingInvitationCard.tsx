@@ -1,13 +1,14 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Mail, X, Clock } from "lucide-react";
+import { Clock, Mail, X } from "lucide-react";
 import { toast } from "sonner";
 
-import {
-  useRevokeInvitationMutation,
-  useResendInvitationMutation,
-} from "@/app/state/features/invitationsSlice";
 import type { Invitation } from "@/app/services/InvitationService";
+import {
+  useResendInvitationMutation,
+  useRevokeInvitationMutation,
+} from "@/app/state/features/invitationsSlice";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,7 +16,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   ConfirmDialog,
   ConfirmDialogTrigger,
@@ -91,7 +91,7 @@ const PendingInvitationCard = ({ invitation }: PendingInvitationCardProps) => {
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="mb-2 flex items-center gap-2">
               <CardTitle className="text-lg">{invitation.email}</CardTitle>
               <Badge variant={statusVariant}>{statusText}</Badge>
             </div>
@@ -135,11 +135,7 @@ const PendingInvitationCard = ({ invitation }: PendingInvitationCardProps) => {
               onConfirm={handleRevoke}
             >
               <ConfirmDialogTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  disabled={isRevoking}
-                >
+                <Button size="sm" variant="destructive" disabled={isRevoking}>
                   <X className="mr-2 h-4 w-4" />
                   {isRevoking ? "Revogando..." : "Revogar"}
                 </Button>

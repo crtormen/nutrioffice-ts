@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import * as zod from "zod";
 
+import { ROUTES } from "@/app/router/routes";
 import { useAddAnamnesisMutation } from "@/app/state/features/anamnesisSlice";
 import { useSetAnamnesisForm } from "@/components/Anamnesis/hooks/useSetAnamnesisForm";
 import Form, { FormInput } from "@/components/form";
@@ -19,7 +20,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { IAnamnesis } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
-import { ROUTES } from "@/app/router/routes";
 
 type DialogProps = {
   anamnesis?: IAnamnesis;
@@ -54,7 +54,10 @@ const NewAnamnesisDialog = ({ anamnesis, setDialogOpen }: DialogProps) => {
       .unwrap()
       .then(() => {
         toast.success("Anamnese cadastrada com sucesso!");
-        navigate(`${customerId && ROUTES.CUSTOMERS.DETAILS(customerId)}/anamnesis`, { replace: true });
+        navigate(
+          `${customerId && ROUTES.CUSTOMERS.DETAILS(customerId)}/anamnesis`,
+          { replace: true },
+        );
       })
       .catch((error: unknown) => {
         console.error(error);

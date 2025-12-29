@@ -2,6 +2,7 @@ import { KeyRound, LogOut, Settings, UserRound } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
+import { useFetchUserQuery } from "@/app/state/features/userSlice";
 // import avatar from "@/assets/images/avatar.jpg";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/infra/firebase";
 import { getInitials } from "@/lib/utils";
-import { useFetchUserQuery } from "@/app/state/features/userSlice";
 
 export function UserNav() {
   const { user, signout, dbUid } = useAuth();

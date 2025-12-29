@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { useSendInvitationMutation } from "@/app/state/features/invitationsSlice";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,7 +18,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ABILITIES, abilities } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
 
@@ -135,8 +135,8 @@ const InviteCollaboratorDialog = ({
         {limitReached && (
           <Alert variant="destructive">
             <AlertDescription>
-              Você atingiu o limite de {maxCollaborators} colaboradores.
-              Remova um colaborador existente para convidar outro.
+              Você atingiu o limite de {maxCollaborators} colaboradores. Remova
+              um colaborador existente para convidar outro.
             </AlertDescription>
           </Alert>
         )}

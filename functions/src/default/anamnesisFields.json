@@ -1,5 +1,19 @@
 {
   "anamnesis": {
+    "alergias": {
+      "label": "Alergias / Intolerâncias",
+      "placeholder": "Possui alguma? A que alimento?",
+      "type": "text",
+      "rules": {}
+    },
+    "agua": {
+      "label": "Consumo de água",
+      "placeholder": "Quantos litros de água costuma ingerir por dia?",
+      "type": "text",
+      "rules": {
+        "required": true
+      }
+    },
     "objetivos": {
       "label": "Objetivos",
       "placeholder": "Clique para selecionar",

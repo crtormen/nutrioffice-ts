@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useAppSelector } from "@/app/state";
+import { ISettings } from "@/domain/entities";
 import {
   selectCustomAnamnesisSettings,
   selectDefaultAnamnesisSettings,
@@ -10,7 +11,9 @@ import {
   useSetSettingsMutation,
 } from "@/app/state/features/settingsSlice";
 import SetAnamnesisFieldDialog from "@/components/Settings/SetAnamnesisFieldDialog";
+import { InitializeUserSettingsButton } from "@/components/Admin/InitializeUserSettingsButton";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Collapsible,
   CollapsibleContent,
@@ -116,7 +119,7 @@ const AnamnesisSettingsTab = () => {
     const { [fieldId]: fieldToDelete, ...remainingAnamnesisFields } =
       anamnesisFields;
 
-    const updatedSettings = {
+    const updatedSettings: Partial<ISettings> = {
       anamnesis: remainingAnamnesisFields,
     };
 
@@ -226,6 +229,10 @@ const AnamnesisSettingsTab = () => {
     </TableBody>
   );
 
+  const hasNoFields =
+    (!defaultAnamnesisFields || Object.keys(defaultAnamnesisFields).length === 0) &&
+    (!customAnamnesisFields || Object.keys(customAnamnesisFields).length === 0);
+
   return (
     <div className="space-y-6">
       <div>
@@ -235,6 +242,19 @@ const AnamnesisSettingsTab = () => {
         </p>
       </div>
       <Separator />
+
+      {hasNoFields && (
+        <Alert>
+          <AlertTitle>Nenhum campo de anamnese configurado</AlertTitle>
+          <AlertDescription className="space-y-3">
+            <p>
+              Você ainda não possui campos de anamnese configurados. Clique no botão abaixo para
+              inicializar os campos padrão ou crie seus próprios campos personalizados.
+            </p>
+            <InitializeUserSettingsButton />
+          </AlertDescription>
+        </Alert>
+      )}
       <div className="flex justify-end">
         <Dialog
           open={dialogOpen}
@@ -279,7 +299,9 @@ const AnamnesisSettingsTab = () => {
                         <TableHead className="font-medium">Gênero</TableHead>
                       </TableRow>
                     </TableHeader>
-                    <GroupRowsByGender anamnesisFields={customAnamnesisFields} />
+                    <GroupRowsByGender
+                      anamnesisFields={customAnamnesisFields}
+                    />
                   </Table>
                 </div>
               </div>

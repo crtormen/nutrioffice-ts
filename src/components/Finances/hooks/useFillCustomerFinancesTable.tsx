@@ -1,20 +1,24 @@
 import { useEffect, useState } from "react";
-import { FinanceData } from "../columns";
-import { useAuth } from "@/infra/firebase";
+
 import { useFetchCustomerFinancesQuery } from "@/app/state/features/customerFinancesSlice";
 import { IFinance } from "@/domain/entities";
+import { useAuth } from "@/infra/firebase";
+
+import { FinanceData } from "../columns";
 
 const setTableData = (
-  data: IFinance[] | undefined
+  data: IFinance[] | undefined,
 ): FinanceData[] | undefined => {
-  if (!data) return undefined;
+  if (!data) return [];
 
   return data.map((record) => ({
     id: record.id!,
     createdAt: record.createdAt || "",
-    services: record.items.map((item) => item.serviceName).join(", "),
+    services: record.items?.map((item) => item.serviceName).join(", ") || "",
+    customerId: record.customerId,
     total: record.total,
     pago: record.pago,
+    saldo: record.saldo,
     status: record.status,
   }));
 };
@@ -22,26 +26,33 @@ const setTableData = (
 export const useFillCustomerFinancesTable = (customerId: string) => {
   const [finances, setFinances] = useState<FinanceData[] | undefined>([]);
   const auth = useAuth();
-  const uid = auth.user?.uid;
-  if (!uid)
+  const uid = auth.dbUid;
+
+  const { data, isLoading, isFetching, isSuccess, isError, error } =
+    useFetchCustomerFinancesQuery({
+      uid: uid || "",
+      customerId,
+    }, {
+      skip: !uid, // Skip query if uid is not available
+    });
+
+  useEffect(() => {
+    if (!uid) return;
+    const financesData = setTableData(data);
+    setFinances(financesData);
+  }, [data, uid]);
+
+  if (!uid) {
     return {
       finances: [],
-      data: [],
+      data: undefined,
       isLoading: false,
+      isFetching: false,
       isSuccess: false,
       isError: true,
       error: "UID not provided",
     };
+  }
 
-  const { data, isLoading, isSuccess, isError, error } = useFetchCustomerFinancesQuery({
-    uid,
-    customerId,
-  });
-
-  useEffect(() => {
-    const financesData = setTableData(data);
-    setFinances(financesData);
-  }, [data]);
-
-  return { finances, data, isLoading, isSuccess, isError, error };
+  return { finances, data, isLoading, isFetching, isSuccess, isError, error };
 };

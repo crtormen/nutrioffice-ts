@@ -9,8 +9,9 @@ import { SidebarNav } from "../_layouts/SidebarNav";
 import AnamnesisSettingsTab from "./AnamnesisSettingsTab";
 import AvaliationSettingsTab from "./AvaliationSettingsTab";
 import ServicesSettingsTab from "./ServicesSettingsTab";
-import ThemeSettingsTab from "./ThemeSettingsTab";
 import { SystemTab } from "./SystemTab";
+import ThemeSettingsTab from "./ThemeSettingsTab";
+import PublicFormsSettingsTab from "./PublicFormsSettingsTab";
 
 const sidebarNavItems = [
   {
@@ -24,6 +25,10 @@ const sidebarNavItems = [
   {
     title: "Avaliação",
     link: "avaliation",
+  },
+  {
+    title: "Formulários Públicos",
+    link: "public-forms",
   },
   {
     title: "Aparência",
@@ -61,6 +66,7 @@ const SettingsPage = () => {
               <Route path="/" element={<ServicesSettingsTab />} />
               <Route path="anamnesis" element={<AnamnesisSettingsTab />} />
               <Route path="avaliation" element={<AvaliationSettingsTab />} />
+              <Route path="public-forms" element={<PublicFormsSettingsTab />} />
               <Route path="theme" element={<ThemeSettingsTab />} />
               <Route path="system" element={<SystemTab />} />
             </Routes>

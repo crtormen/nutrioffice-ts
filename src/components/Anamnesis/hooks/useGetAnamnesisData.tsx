@@ -7,14 +7,13 @@ import { IAnamnesis } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
 
 export const useGetAnamnesisData = (customerId: string | undefined) => {
-  const auth = useAuth();
-  const uid = auth.user?.uid;
+  const { dbUid } = useAuth();
 
   useFetchAnamnesisQuery({
-    uid,
+    uid: dbUid,
     customerId,
   });
-  const selector = selectAnamnesis(uid, customerId);
+  const selector = selectAnamnesis(dbUid, customerId);
   const anamnesisData: IAnamnesis | undefined = useAppSelector(selector);
 
   return anamnesisData;

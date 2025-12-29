@@ -21,6 +21,16 @@ service cloud.firestore {
       allow create: if (isOwner(userId) || isContributor(userId)) && canAddCustomer(userId);
     }
 
+    // Payment rules (global collection)
+    match /users/{userId}/payments/{paymentId} {
+      allow read, write: if isOwner(userId) || isContributor(userId);
+    }
+
+    // Installment rules (global collection)
+    match /users/{userId}/installments/{installmentId} {
+      allow read, write: if isOwner(userId) || isContributor(userId);
+    }
+
     // Invitation rules
     match /invitations/{invitationId} {
       // Allow reading invitation by anyone (needed for registration flow)
@@ -33,6 +43,30 @@ service cloud.firestore {
         resource.data.status == 'pending' // Allow accepting invitation
       );
       allow delete: if isSignedIn() && isProfessional();
+    }
+
+    // Form submission rules (public write-only for creation)
+    match /users/{userId}/formSubmissions/{submissionId} {
+      // Anyone can create a submission
+      allow create: if true;
+      // Only owner or contributors can read, update, delete
+      allow read, update, delete: if isOwner(userId) || isContributor(userId);
+    }
+
+    // Anamnesis token rules (public read for validation)
+    match /users/{userId}/anamnesisFormTokens/{type} {
+      // Anyone can read to validate tokens
+      allow read: if true;
+      // Only owner can write
+      allow write: if isOwner(userId);
+    }
+
+    // Public form settings
+    match /users/{userId}/settings/publicForms {
+      // Public read for form configuration
+      allow read: if true;
+      // Only owner or contributors can write
+      allow write: if isOwner(userId) || isContributor(userId);
     }
 
 
@@ -77,25 +111,15 @@ service cloud.firestore {
 
     function getCustomerLimit(userId) {
       let userData = getUserData(userId);
-
       // Permanent free accounts have no limit
-      if (userData.permanentFree == true) {
-        return 999999;
-      }
-
-      let subscription = userData.subscription;
-
-      // No subscription means free tier
-      if (subscription == null) {
-        return 50;
-      }
-
-      // Get limit based on plan tier
-      let planTier = subscription.planTier;
-      return planTier == "free" ? 50 :
-             planTier == "starter" ? 200 :
-             planTier == "professional" ? 500 :
-             999999; // enterprise = unlimited
+      return userData.permanentFree == true ? 999999 :
+        // No subscription means free tier (50 customers)
+        (userData.subscription == null ? 50 :
+          // Get limit based on plan tier
+          (userData.subscription.planTier == "free" ? 50 :
+           userData.subscription.planTier == "starter" ? 200 :
+           userData.subscription.planTier == "professional" ? 500 :
+           999999)); // enterprise = unlimited
     }
 
     function getCurrentCustomerCount(userId) {
@@ -105,13 +129,7 @@ service cloud.firestore {
 
     function canAddCustomer(userId) {
       // Permanent free accounts can always add
-      if (isPermanentFree(userId)) {
-        return true;
-      }
-
-      let currentCount = getCurrentCustomerCount(userId);
-      let limit = getCustomerLimit(userId);
-      return currentCount < limit;
+      return isPermanentFree(userId) ? true : getCurrentCustomerCount(userId) < getCustomerLimit(userId);
     }
   }
 }

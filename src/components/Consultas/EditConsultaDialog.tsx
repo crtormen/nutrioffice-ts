@@ -1,5 +1,8 @@
-import React, { useState } from "react";
 import { Edit, Upload, X } from "lucide-react";
+import React, { useState } from "react";
+import { useParams } from "react-router-dom";
+
+import { useUpdateCustomerConsultaMutation } from "@/app/state/features/customerConsultasSlice";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,35 +12,55 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { ICustomerConsulta, FOLDS, MEASURES, RESULTS } from "@/domain/entities/consulta";
-import { useUpdateCustomerConsultaMutation } from "@/app/state/features/customerConsultasSlice";
+import {
+  FOLDS,
+  ICustomerConsulta,
+  MEASURES,
+  RESULTS,
+  IResults,
+  IStructure,
+  IFolds,
+  IMeasures,
+  IMeal,
+} from "@/domain/entities/consulta";
 import { useAuth } from "@/infra/firebase/hooks/useAuth";
-import { useParams } from "react-router-dom";
 
 interface EditConsultaDialogProps {
   consulta: ICustomerConsulta;
 }
 
-export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta }) => {
+export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
+  consulta,
+}) => {
   const [open, setOpen] = useState(false);
   const { dbUid } = useAuth();
   const { customerId } = useParams<{ customerId: string }>();
   const [updateConsulta, { isLoading }] = useUpdateCustomerConsultaMutation();
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    peso: string | number;
+    idade: string | number;
+    obs: string;
+    notes: string[];
+    dobras: IFolds;
+    medidas: IMeasures;
+    results: IResults;
+    structure: IStructure;
+    meals: IMeal[];
+  }>({
     peso: consulta.peso || "",
     idade: consulta.idade || "",
     obs: consulta.obs || "",
     notes: consulta.notes || [],
     dobras: consulta.dobras || {},
     medidas: consulta.medidas || {},
-    results: consulta.results || {},
-    structure: consulta.structure || {},
+    results: consulta.results || { dobras: 0, fat: 0, mg: 0, mm: 0, mo: 0, mr: 0 },
+    structure: consulta.structure || { altura: 0, joelho: 0, punho: 0 },
     meals: consulta.meals || [],
   });
 
@@ -86,7 +109,10 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
     if (newMeal.time && newMeal.description) {
       setFormData({
         ...formData,
-        meals: [...formData.meals, { time: newMeal.time, description: newMeal.description }],
+        meals: [
+          ...formData.meals,
+          { time: newMeal.time, description: newMeal.description },
+        ],
       });
       setNewMeal({ time: "", description: "" });
     }
@@ -107,11 +133,12 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
           Editar Consulta
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Dados da Consulta</DialogTitle>
           <DialogDescription>
-            Atualize os dados da consulta. As alterações serão salvas automaticamente.
+            Atualize os dados da consulta. As alterações serão salvas
+            automaticamente.
           </DialogDescription>
         </DialogHeader>
 
@@ -124,10 +151,10 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
           </TabsList>
 
           {/* Evaluation Tab */}
-          <TabsContent value="evaluation" className="space-y-6 mt-4">
+          <TabsContent value="evaluation" className="mt-4 space-y-6">
             {/* Basic Info */}
             <div className="space-y-4">
-              <h4 className="font-medium text-sm">Informações Básicas</h4>
+              <h4 className="text-sm font-medium">Informações Básicas</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="peso">Peso (kg)</Label>
@@ -136,7 +163,9 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
                     type="number"
                     step="0.1"
                     value={formData.peso}
-                    onChange={(e) => setFormData({ ...formData, peso: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, peso: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -145,7 +174,9 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
                     id="idade"
                     type="number"
                     value={formData.idade}
-                    onChange={(e) => setFormData({ ...formData, idade: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, idade: e.target.value })
+                    }
                   />
                 </div>
               </div>
@@ -153,7 +184,7 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
 
             {/* Structure */}
             <div className="space-y-4">
-              <h4 className="font-medium text-sm">Estrutura</h4>
+              <h4 className="text-sm font-medium">Estrutura</h4>
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="altura">Altura (cm)</Label>
@@ -165,7 +196,10 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        structure: { ...formData.structure, altura: Number(e.target.value) },
+                        structure: {
+                          ...formData.structure,
+                          altura: Number(e.target.value),
+                        },
                       })
                     }
                   />
@@ -180,7 +214,10 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        structure: { ...formData.structure, punho: Number(e.target.value) },
+                        structure: {
+                          ...formData.structure,
+                          punho: Number(e.target.value),
+                        },
                       })
                     }
                   />
@@ -195,7 +232,10 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        structure: { ...formData.structure, joelho: Number(e.target.value) },
+                        structure: {
+                          ...formData.structure,
+                          joelho: Number(e.target.value),
+                        },
                       })
                     }
                   />
@@ -205,7 +245,7 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
 
             {/* Dobras */}
             <div className="space-y-4">
-              <h4 className="font-medium text-sm">Dobras Cutâneas (mm)</h4>
+              <h4 className="text-sm font-medium">Dobras Cutâneas (mm)</h4>
               <div className="grid grid-cols-2 gap-4">
                 {FOLDS.map((fold) => (
                   <div key={fold.value} className="space-y-2">
@@ -218,7 +258,10 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          dobras: { ...formData.dobras, [fold.value]: Number(e.target.value) },
+                          dobras: {
+                            ...formData.dobras,
+                            [fold.value]: Number(e.target.value),
+                          },
                         })
                       }
                     />
@@ -229,7 +272,7 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
 
             {/* Medidas */}
             <div className="space-y-4">
-              <h4 className="font-medium text-sm">Circunferências (cm)</h4>
+              <h4 className="text-sm font-medium">Circunferências (cm)</h4>
               <div className="grid grid-cols-2 gap-4">
                 {MEASURES.map((measure) => (
                   <div key={measure.value} className="space-y-2">
@@ -242,7 +285,10 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          medidas: { ...formData.medidas, [measure.value]: Number(e.target.value) },
+                          medidas: {
+                            ...formData.medidas,
+                            [measure.value]: Number(e.target.value),
+                          },
                         })
                       }
                     />
@@ -253,7 +299,7 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
 
             {/* Results */}
             <div className="space-y-4">
-              <h4 className="font-medium text-sm">Resultados</h4>
+              <h4 className="text-sm font-medium">Resultados</h4>
               <div className="grid grid-cols-2 gap-4">
                 {RESULTS.map((result) => (
                   <div key={result.value} className="space-y-2">
@@ -266,7 +312,10 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          results: { ...formData.results, [result.value]: Number(e.target.value) },
+                          results: {
+                            ...formData.results,
+                            [result.value]: Number(e.target.value),
+                          },
                         })
                       }
                     />
@@ -277,19 +326,21 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
           </TabsContent>
 
           {/* Notes Tab */}
-          <TabsContent value="notes" className="space-y-4 mt-4">
+          <TabsContent value="notes" className="mt-4 space-y-4">
             <div className="space-y-4">
-              <h4 className="font-medium text-sm">Observações</h4>
+              <h4 className="text-sm font-medium">Observações</h4>
               <Textarea
                 placeholder="Observações gerais sobre a consulta..."
                 value={formData.obs}
-                onChange={(e) => setFormData({ ...formData, obs: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, obs: e.target.value })
+                }
                 rows={4}
               />
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-medium text-sm">Notas</h4>
+              <h4 className="text-sm font-medium">Notas</h4>
               <div className="flex gap-2">
                 <Input
                   placeholder="Adicionar nova nota..."
@@ -305,7 +356,7 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
                 {formData.notes.map((note, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 border rounded-lg"
+                    className="flex items-center justify-between rounded-lg border p-3"
                   >
                     <span className="text-sm">{note}</span>
                     <Button
@@ -322,19 +373,23 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
           </TabsContent>
 
           {/* Meals Tab */}
-          <TabsContent value="meals" className="space-y-4 mt-4">
-            <h4 className="font-medium text-sm">Recordatório Alimentar</h4>
+          <TabsContent value="meals" className="mt-4 space-y-4">
+            <h4 className="text-sm font-medium">Recordatório Alimentar</h4>
             <div className="grid grid-cols-3 gap-2">
               <Input
                 placeholder="Horário (ex: 08:00)"
                 value={newMeal.time}
-                onChange={(e) => setNewMeal({ ...newMeal, time: e.target.value })}
+                onChange={(e) =>
+                  setNewMeal({ ...newMeal, time: e.target.value })
+                }
               />
               <Input
                 placeholder="Descrição da refeição"
                 className="col-span-2"
                 value={newMeal.description}
-                onChange={(e) => setNewMeal({ ...newMeal, description: e.target.value })}
+                onChange={(e) =>
+                  setNewMeal({ ...newMeal, description: e.target.value })
+                }
                 onKeyPress={(e) => e.key === "Enter" && addMeal()}
               />
             </div>
@@ -345,11 +400,13 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
               {formData.meals.map((meal, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 border rounded-lg"
+                  className="flex items-center justify-between rounded-lg border p-3"
                 >
                   <div className="flex gap-4">
                     <span className="text-sm font-medium">{meal.time}</span>
-                    <span className="text-sm text-muted-foreground">{meal.description || meal.meal}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {meal.description || meal.meal}
+                    </span>
                   </div>
                   <Button
                     variant="ghost"
@@ -364,10 +421,10 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
           </TabsContent>
 
           {/* Photos Tab */}
-          <TabsContent value="photos" className="space-y-4 mt-4">
-            <div className="text-center py-12 border-2 border-dashed rounded-lg">
-              <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-sm text-muted-foreground mb-4">
+          <TabsContent value="photos" className="mt-4 space-y-4">
+            <div className="rounded-lg border-2 border-dashed py-12 text-center">
+              <Upload className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+              <p className="mb-4 text-sm text-muted-foreground">
                 Upload de fotos e anexos em desenvolvimento
               </p>
               <p className="text-xs text-muted-foreground">
@@ -377,7 +434,7 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({ consulta
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
+        <div className="mt-6 flex justify-end gap-2 border-t pt-4">
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancelar
           </Button>

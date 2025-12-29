@@ -10,6 +10,7 @@ const envSchema = z.object({
   VITE_MESSAGING_SENDER_ID: z.string(),
   VITE_APP_ID: z.string(),
   VITE_MEASUREMENT_ID: z.string(),
+  VITE_MERCADOPAGO_ACCESS_TOKEN: z.string()
 });
 
 export const env = envSchema.parse(import.meta.env);

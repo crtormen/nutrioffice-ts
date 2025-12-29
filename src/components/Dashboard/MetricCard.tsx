@@ -1,5 +1,6 @@
-import React from "react";
 import { LucideIcon } from "lucide-react";
+import React from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -38,14 +39,14 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
         {description && (
-          <p className="text-xs text-muted-foreground mt-1">{description}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{description}</p>
         )}
         {trend && (
-          <div className="flex items-center gap-1 mt-2">
+          <div className="mt-2 flex items-center gap-1">
             <span
               className={cn(
                 "text-xs font-medium",
-                isPositiveTrend ? "text-green-600" : "text-red-600"
+                isPositiveTrend ? "text-green-600" : "text-red-600",
               )}
             >
               {isPositiveTrend ? "+" : ""}

@@ -1,12 +1,18 @@
+import { Edit, User } from "lucide-react";
 import React from "react";
 import { useParams } from "react-router-dom";
-import { User, Edit } from "lucide-react";
 
-import { useGetCustomerData } from "@/components/Customers/hooks";
-import { Gender, GENDERS, ICustomer } from "@/domain/entities";
 import { EditCustomerDialog } from "@/components/Customers/EditCustomerDialog";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useGetCustomerData } from "@/components/Customers/hooks";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Gender, GENDERS, ICustomer } from "@/domain/entities";
 
 const CustomerProfileTab: React.FC = () => {
   const { customerId } = useParams();
@@ -31,7 +37,7 @@ const CustomerProfileTab: React.FC = () => {
           </p>
         </div>
         <EditCustomerDialog customer={customer}>
-          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">
+          <button className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
             <Edit className="mr-2 h-4 w-4" />
             Editar
           </button>
@@ -47,40 +53,72 @@ const CustomerProfileTab: React.FC = () => {
           <CardDescription>Dados cadastrais e contato</CardDescription>
         </CardHeader>
         <CardContent>
-          <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
             <div className="space-y-1">
-              <dt className="text-xs font-medium text-muted-foreground uppercase">Nome</dt>
-              <dd className="text-sm font-medium text-foreground">{customer.name || "-"}</dd>
-            </div>
-            <div className="space-y-1">
-              <dt className="text-xs font-medium text-muted-foreground uppercase">Sexo</dt>
+              <dt className="text-xs font-medium uppercase text-muted-foreground">
+                Nome
+              </dt>
               <dd className="text-sm font-medium text-foreground">
-                {customer.gender ? GENDERS[customer.gender as Gender].text : "-"}
+                {customer.name || "-"}
               </dd>
             </div>
             <div className="space-y-1">
-              <dt className="text-xs font-medium text-muted-foreground uppercase">E-mail</dt>
-              <dd className="text-sm font-medium text-foreground">{customer.email || "-"}</dd>
+              <dt className="text-xs font-medium uppercase text-muted-foreground">
+                Sexo
+              </dt>
+              <dd className="text-sm font-medium text-foreground">
+                {customer.gender
+                  ? GENDERS[customer.gender as Gender].text
+                  : "-"}
+              </dd>
             </div>
             <div className="space-y-1">
-              <dt className="text-xs font-medium text-muted-foreground uppercase">Telefone</dt>
-              <dd className="text-sm font-medium text-foreground">{customer.phone || "-"}</dd>
+              <dt className="text-xs font-medium uppercase text-muted-foreground">
+                E-mail
+              </dt>
+              <dd className="text-sm font-medium text-foreground">
+                {customer.email || "-"}
+              </dd>
             </div>
             <div className="space-y-1">
-              <dt className="text-xs font-medium text-muted-foreground uppercase">Data de Nascimento</dt>
-              <dd className="text-sm font-medium text-foreground">{customer.birthday || "-"}</dd>
+              <dt className="text-xs font-medium uppercase text-muted-foreground">
+                Telefone
+              </dt>
+              <dd className="text-sm font-medium text-foreground">
+                {customer.phone || "-"}
+              </dd>
             </div>
             <div className="space-y-1">
-              <dt className="text-xs font-medium text-muted-foreground uppercase">CPF</dt>
-              <dd className="text-sm font-medium text-foreground">{customer.cpf || "-"}</dd>
+              <dt className="text-xs font-medium uppercase text-muted-foreground">
+                Data de Nascimento
+              </dt>
+              <dd className="text-sm font-medium text-foreground">
+                {customer.birthday || "-"}
+              </dd>
             </div>
             <div className="space-y-1">
-              <dt className="text-xs font-medium text-muted-foreground uppercase">Profissão</dt>
-              <dd className="text-sm font-medium text-foreground">{customer.occupation || "-"}</dd>
+              <dt className="text-xs font-medium uppercase text-muted-foreground">
+                CPF
+              </dt>
+              <dd className="text-sm font-medium text-foreground">
+                {customer.cpf || "-"}
+              </dd>
             </div>
             <div className="space-y-1">
-              <dt className="text-xs font-medium text-muted-foreground uppercase">Instagram</dt>
-              <dd className="text-sm font-medium text-foreground">{customer.instagram || "-"}</dd>
+              <dt className="text-xs font-medium uppercase text-muted-foreground">
+                Profissão
+              </dt>
+              <dd className="text-sm font-medium text-foreground">
+                {customer.occupation || "-"}
+              </dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs font-medium uppercase text-muted-foreground">
+                Instagram
+              </dt>
+              <dd className="text-sm font-medium text-foreground">
+                {customer.instagram || "-"}
+              </dd>
             </div>
           </dl>
         </CardContent>
@@ -94,22 +132,38 @@ const CustomerProfileTab: React.FC = () => {
             <CardDescription>Localização residencial</CardDescription>
           </CardHeader>
           <CardContent>
-            <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <dl className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
               <div className="space-y-1">
-                <dt className="text-xs font-medium text-muted-foreground uppercase">Rua</dt>
-                <dd className="text-sm font-medium text-foreground">{customer.address.street || "-"}</dd>
+                <dt className="text-xs font-medium uppercase text-muted-foreground">
+                  Rua
+                </dt>
+                <dd className="text-sm font-medium text-foreground">
+                  {customer.address.street || "-"}
+                </dd>
               </div>
               <div className="space-y-1">
-                <dt className="text-xs font-medium text-muted-foreground uppercase">Bairro</dt>
-                <dd className="text-sm font-medium text-foreground">{customer.address.district || "-"}</dd>
+                <dt className="text-xs font-medium uppercase text-muted-foreground">
+                  Bairro
+                </dt>
+                <dd className="text-sm font-medium text-foreground">
+                  {customer.address.district || "-"}
+                </dd>
               </div>
               <div className="space-y-1">
-                <dt className="text-xs font-medium text-muted-foreground uppercase">Cidade</dt>
-                <dd className="text-sm font-medium text-foreground">{customer.address.city || "-"}</dd>
+                <dt className="text-xs font-medium uppercase text-muted-foreground">
+                  Cidade
+                </dt>
+                <dd className="text-sm font-medium text-foreground">
+                  {customer.address.city || "-"}
+                </dd>
               </div>
               <div className="space-y-1">
-                <dt className="text-xs font-medium text-muted-foreground uppercase">CEP</dt>
-                <dd className="text-sm font-medium text-foreground">{customer.address.cep || "-"}</dd>
+                <dt className="text-xs font-medium uppercase text-muted-foreground">
+                  CEP
+                </dt>
+                <dd className="text-sm font-medium text-foreground">
+                  {customer.address.cep || "-"}
+                </dd>
               </div>
             </dl>
           </CardContent>
@@ -125,13 +179,21 @@ const CustomerProfileTab: React.FC = () => {
         <CardContent>
           <dl className="grid grid-cols-1 gap-y-4">
             <div className="space-y-1">
-              <dt className="text-xs font-medium text-muted-foreground uppercase">Como me conheceu?</dt>
-              <dd className="text-sm font-medium text-foreground">{customer.cameBy || "-"}</dd>
+              <dt className="text-xs font-medium uppercase text-muted-foreground">
+                Como me conheceu?
+              </dt>
+              <dd className="text-sm font-medium text-foreground">
+                {customer.cameBy || "-"}
+              </dd>
             </div>
             {customer.createdAt && (
               <div className="space-y-1">
-                <dt className="text-xs font-medium text-muted-foreground uppercase">Cliente desde</dt>
-                <dd className="text-sm font-medium text-foreground">{customer.createdAt}</dd>
+                <dt className="text-xs font-medium uppercase text-muted-foreground">
+                  Cliente desde
+                </dt>
+                <dd className="text-sm font-medium text-foreground">
+                  {customer.createdAt}
+                </dd>
               </div>
             )}
           </dl>

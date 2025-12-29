@@ -1,21 +1,26 @@
-import React from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Calendar } from "lucide-react";
 import { format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Skeleton } from "@/components/ui/skeleton";
-import { PageHeader } from "@/components/PageHeader";
+import { Calendar } from "lucide-react";
+import React from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+
+import { ROUTES } from "@/app/router/routes";
+import { EditConsultaDialog } from "@/components/Consultas/EditConsultaDialog";
 import { useGetCustomerConsultaData } from "@/components/Consultas/hooks/useGetCustomerConsultas";
 import { useGetCustomerData } from "@/components/Customers/hooks";
-import { ROUTES } from "@/app/router/routes";
+import { PageHeader } from "@/components/PageHeader";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import ConsultaPhotosTab from "./tabs/ConsultaPhotosTab";
 import ConsultaProfileTab from "./tabs/ConsultaProfileTab";
 import ConsultaResultsTab from "./tabs/ConsultaResultsTab";
-import ConsultaPhotosTab from "./tabs/ConsultaPhotosTab";
-import { EditConsultaDialog } from "@/components/Consultas/EditConsultaDialog";
 
 const ConsultaDetailsPage: React.FC = () => {
-  const { customerId, consultaId } = useParams<{ customerId: string; consultaId: string }>();
+  const { customerId, consultaId } = useParams<{
+    customerId: string;
+    consultaId: string;
+  }>();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -34,7 +39,9 @@ const ConsultaDetailsPage: React.FC = () => {
     } catch {
       date = undefined;
     }
-    return date && !isNaN(date.getTime()) ? format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : ""
+    return date && !isNaN(date.getTime())
+      ? format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+      : "";
   };
 
   const consultaDate = formatConsultaDate(consulta?.date);
@@ -64,7 +71,7 @@ const ConsultaDetailsPage: React.FC = () => {
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-4 w-96" />
         </div>
-        <div className="space-y-4 mt-8">
+        <div className="mt-8 space-y-4">
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-96 w-full" />
         </div>
@@ -75,7 +82,10 @@ const ConsultaDetailsPage: React.FC = () => {
   const breadcrumbs = [
     { label: "Dashboard", href: ROUTES.DASHBOARD },
     { label: "Clientes", href: `/${ROUTES.CUSTOMERS.BASE}` },
-    { label: customer?.name || "Cliente", href: `/${ROUTES.CUSTOMERS.DETAILS(customerId!)}` },
+    {
+      label: customer?.name || "Cliente",
+      href: `/${ROUTES.CUSTOMERS.DETAILS(customerId!)}`,
+    },
     { label: `Consulta ${consultaDate}` },
   ];
 
@@ -96,8 +106,12 @@ const ConsultaDetailsPage: React.FC = () => {
       </div>
 
       {/* Horizontal tabs navigation and content */}
-      <Tabs value={getActiveTab()} onValueChange={handleTabChange} className="space-y-6">
-        <TabsList className="border-b w-full justify-start rounded-none bg-transparent p-0 h-auto">
+      <Tabs
+        value={getActiveTab()}
+        onValueChange={handleTabChange}
+        className="space-y-6"
+      >
+        <TabsList className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0">
           <TabsTrigger
             value="profile"
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"

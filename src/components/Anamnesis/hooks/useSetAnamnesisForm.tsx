@@ -14,16 +14,16 @@ import { useAuth } from "@/infra/firebase";
 
 export const useSetAnamnesisForm = () => {
   const { customerId } = useParams();
-  const { user } = useAuth();
-  const { refetch } = useFetchSettingsQuery(user?.uid);
-  const anamnesisFields = useAppSelector(selectAnamnesisSettings(user?.uid));
+  const { dbUid } = useAuth();
+  const { refetch } = useFetchSettingsQuery(dbUid);
+  const anamnesisFields = useAppSelector(selectAnamnesisSettings(dbUid));
   const customer = useGetCustomerData(customerId);
 
   useEffect(() => {
     if (!anamnesisFields || Object.keys(anamnesisFields).length === 0) {
       refetch();
     }
-  }, [refetch, user, anamnesisFields]);
+  }, [refetch, dbUid, anamnesisFields]);
 
   const anamnesisFieldArray = Object.entries(anamnesisFields).filter(
     ([, values]) =>

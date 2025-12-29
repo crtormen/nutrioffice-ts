@@ -9,7 +9,9 @@ import { useAuth } from "@/infra/firebase";
 export const useGetCustomerData = (customerId: string | undefined) => {
   const { dbUid } = useAuth();
 
-  useFetchCustomersQuery(dbUid);
+  useFetchCustomersQuery(dbUid || "", {
+    skip: !dbUid,
+  });
   const selector = selectCustomerById(dbUid, customerId);
   const customerData: ICustomer | undefined = useAppSelector(selector);
 

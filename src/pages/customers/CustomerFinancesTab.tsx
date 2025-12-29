@@ -1,4 +1,4 @@
-import { Plus, DollarSign } from "lucide-react";
+import { DollarSign, Plus } from "lucide-react";
 import { useParams } from "react-router-dom";
 
 import { CustomerFinancesTable } from "@/components/Finances/CustomerFinancesTable";
@@ -27,7 +27,7 @@ const CustomerFinancesTab = () => {
           </p>
         </div>
         <NewFinanceDialog customerId={customerId}>
-          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2">
+          <button className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
             <Plus className="mr-2 h-4 w-4" />
             Nova Venda
           </button>
@@ -38,7 +38,7 @@ const CustomerFinancesTab = () => {
 
       {/* Finances Table */}
       <div className="space-y-4">
-        {CustomerFinancesTable(customerId)}
+        <CustomerFinancesTable customerId={customerId} />
       </div>
     </div>
   );

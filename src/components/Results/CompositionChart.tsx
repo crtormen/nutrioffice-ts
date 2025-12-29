@@ -1,4 +1,5 @@
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
+
 import { useSetLastConsulta } from "./hooks/useSetLastConsulta";
 
 const RADIAN = Math.PI / 180;
@@ -61,7 +62,9 @@ interface CompositionChartProps {
   };
 }
 
-const CompositionChart = ({ consulta: consultaProp }: CompositionChartProps = {}) => {
+const CompositionChart = ({
+  consulta: consultaProp,
+}: CompositionChartProps = {}) => {
   const lastConsulta = useSetLastConsulta();
   const consulta = consultaProp || lastConsulta;
 
@@ -72,10 +75,10 @@ const CompositionChart = ({ consulta: consultaProp }: CompositionChartProps = {}
     { name: "Massa Magra", key: "mm", value: consulta.results.mm },
     { name: "Massa Residual", key: "mr", value: consulta.results.mr },
     { name: "Massa Óssea", key: "mo", value: consulta.results.mo },
-  ].filter(item => item.value && item.value > 0); // Only show non-zero values
+  ].filter((item) => item.value && item.value > 0); // Only show non-zero values
 
   return (
-    <div className="w-full flex flex-col">
+    <div className="flex w-full flex-col">
       {/* Pie Chart */}
       <ResponsiveContainer width="100%" height={200}>
         <PieChart>
@@ -90,18 +93,23 @@ const CompositionChart = ({ consulta: consultaProp }: CompositionChartProps = {}
             isAnimationActive={false}
           >
             {data.map((entry) => (
-              <Cell key={entry.key} fill={COLORS[entry.key as keyof typeof COLORS]} />
+              <Cell
+                key={entry.key}
+                fill={COLORS[entry.key as keyof typeof COLORS]}
+              />
             ))}
           </Pie>
         </PieChart>
       </ResponsiveContainer>
-            {/* Legend */}
-      <div className="flex flex-wrap gap-3 mb-4">
+      {/* Legend */}
+      <div className="mb-4 flex flex-wrap gap-3">
         {data.map((entry) => (
           <div key={entry.key} className="flex items-center gap-2">
             <div
-              className="w-3 h-3 rounded-sm"
-              style={{ backgroundColor: COLORS[entry.key as keyof typeof COLORS] }}
+              className="h-3 w-3 rounded-sm"
+              style={{
+                backgroundColor: COLORS[entry.key as keyof typeof COLORS],
+              }}
             />
             <span className="text-sm text-muted-foreground">{entry.name}</span>
           </div>

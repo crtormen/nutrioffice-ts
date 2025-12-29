@@ -1,6 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AuthError } from "firebase/auth";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import {
+  AuthError,
+  createUserWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -8,13 +15,12 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import {
-  useFetchInvitationByTokenQuery,
   useAcceptInvitationMutation,
+  useFetchInvitationByTokenQuery,
 } from "@/app/state/features/invitationsSlice";
 import { FormInput } from "@/components/form";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -22,14 +28,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ABILITIES } from "@/domain/entities";
 import { auth, db } from "@/infra/firebase/firebaseConfig";
-import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { generateFirebaseAuthError } from "@/infra/firebase/generateFirebaseAuthErrors";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 const acceptInvitationSchema = z
   .object({
@@ -99,7 +102,7 @@ const AcceptInvitationPage = () => {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         data.email,
-        data.password
+        data.password,
       );
 
       const userId = userCredential.user.uid;
@@ -325,11 +328,7 @@ const AcceptInvitationPage = () => {
                 />
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isSubmitting}
-              >
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

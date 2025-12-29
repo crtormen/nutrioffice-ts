@@ -1,5 +1,6 @@
 import { Moon, Sun } from "lucide-react";
 
+import { useUpdateThemeMutation } from "@/app/state/features/themeSlice";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,9 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAppTheme } from "@/contexts/ThemeContext";
-import { useUpdateThemeMutation } from "@/app/state/features/themeSlice";
-import { useAuth } from "@/infra/firebase";
 import { ThemeMode } from "@/domain/entities";
+import { useAuth } from "@/infra/firebase";
 
 export function ThemeToggle() {
   const { theme } = useAppTheme();

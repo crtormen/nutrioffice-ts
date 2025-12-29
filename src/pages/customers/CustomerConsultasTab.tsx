@@ -1,11 +1,11 @@
-import { Plus, Calendar } from "lucide-react";
+import { Calendar, Plus } from "lucide-react";
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { ROUTES } from "@/app/router/routes";
 import { CustomerConsultasTable } from "@/components/Consultas/CustomerConsultasTable";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ROUTES } from "@/app/router/routes";
 
 const CustomerConsultasTab = () => {
   const { customerId } = useParams();

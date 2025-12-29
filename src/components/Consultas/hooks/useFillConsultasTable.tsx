@@ -6,12 +6,10 @@ import { useAuth } from "@/infra/firebase";
 
 import { ConsultaData } from "../customerColumns";
 
-const setTableData = (
-  data: IConsulta[],
-): ConsultaData[] | undefined => {
+const setTableData = (data: IConsulta[]): ConsultaData[] | undefined => {
   const consultaDataList: ConsultaData[] = data.map((record, i) => ({
     customerId: record.customer_id,
-    name: record.name || '',
+    name: record.name || "",
     id: record.id,
     date: record.date,
     index: data.length - i,
@@ -25,15 +23,14 @@ const setTableData = (
 
 export const useFillConsultasTable = () => {
   const [consultas, setConsultas] = useState<ConsultaData[] | undefined>([]);
-  const auth = useAuth();
-  const uid = auth.user?.uid;
+  const { dbUid } = useAuth();
 
   const { data, isLoading, isSuccess, isError, error } =
-    useFetchAllConsultasQuery({ uid });
+    useFetchAllConsultasQuery({ uid: dbUid });
 
   useEffect(() => {
     if (!data) {
-      return
+      return;
     }
     const consultasData = setTableData(data);
     setConsultas(consultasData);

@@ -30,6 +30,8 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/sharp": "^0.31.1",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^5.12.0",

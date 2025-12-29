@@ -1,4 +1,4 @@
-import { format, subMonths, startOfMonth, subYears } from "date-fns";
+import { format, startOfMonth, subMonths, subYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   Bar,
@@ -11,16 +11,16 @@ import {
   YAxis,
 } from "recharts";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFetchMonthlyTrendsQuery } from "@/app/state/features/analyticsSlice";
-import { useAuth } from "@/infra/firebase";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/infra/firebase";
 
 export const FinancesChart = () => {
   const { dbUid } = useAuth();
   const { data: monthlyTrends, isLoading } = useFetchMonthlyTrendsQuery(
     { uid: dbUid || "", months: 24 }, // Get last 24 months for year comparison
-    { skip: !dbUid }
+    { skip: !dbUid },
   );
 
   if (isLoading) {
@@ -51,8 +51,12 @@ export const FinancesChart = () => {
 
   // Build chart data from analytics monthly rollups
   const chartData = months.map((month) => {
-    const currentYearData = monthlyTrends?.find(m => m.month === month.monthKey);
-    const lastYearData = monthlyTrends?.find(m => m.month === month.lastYearKey);
+    const currentYearData = monthlyTrends?.find(
+      (m) => m.month === month.monthKey,
+    );
+    const lastYearData = monthlyTrends?.find(
+      (m) => m.month === month.lastYearKey,
+    );
 
     return {
       month: month.label,
@@ -79,7 +83,7 @@ export const FinancesChart = () => {
             border: "1px solid hsl(var(--border))",
           }}
         >
-          <p className="font-semibold mb-2">{label}</p>
+          <p className="mb-2 font-semibold">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} className="text-sm" style={{ color: entry.color }}>
               {entry.name}: {formatCurrency(entry.value)}
@@ -116,7 +120,11 @@ export const FinancesChart = () => {
             />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
-            <Bar dataKey="Ano Atual" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+            <Bar
+              dataKey="Ano Atual"
+              fill="hsl(var(--primary))"
+              radius={[4, 4, 0, 0]}
+            />
             <Bar
               dataKey="Ano Passado"
               fill="hsl(var(--muted-foreground) / 0.5)"

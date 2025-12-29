@@ -1,6 +1,6 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { onRequest } from "firebase-functions/v2/https";
-import { onDocumentWritten } from "firebase-functions/v2/firestore";
+import { onDocumentWritten, onDocumentCreated } from "firebase-functions/v2/firestore";
 import { db } from "./firebase-admin.js";
 import { getMercadoPagoService } from "./services/MercadoPagoService.js";
 
@@ -509,6 +509,80 @@ export const checkSubscriptionLimits = onDocumentWritten(
 
       // For now, just log it
       // The frontend will check limits in real-time via Firestore rules
+    }
+  }
+);
+
+/**
+ * Initialize free tier subscription for new users
+ *
+ * Triggered when a new user document is created (PROFESSIONAL only)
+ */
+export const initializeFreeTierOnUserCreation = onDocumentCreated(
+  { document: "users/{userId}" },
+  async (event) => {
+    const userId = event.params.userId;
+    const userData = event.data?.data();
+
+    if (!userData) {
+      console.log("No user data found");
+      return;
+    }
+
+    // Only initialize subscription for PROFESSIONAL users
+    // Collaborators inherit from the professional they contribute to
+    const isProfessional = userData.roles?.ability === "PROFESSIONAL";
+    if (!isProfessional) {
+      console.log(`User ${userId} is not a professional, skipping subscription init`);
+      return;
+    }
+
+    // Check if subscription already exists
+    if (userData.subscription) {
+      console.log(`User ${userId} already has a subscription`);
+      return;
+    }
+
+    try {
+      const now = new Date();
+      const oneYearLater = new Date();
+      oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
+
+      await db
+        .collection("users")
+        .doc(userId)
+        .update({
+          subscription: {
+            planTier: "free",
+            status: "active",
+            billingInterval: "monthly",
+            currentPeriodStart: now,
+            currentPeriodEnd: oneYearLater,
+            cancelAtPeriodEnd: false,
+            createdAt: now,
+            updatedAt: now,
+          },
+          currentCustomerCount: 0,
+        });
+
+      // Log subscription creation
+      await db
+        .collection("users")
+        .doc(userId)
+        .collection("paymentHistory")
+        .add({
+          event: "subscription_created",
+          planTier: "free",
+          metadata: {
+            initialTier: true,
+          },
+          createdAt: now,
+        });
+
+      console.log(`Successfully initialized free tier for user ${userId}`);
+    } catch (error: any) {
+      console.error(`Error initializing free tier for user ${userId}:`, error);
+      // Don't throw - this is a non-critical operation
     }
   }
 );

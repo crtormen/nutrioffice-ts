@@ -1,22 +1,38 @@
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import {
-  User,
-  Mail,
-  Phone,
-  Building2,
   Award,
-  Globe,
-  MessageCircle,
+  Briefcase,
+  Building2,
   Camera,
   Edit,
-  Briefcase,
   FileText,
+  Globe,
+  Mail,
+  MessageCircle,
+  Phone,
+  User,
 } from "lucide-react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
+import {
+  useFetchUserQuery,
+  useUpdateUserMutation,
+} from "@/app/state/features/userSlice";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -26,19 +42,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Form,
   FormControl,
@@ -47,15 +50,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { ABILITIES, IUser } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
 import { storage } from "@/infra/firebase/firebaseConfig";
-import {
-  useFetchUserQuery,
-  useUpdateUserMutation,
-} from "@/app/state/features/userSlice";
-import { ABILITIES, IUser } from "@/domain/entities";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { toast } from "sonner";
 import { getInitials } from "@/lib/utils";
 
 const profileSchema = z.object({
@@ -97,7 +97,9 @@ const ProfileField = ({ icon, label, value, href }: ProfileFieldProps) => {
           {label}
         </p>
         <p className="text-sm font-medium leading-relaxed">
-          {value || <span className="text-muted-foreground">Não informado</span>}
+          {value || (
+            <span className="text-muted-foreground">Não informado</span>
+          )}
         </p>
       </div>
     </div>
@@ -105,7 +107,12 @@ const ProfileField = ({ icon, label, value, href }: ProfileFieldProps) => {
 
   if (href && value) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className="block">
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block"
+      >
         {content}
       </a>
     );
@@ -407,9 +414,14 @@ const UserProfileTab = () => {
                             name="licenseNumber"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Registro profissional (CRN)</FormLabel>
+                                <FormLabel>
+                                  Registro profissional (CRN)
+                                </FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Ex: CRN 12345" {...field} />
+                                  <Input
+                                    placeholder="Ex: CRN 12345"
+                                    {...field}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>

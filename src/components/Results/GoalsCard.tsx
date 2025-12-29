@@ -1,9 +1,10 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useSetCustomerGoals } from './hooks/useSetCustomerGoals'
-import GoalDetails from './GoalDetails'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import GoalDetails from "./GoalDetails";
+import { useSetCustomerGoals } from "./hooks/useSetCustomerGoals";
 
 const GoalsCard = () => {
-  const goals = useSetCustomerGoals()
+  const goals = useSetCustomerGoals();
 
   return (
     <div>
@@ -28,7 +29,7 @@ const GoalsCard = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default GoalsCard
+export default GoalsCard;

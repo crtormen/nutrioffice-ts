@@ -1,9 +1,10 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus } from "lucide-react";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus } from "lucide-react";
 
+import { useSetSettingsMutation } from "@/app/state/features/settingsSlice";
 import { FormInput } from "@/components/form";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,15 +17,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
 import { IServiceConfig, SERVICE_CATEGORIES } from "@/domain/entities/settings";
 import { useAuth } from "@/infra/firebase/hooks";
-import { useSetSettingsMutation } from "@/app/state/features/settingsSlice";
-import { useToast } from "@/components/ui/use-toast";
 
 const serviceFormSchema = z.object({
   name: z.string().min(1, { message: "Nome é obrigatório" }),
   description: z.string().optional(),
-  price: z.coerce.number().positive({ message: "Preço deve ser maior que zero" }),
+  price: z.coerce
+    .number()
+    .positive({ message: "Preço deve ser maior que zero" }),
   credits: z.coerce.number().int().min(0).optional(),
   category: z.enum(["consulta", "pacote", "produto", "outro"]),
   active: z.boolean().default(true),

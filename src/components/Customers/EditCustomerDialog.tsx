@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { format, parse } from "date-fns";
 import { Edit } from "lucide-react";
-import { parse, format } from "date-fns";
+import React, { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
+import { useUpdateCustomerMutation } from "@/app/state/features/customersSlice";
 import { FormInput } from "@/components/form";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,22 +19,32 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useToast } from "@/components/ui/use-toast";
 import { ICustomer } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase/hooks";
-import { useUpdateCustomerMutation } from "@/app/state/features/customersSlice";
-import { useToast } from "@/components/ui/use-toast";
 
 const editCustomerSchema = z.object({
-  name: z.string().min(5, "O nome do cliente precisa ter pelo menos 5 caracteres"),
+  name: z
+    .string()
+    .min(5, "O nome do cliente precisa ter pelo menos 5 caracteres"),
   birthday: z.date({ required_error: "Data de nascimento é obrigatório" }),
   gender: z.enum(["H", "M"], {
     required_error: "Por favor, selecione um gênero",
   }),
   email: z.string().email({ message: "Endereço de email inválido" }),
-  phone: z.string().min(15, { message: "Estão faltando números no Celular" }).max(15, { message: "Estão sobrando números no Celular" }),
-  cpf: z.string().min(14, { message: "Estão faltando números no CPF" }).max(14, { message: "Estão sobrando números no CPF" }),
+  phone: z
+    .string()
+    .min(15, { message: "Estão faltando números no Celular" })
+    .max(15, { message: "Estão sobrando números no Celular" }),
+  cpf: z
+    .string()
+    .min(14, { message: "Estão faltando números no CPF" })
+    .max(14, { message: "Estão sobrando números no CPF" }),
   street: z.string(),
-  cep: z.string().min(9, { message: "Estão faltando números no CEP" }).max(9, { message: "Estão sobrando números no CEP" }),
+  cep: z
+    .string()
+    .min(9, { message: "Estão faltando números no CEP" })
+    .max(9, { message: "Estão sobrando números no CEP" }),
   district: z.string(),
   city: z.string(),
   occupation: z.string(),
@@ -45,9 +56,10 @@ type EditCustomerInputs = z.infer<typeof editCustomerSchema>;
 
 interface EditCustomerDialogProps {
   customer: ICustomer;
+  children?: React.ReactNode;
 }
 
-export const EditCustomerDialog = ({ customer }: EditCustomerDialogProps) => {
+export const EditCustomerDialog = ({ customer, children }: EditCustomerDialogProps) => {
   const { dbUid } = useAuth();
   const { toast } = useToast();
   const [updateCustomer] = useUpdateCustomerMutation();
@@ -152,12 +164,14 @@ export const EditCustomerDialog = ({ customer }: EditCustomerDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
-          <Edit className="mr-2 h-4 w-4" />
-          Editar Dados
-        </Button>
+        {children || (
+          <Button variant="outline">
+            <Edit className="mr-2 h-4 w-4" />
+            Editar Dados
+          </Button>
+        )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>Editar Cliente</DialogTitle>
@@ -199,7 +213,10 @@ export const EditCustomerDialog = ({ customer }: EditCustomerDialogProps) => {
                 control={control}
                 name="gender"
                 render={({ field }) => (
-                  <RadioGroup onValueChange={field.onChange} value={field.value}>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="H" id="H" />
                       <Label htmlFor="H">Masculino</Label>

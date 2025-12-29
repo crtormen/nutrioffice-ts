@@ -1,11 +1,12 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from "recharts";
+
+import { useFetchCustomerConsultasQuery } from "@/app/state/features/customerConsultasSlice";
 import {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from "@/components/ui/chart";
-import { useFetchCustomerConsultasQuery } from "@/app/state/features/customerConsultasSlice";
 
 interface MetricsProgressChartProps {
   customerId: string;
@@ -64,8 +65,12 @@ export const MetricsProgressChart = ({
         latestValue = Number(latestConsulta.peso);
         firstValue = Number(firstConsulta.peso);
       } else if (latestConsulta.results && firstConsulta.results) {
-        latestValue = latestConsulta.results[key as keyof typeof latestConsulta.results] as number;
-        firstValue = firstConsulta.results[key as keyof typeof firstConsulta.results] as number;
+        latestValue = latestConsulta.results[
+          key as keyof typeof latestConsulta.results
+        ] as number;
+        firstValue = firstConsulta.results[
+          key as keyof typeof firstConsulta.results
+        ] as number;
       }
 
       if (latestValue === undefined || firstValue === undefined) return null;
@@ -117,9 +122,7 @@ export const MetricsProgressChart = ({
             <Cell
               key={`cell-${index}`}
               fill={
-                entry.isNegative
-                  ? "hsl(var(--chart-2))"
-                  : "hsl(var(--chart-3))"
+                entry.isNegative ? "hsl(var(--chart-2))" : "hsl(var(--chart-3))"
               }
             />
           ))}

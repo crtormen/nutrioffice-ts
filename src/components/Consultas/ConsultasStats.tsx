@@ -1,11 +1,14 @@
-import { Calendar, TrendingUp, Wifi, WifiOff } from "lucide-react";
 import { subMonths } from "date-fns";
+import { Calendar, TrendingUp, Wifi, WifiOff } from "lucide-react";
 
+import {
+  useFetchAnalyticsCountersQuery,
+  useFetchMonthlyTrendsQuery,
+} from "@/app/state/features/analyticsSlice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { IConsulta } from "@/domain/entities";
-import { useFetchAnalyticsCountersQuery, useFetchMonthlyTrendsQuery } from "@/app/state/features/analyticsSlice";
-import { useAuth } from "@/infra/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
+import { IConsulta } from "@/domain/entities";
+import { useAuth } from "@/infra/firebase";
 
 interface ConsultasStatsProps {
   consultas: IConsulta[];
@@ -13,13 +16,15 @@ interface ConsultasStatsProps {
 
 export const ConsultasStats = ({ consultas }: ConsultasStatsProps) => {
   const { dbUid } = useAuth();
-  const { data: counters, isLoading: isLoadingCounters } = useFetchAnalyticsCountersQuery(dbUid || "", {
-    skip: !dbUid,
-  });
-  const { data: monthlyTrends, isLoading: isLoadingTrends } = useFetchMonthlyTrendsQuery(
-    { uid: dbUid || "", months: 2 },
-    { skip: !dbUid }
-  );
+  const { data: counters, isLoading: isLoadingCounters } =
+    useFetchAnalyticsCountersQuery(dbUid || "", {
+      skip: !dbUid,
+    });
+  const { data: monthlyTrends, isLoading: isLoadingTrends } =
+    useFetchMonthlyTrendsQuery(
+      { uid: dbUid || "", months: 2 },
+      { skip: !dbUid },
+    );
 
   // Use analytics data for main metrics
   const totalConsultas = counters?.totalConsultations || 0;
@@ -28,7 +33,7 @@ export const ConsultasStats = ({ consultas }: ConsultasStatsProps) => {
   // Get last month consultas from monthly trends
   const now = new Date();
   const lastMonthKey = subMonths(now, 1).toISOString().slice(0, 7);
-  const lastMonthData = monthlyTrends?.find(m => m.month === lastMonthKey);
+  const lastMonthData = monthlyTrends?.find((m) => m.month === lastMonthKey);
   const lastMonthConsultas = lastMonthData?.totalConsultations || 0;
 
   // Online vs Presential (still calculated from consultas prop as it's not in analytics)
@@ -38,7 +43,8 @@ export const ConsultasStats = ({ consultas }: ConsultasStatsProps) => {
   // Growth calculation
   const growth =
     lastMonthConsultas > 0
-      ? ((currentMonthConsultas - lastMonthConsultas) / lastMonthConsultas) * 100
+      ? ((currentMonthConsultas - lastMonthConsultas) / lastMonthConsultas) *
+        100
       : currentMonthConsultas > 0
         ? 100
         : 0;
@@ -58,7 +64,9 @@ export const ConsultasStats = ({ consultas }: ConsultasStatsProps) => {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total de Consultas</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Total de Consultas
+          </CardTitle>
           <Calendar className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -85,7 +93,9 @@ export const ConsultasStats = ({ consultas }: ConsultasStatsProps) => {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Consultas Online</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Consultas Online
+          </CardTitle>
           <Wifi className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>

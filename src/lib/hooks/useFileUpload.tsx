@@ -1,5 +1,5 @@
-import { useEffect, useState, ChangeEvent } from "react";
-import { UploadTask, getDownloadURL } from "firebase/storage";
+import { getDownloadURL, UploadTask } from "firebase/storage";
+import { ChangeEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { useStorage } from "@/infra/firebase/hooks/useStorage";
@@ -27,8 +27,10 @@ interface UseFileUploadProps {
   children: (
     progress: number,
     files: FilesObject,
-    handleUploadFile: (e: ChangeEvent<HTMLInputElement>) => Promise<FilesObject | void>,
-    handleDelete: (e: ChangeEvent<HTMLInputElement>) => Promise<void>
+    handleUploadFile: (
+      e: ChangeEvent<HTMLInputElement>,
+    ) => Promise<FilesObject | void>,
+    handleDelete: (e: ChangeEvent<HTMLInputElement>) => Promise<void>,
   ) => JSX.Element;
   /**
    * Previously uploaded files
@@ -86,7 +88,9 @@ const useFileUpload = ({
   /**
    * Handle file deletion
    */
-  const handleDelete = async (e: ChangeEvent<HTMLInputElement>): Promise<void> => {
+  const handleDelete = async (
+    e: ChangeEvent<HTMLInputElement>,
+  ): Promise<void> => {
     const name = e.target.name;
 
     if (!name) {
@@ -115,7 +119,7 @@ const useFileUpload = ({
    * Handle file upload
    */
   const handleUploadFile = async (
-    e: ChangeEvent<HTMLInputElement>
+    e: ChangeEvent<HTMLInputElement>,
   ): Promise<FilesObject | void> => {
     const file = e.target.files?.[0];
     const name = e.target.name;
@@ -140,7 +144,7 @@ const useFileUpload = ({
         (snapshot) => {
           // Update progress
           const progress = Math.round(
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100,
           );
           setProgress(() => {
             if (progress >= 100) {
@@ -174,7 +178,7 @@ const useFileUpload = ({
             toast.error(`Erro ao processar ${name}`);
             reject(error);
           }
-        }
+        },
       );
     });
   };

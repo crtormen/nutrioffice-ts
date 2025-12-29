@@ -42,7 +42,7 @@ export const useSetAnamnesisField = (
           ? "custom" + Object.keys(anamnesisFields).length
           : "custom0";
 
-      const updatedSettingsData: ISettings = {
+      const updatedSettingsData: Partial<ISettings> = {
         anamnesis: {
           ...anamnesisFields,
           [fieldId]: {

@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 
+import PermissionsMatrix from "@/components/Permissions/PermissionsMatrix";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,10 +10,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { reloadDefaultSettingsToUser } from "@/infra/firebase";
-import PermissionsMatrix from "@/components/Permissions/PermissionsMatrix";
+import { reloadDefaultSettingsToUser, useAuth } from "@/infra/firebase";
+import { InitializeUserSettingsButton } from "@/components/Admin/InitializeUserSettingsButton";
 
 const PreferencesTab = () => {
+  const { dbUid } = useAuth();
+
   async function handleResetSettings() {
     try {
       await reloadDefaultSettingsToUser();
@@ -27,8 +30,8 @@ const PreferencesTab = () => {
     <div className="flex flex-col gap-6 space-y-6">
       {/* Permissions Management Section */}
       <div>
-        <h2 className="text-2xl font-bold mb-2">Permissões</h2>
-        <p className="text-muted-foreground mb-6">
+        <h2 className="mb-2 text-2xl font-bold">Permissões</h2>
+        <p className="mb-6 text-muted-foreground">
           Configure os níveis de acesso para cada função no sistema
         </p>
         <PermissionsMatrix />
@@ -38,8 +41,8 @@ const PreferencesTab = () => {
 
       {/* User Settings Section */}
       <div>
-        <h2 className="text-2xl font-bold mb-2">Configurações de Usuário</h2>
-        <p className="text-muted-foreground mb-6">
+        <h2 className="mb-2 text-2xl font-bold">Configurações de Usuário</h2>
+        <p className="mb-6 text-muted-foreground">
           Gerenciar suas preferências e configurações pessoais
         </p>
 
@@ -51,9 +54,10 @@ const PreferencesTab = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={handleResetSettings} variant="outline">
+            {/* <Button onClick={handleResetSettings} variant="outline">
               Resetar Configurações
-            </Button>
+            </Button> */}
+            <InitializeUserSettingsButton userId={dbUid} />
           </CardContent>
         </Card>
       </div>

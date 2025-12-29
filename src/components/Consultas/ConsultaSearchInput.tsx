@@ -1,10 +1,10 @@
 import { Search, X } from "lucide-react";
 import { useState } from "react";
 
-import { useDebounce } from "@/lib/hooks/useDebounce";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useDebounce } from "@/lib/hooks/useDebounce";
 
 interface ConsultaSearchInputProps {
   value: string;

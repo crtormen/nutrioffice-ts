@@ -3,14 +3,14 @@ import { FileText } from "lucide-react";
 import { useParams } from "react-router-dom";
 import * as zod from "zod";
 
+import { ROUTES } from "@/app/router/routes";
 import { useSaveAnamnesis } from "@/components/Anamnesis/hooks/useSaveAnamnesis";
 import { useSetAnamnesisForm } from "@/components/Anamnesis/hooks/useSetAnamnesisForm";
 import Form, { FormInput } from "@/components/form";
+import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { PageHeader } from "@/components/PageHeader";
-import { ROUTES } from "@/app/router/routes";
 
 const NewAnamnesisPage = () => {
   const { customerId } = useParams();
@@ -34,7 +34,9 @@ const NewAnamnesisPage = () => {
     <div className="space-y-6 p-6 md:p-10">
       <PageHeader
         breadcrumbs={breadcrumbs}
-        backTo={customerId ? `/${ROUTES.CUSTOMERS.DETAILS(customerId)}` : undefined}
+        backTo={
+          customerId ? `/${ROUTES.CUSTOMERS.DETAILS(customerId)}` : undefined
+        }
       />
 
       <div className="max-w-4xl space-y-8">

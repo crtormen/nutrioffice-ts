@@ -23,7 +23,7 @@ export {
   onCreateFirestoreUserLoadDefaultSettings,
   onUpdateFirestoreUser,
   setDefaultSettingsOnFirestore,
-  reloadDefaultSettingsToUser,
+  initializeUserSettings,
   redefineCustomClaims,
   checkCustomClaims,
   updateLastConsultaDate,
@@ -52,4 +52,10 @@ export {
   mercadoPagoWebhook,
   updateCustomerCount,
   checkSubscriptionLimits,
+  initializeFreeTierOnUserCreation,
 } from "./subscriptions.js";
+
+// Export form submission functions
+export {
+  onFormSubmissionCreated,
+} from "./formSubmissions.js";

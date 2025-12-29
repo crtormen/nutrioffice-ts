@@ -52,7 +52,7 @@ export class DatabaseService<T> {
     return docRef;
   }
 
-  async setOne(id: string, data: T, merge?: boolean) {
+  async setOne(id: string, data: Partial<T>, merge?: boolean) {
     const docRef = doc(this.collection, id);
     return await setDoc(docRef, data, { merge });
   }

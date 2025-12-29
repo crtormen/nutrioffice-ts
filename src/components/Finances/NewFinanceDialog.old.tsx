@@ -1,5 +1,5 @@
+import { Info, Plus } from "lucide-react";
 import React from "react";
-import { Plus, Info } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +17,11 @@ interface NewFinanceDialogProps {
   children?: React.ReactNode;
 }
 
-export const NewFinanceDialog = ({ customerId, variant = "default", children }: NewFinanceDialogProps) => {
+export const NewFinanceDialog = ({
+  customerId,
+  variant = "default",
+  children,
+}: NewFinanceDialogProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
   return (
@@ -41,14 +45,16 @@ export const NewFinanceDialog = ({ customerId, variant = "default", children }: 
         <div className="py-6">
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
             <div className="flex gap-3">
-              <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
               <div className="space-y-2">
-                <p className="font-medium text-blue-900">Funcionalidade em desenvolvimento</p>
-                <p className="text-sm text-blue-800">
-                  O sistema de vendas será implementado nas próximas fases do projeto.
-                  Esta funcionalidade incluirá:
+                <p className="font-medium text-blue-900">
+                  Funcionalidade em desenvolvimento
                 </p>
-                <ul className="text-sm text-blue-800 list-disc list-inside space-y-1 ml-2">
+                <p className="text-sm text-blue-800">
+                  O sistema de vendas será implementado nas próximas fases do
+                  projeto. Esta funcionalidade incluirá:
+                </p>
+                <ul className="ml-2 list-inside list-disc space-y-1 text-sm text-blue-800">
                   <li>Seleção de serviços configurados</li>
                   <li>Cálculo automático de valores</li>
                   <li>Gestão de créditos</li>

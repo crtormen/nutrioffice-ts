@@ -1,20 +1,22 @@
+import { Calendar, ChevronDown, ChevronUp, Edit, Plus } from "lucide-react";
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import { useFetchGoalsQuery } from "@/app/state/features/goalsSlice";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit, Plus, Calendar } from "lucide-react";
-import { GoalStatusBadge } from "./GoalStatusBadge";
-import { GoalParameterTab } from "./GoalParameterTab";
-import { BodyCompositionBarChart } from "./charts";
-import { useGoalProgress } from "./hooks/useGoalProgress";
-import { useFetchGoalsQuery } from "@/app/state/features/goalsSlice";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { NewGoalDialog } from "../Consultas/NewGoalDialog";
+import { BodyCompositionBarChart } from "./charts";
+import { GoalParameterTab } from "./GoalParameterTab";
+import { GoalStatusBadge } from "./GoalStatusBadge";
+import { useGoalProgress } from "./hooks/useGoalProgress";
 
 interface GoalProgressCardProps {
   customerId: string;
@@ -48,7 +50,7 @@ export const GoalProgressCard = ({
     activeGoal,
     customerId,
     userId,
-    currentConsultaResults
+    currentConsultaResults,
   );
 
   // No goal exists
@@ -78,12 +80,8 @@ export const GoalProgressCard = ({
     return null;
   }
 
-  const {
-    totalProgress,
-    daysRemaining,
-    status,
-    parameterProgress,
-  } = progressData;
+  const { totalProgress, daysRemaining, status, parameterProgress } =
+    progressData;
 
   const parameters = Object.keys(activeGoal.params || {});
   const showEditButton = status !== "achieved";
@@ -149,7 +147,12 @@ export const GoalProgressCard = ({
 
             {/* Tabs for Parameters */}
             <Tabs defaultValue={parameters[0] || "overview"} className="w-full">
-              <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${parameters.length + 1}, minmax(0, 1fr))` }}>
+              <TabsList
+                className="grid w-full"
+                style={{
+                  gridTemplateColumns: `repeat(${parameters.length + 1}, minmax(0, 1fr))`,
+                }}
+              >
                 {parameters.map((param) => (
                   <TabsTrigger key={param} value={param} className="text-xs">
                     {parameterLabels[param] || param}
@@ -194,12 +197,17 @@ export const GoalProgressCard = ({
 
                   {/* Summary of all parameters */}
                   <div className="space-y-2">
-                    <h4 className="text-sm font-medium">Resumo dos Parâmetros</h4>
+                    <h4 className="text-sm font-medium">
+                      Resumo dos Parâmetros
+                    </h4>
                     {parameters.map((param) => {
                       const metrics = parameterProgress[param];
                       const label = parameterLabels[param] || param;
                       return (
-                        <div key={param} className="flex items-center justify-between text-sm">
+                        <div
+                          key={param}
+                          className="flex items-center justify-between text-sm"
+                        >
                           <span className="text-muted-foreground">{label}</span>
                           <span className="font-medium">
                             {metrics?.progress || 0}%

@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 
+import { InitializeAnalyticsButton } from "@/components/Admin";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,7 +10,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { InitializeAnalyticsButton } from "@/components/Admin";
 import { redefineCustomClaims, useAuth } from "@/infra/firebase";
 
 export const SystemTab = () => {
@@ -22,7 +22,9 @@ export const SystemTab = () => {
 
       // Refresh the user's token to get new custom claims
       await refreshToken();
-      toast.success("As Declarações de Usuário foram definidas e o token foi atualizado!");
+      toast.success(
+        "As Declarações de Usuário foram definidas e o token foi atualizado!",
+      );
     } catch (err) {
       toast.error("Erro ao redefinir Declarações de Usuário!");
       console.error(err);
@@ -47,7 +49,9 @@ export const SystemTab = () => {
 
       {/* System Maintenance Tools */}
       <div>
-        <h4 className="text-base font-medium mb-4">Ferramentas de Manutenção</h4>
+        <h4 className="mb-4 text-base font-medium">
+          Ferramentas de Manutenção
+        </h4>
 
         <Card>
           <CardHeader>

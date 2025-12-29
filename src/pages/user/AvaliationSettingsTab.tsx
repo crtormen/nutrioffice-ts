@@ -1,7 +1,4 @@
-const AvaliationSettingsTab = () => (
-  <div>
-    <h2>Avaliação</h2>
-  </div>
-);
+import EvaluationSettingsTab from "./EvaluationSettingsTab";
 
-export default AvaliationSettingsTab;
+// Re-export the new implementation
+export default EvaluationSettingsTab;

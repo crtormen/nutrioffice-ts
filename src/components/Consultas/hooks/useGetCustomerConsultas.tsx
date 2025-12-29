@@ -6,10 +6,13 @@ import {
 import type { ICustomerConsulta } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
 
-export const useGetCustomerConsultaData = (customerId: string | undefined, consultaId: string | undefined) => {
+export const useGetCustomerConsultaData = (
+  customerId: string | undefined,
+  consultaId: string | undefined,
+) => {
   const { dbUid } = useAuth();
 
-  useFetchCustomerConsultasQuery({uid: dbUid, customerId});
+  useFetchCustomerConsultasQuery({ uid: dbUid, customerId });
   const selector = selectConsultaById(dbUid, customerId, consultaId);
   const consultaData: ICustomerConsulta | undefined = useAppSelector(selector);
 
