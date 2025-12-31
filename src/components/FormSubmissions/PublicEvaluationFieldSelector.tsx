@@ -1,20 +1,23 @@
-import { useState, useEffect } from "react";
+import { ChevronDown, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, ChevronDown } from "lucide-react";
 
-import { useAuth } from "@/infra/firebase/hooks/useAuth";
+import { updateEvaluationFormToken } from "@/app/services/PublicFormService";
 import { useFetchEvaluationConfigQuery } from "@/app/state/features/evaluationSlice";
-import { IEnabledEvaluationFields, IMeasurePoint } from "@/domain/entities/evaluation";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { updateEvaluationFormToken } from "@/app/services/PublicFormService";
+import { Label } from "@/components/ui/label";
+import {
+  IEnabledEvaluationFields,
+  IMeasurePoint,
+} from "@/domain/entities/evaluation";
+import { useAuth } from "@/infra/firebase/hooks/useAuth";
 
 interface PublicEvaluationFieldSelectorProps {
   appointmentType: "online" | "presencial";
@@ -30,9 +33,12 @@ export function PublicEvaluationFieldSelector({
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
-  const { data: evaluationConfig, isLoading } = useFetchEvaluationConfigQuery(dbUid || "", {
-    skip: !dbUid,
-  });
+  const { data: evaluationConfig, isLoading } = useFetchEvaluationConfigQuery(
+    dbUid || "",
+    {
+      skip: !dbUid,
+    },
+  );
 
   const [enabledFields, setEnabledFields] = useState<IEnabledEvaluationFields>({
     weight: false,
@@ -53,7 +59,8 @@ export function PublicEvaluationFieldSelector({
         setEnabledFields({
           weight: config.fields.weight?.enabled || false,
           height: config.fields.height?.enabled || false,
-          measures: config.fields.measures?.points?.filter((p) => p.enabled) || [],
+          measures:
+            config.fields.measures?.points?.filter((p) => p.enabled) || [],
           photos: config.fields.photos?.enabled || false,
           folds: false, // Never enable for patients
           bioimpedance: false, // Never enable for patients
@@ -77,13 +84,15 @@ export function PublicEvaluationFieldSelector({
     return (
       <Alert>
         <AlertDescription>
-          Configure primeiro os campos de avaliação na aba "Avaliação" das configurações.
+          Configure primeiro os campos de avaliação na aba "Avaliação" das
+          configurações.
         </AlertDescription>
       </Alert>
     );
   }
 
-  const availableMeasures = config.fields.measures?.points?.filter((p) => p.enabled) || [];
+  const availableMeasures =
+    config.fields.measures?.points?.filter((p) => p.enabled) || [];
 
   const handleToggleField = (field: keyof IEnabledEvaluationFields) => {
     setEnabledFields((prev) => ({
@@ -157,8 +166,9 @@ export function PublicEvaluationFieldSelector({
       <CollapsibleContent className="space-y-4">
         <Alert>
           <AlertDescription>
-            Pacientes poderão enviar dados de avaliação junto com a anamnese. Dobras e
-            bioimpedância não podem ser habilitadas (paciente não pode medir).
+            Pacientes poderão enviar dados de avaliação junto com a anamnese.
+            Dobras e bioimpedância não podem ser habilitadas (paciente não pode
+            medir).
           </AlertDescription>
         </Alert>
 
@@ -172,7 +182,7 @@ export function PublicEvaluationFieldSelector({
               />
               <Label
                 htmlFor={`${appointmentType}-eval-weight`}
-                className="text-sm font-medium cursor-pointer"
+                className="cursor-pointer text-sm font-medium"
               >
                 Peso
               </Label>
@@ -188,7 +198,7 @@ export function PublicEvaluationFieldSelector({
               />
               <Label
                 htmlFor={`${appointmentType}-eval-height`}
-                className="text-sm font-medium cursor-pointer"
+                className="cursor-pointer text-sm font-medium"
               >
                 Altura
               </Label>
@@ -204,7 +214,7 @@ export function PublicEvaluationFieldSelector({
               />
               <Label
                 htmlFor={`${appointmentType}-eval-photos`}
-                className="text-sm font-medium cursor-pointer"
+                className="cursor-pointer text-sm font-medium"
               >
                 Fotos de Evolução
               </Label>
@@ -217,15 +227,20 @@ export function PublicEvaluationFieldSelector({
             <h4 className="text-sm font-medium">Medidas Circunferenciais</h4>
             <div className="grid gap-3 sm:grid-cols-2">
               {availableMeasures.map((measure) => (
-                <div key={measure.id} className="flex items-start space-x-3 space-y-0">
+                <div
+                  key={measure.id}
+                  className="flex items-start space-x-3 space-y-0"
+                >
                   <Checkbox
                     id={`${appointmentType}-eval-measure-${measure.id}`}
-                    checked={enabledFields.measures?.some((m) => m.id === measure.id)}
+                    checked={enabledFields.measures?.some(
+                      (m) => m.id === measure.id,
+                    )}
                     onCheckedChange={() => handleToggleMeasure(measure)}
                   />
                   <Label
                     htmlFor={`${appointmentType}-eval-measure-${measure.id}`}
-                    className="text-sm cursor-pointer"
+                    className="cursor-pointer text-sm"
                   >
                     {measure.label}
                   </Label>
@@ -247,7 +262,12 @@ export function PublicEvaluationFieldSelector({
                 "Salvar Alterações"
               )}
             </Button>
-            <Button onClick={handleReset} variant="outline" size="sm" disabled={isSaving}>
+            <Button
+              onClick={handleReset}
+              variant="outline"
+              size="sm"
+              disabled={isSaving}
+            >
               Cancelar
             </Button>
           </div>

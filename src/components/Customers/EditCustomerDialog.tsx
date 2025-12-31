@@ -59,7 +59,10 @@ interface EditCustomerDialogProps {
   children?: React.ReactNode;
 }
 
-export const EditCustomerDialog = ({ customer, children }: EditCustomerDialogProps) => {
+export const EditCustomerDialog = ({
+  customer,
+  children,
+}: EditCustomerDialogProps) => {
   const { dbUid } = useAuth();
   const { toast } = useToast();
   const [updateCustomer] = useUpdateCustomerMutation();

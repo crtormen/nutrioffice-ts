@@ -1,8 +1,14 @@
-import { IFoldPoint } from "@/domain/entities/evaluation";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { IFoldPoint } from "@/domain/entities/evaluation";
 
 interface FoldPointsSelectorProps {
   foldPoints: IFoldPoint[];
@@ -16,10 +22,14 @@ const PROTOCOL_NAMES: Record<string, string> = {
   dw4: "Durnin-Womersley 4 Dobras",
 };
 
-export function FoldPointsSelector({ foldPoints, protocol, onPointsChange }: FoldPointsSelectorProps) {
+export function FoldPointsSelector({
+  foldPoints,
+  protocol,
+  onPointsChange,
+}: FoldPointsSelectorProps) {
   const handleTogglePoint = (pointId: string) => {
     const updatedPoints = foldPoints.map((point) =>
-      point.id === pointId ? { ...point, enabled: !point.enabled } : point
+      point.id === pointId ? { ...point, enabled: !point.enabled } : point,
     );
     onPointsChange(updatedPoints);
   };
@@ -32,11 +42,14 @@ export function FoldPointsSelector({ foldPoints, protocol, onPointsChange }: Fol
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm">Pontos de Dobras Cutâneas</CardTitle>
           {protocol && (
-            <Badge variant="secondary">{PROTOCOL_NAMES[protocol] || protocol}</Badge>
+            <Badge variant="secondary">
+              {PROTOCOL_NAMES[protocol] || protocol}
+            </Badge>
           )}
         </div>
         <CardDescription>
-          Selecione quais dobras devem ser medidas ({enabledCount}/{foldPoints.length} selecionadas)
+          Selecione quais dobras devem ser medidas ({enabledCount}/
+          {foldPoints.length} selecionadas)
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -48,7 +61,10 @@ export function FoldPointsSelector({ foldPoints, protocol, onPointsChange }: Fol
                 checked={point.enabled}
                 onCheckedChange={() => handleTogglePoint(point.id)}
               />
-              <Label htmlFor={`fold-${point.id}`} className="cursor-pointer text-sm">
+              <Label
+                htmlFor={`fold-${point.id}`}
+                className="cursor-pointer text-sm"
+              >
                 {point.label}
               </Label>
             </div>

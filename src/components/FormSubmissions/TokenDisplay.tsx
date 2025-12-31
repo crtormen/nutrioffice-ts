@@ -1,5 +1,5 @@
+import { Check, Copy, ExternalLink, QrCode } from "lucide-react";
 import { useState } from "react";
-import { Copy, Check, ExternalLink, QrCode } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -75,10 +75,12 @@ export function TokenDisplay({ token, type }: TokenDisplayProps) {
 
       <div className="rounded-lg border bg-muted/50 p-4">
         <div className="flex items-start gap-3">
-          <QrCode className="h-5 w-5 text-muted-foreground mt-0.5" />
+          <QrCode className="mt-0.5 h-5 w-5 text-muted-foreground" />
           <div className="space-y-1">
             <p className="text-sm font-medium">Código do Token</p>
-            <p className="font-mono text-xs text-muted-foreground break-all">{token}</p>
+            <p className="break-all font-mono text-xs text-muted-foreground">
+              {token}
+            </p>
           </div>
         </div>
       </div>

@@ -1,3 +1,6 @@
+import { Info } from "lucide-react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -6,8 +9,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { IEvaluationPreset } from "@/domain/entities/evaluation";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info } from "lucide-react";
 
 interface PresetSelectorProps {
   presets: IEvaluationPreset[];
@@ -38,7 +39,9 @@ export function PresetSelector({
     <div className="space-y-3">
       <Select
         value={selectedPresetId || "custom"}
-        onValueChange={(value) => onPresetChange(value === "custom" ? null : value)}
+        onValueChange={(value) =>
+          onPresetChange(value === "custom" ? null : value)
+        }
       >
         <SelectTrigger>
           <SelectValue placeholder="Selecione um protocolo" />

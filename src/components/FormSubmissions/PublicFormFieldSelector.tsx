@@ -1,19 +1,19 @@
-import { useState, useEffect } from "react";
+import { ChevronDown, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, ChevronDown } from "lucide-react";
 
-import { useAuth } from "@/infra/firebase/hooks/useAuth";
+import { updateAnamnesisFormToken } from "@/app/services/PublicFormService";
 import { useFetchSettingsQuery } from "@/app/state/features/settingsSlice";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { updateAnamnesisFormToken } from "@/app/services/PublicFormService";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/infra/firebase/hooks/useAuth";
 
 interface PublicFormFieldSelectorProps {
   appointmentType: "online" | "presencial";
@@ -56,7 +56,7 @@ export function PublicFormFieldSelector({
 
   // Initialize with all fields selected if no fields are enabled yet
   const [enabledFields, setEnabledFields] = useState<string[]>(
-    initialEnabledFields.length > 0 ? initialEnabledFields : allFieldIds
+    initialEnabledFields.length > 0 ? initialEnabledFields : allFieldIds,
   );
 
   useEffect(() => {
@@ -97,7 +97,9 @@ export function PublicFormFieldSelector({
   };
 
   const handleReset = () => {
-    setEnabledFields(initialEnabledFields.length > 0 ? initialEnabledFields : allFieldIds);
+    setEnabledFields(
+      initialEnabledFields.length > 0 ? initialEnabledFields : allFieldIds,
+    );
     setHasChanges(false);
   };
 
@@ -105,7 +107,8 @@ export function PublicFormFieldSelector({
     return (
       <Alert>
         <AlertDescription>
-          Nenhum campo de anamnese disponível. Configure os campos na aba "Anamnese" primeiro.
+          Nenhum campo de anamnese disponível. Configure os campos na aba
+          "Anamnese" primeiro.
         </AlertDescription>
       </Alert>
     );
@@ -138,13 +141,15 @@ export function PublicFormFieldSelector({
               <div className="space-y-1 leading-none">
                 <Label
                   htmlFor={`${appointmentType}-${fieldId}`}
-                  className="text-sm font-medium cursor-pointer"
+                  className="cursor-pointer text-sm font-medium"
                 >
                   {field.label || fieldId}
                 </Label>
                 {field.gender && field.gender !== "B" && (
                   <p className="text-xs text-muted-foreground">
-                    ({field.gender === "H" ? "Apenas Homens" : "Apenas Mulheres"})
+                    (
+                    {field.gender === "H" ? "Apenas Homens" : "Apenas Mulheres"}
+                    )
                   </p>
                 )}
               </div>
@@ -164,7 +169,12 @@ export function PublicFormFieldSelector({
                 "Salvar Alterações"
               )}
             </Button>
-            <Button onClick={handleReset} variant="outline" size="sm" disabled={isSaving}>
+            <Button
+              onClick={handleReset}
+              variant="outline"
+              size="sm"
+              disabled={isSaving}
+            >
               Cancelar
             </Button>
           </div>

@@ -1,7 +1,13 @@
-import { IBioimpedance } from "@/domain/entities/consulta";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { IBioimpedance } from "@/domain/entities/consulta";
 
 interface BioimpedanceFormProps {
   values: IBioimpedance;
@@ -34,7 +40,9 @@ export function BioimpedanceForm({ values, onChange }: BioimpedanceFormProps) {
               max="100"
               placeholder="0.0"
               value={values.bodyFatPercentage ?? ""}
-              onChange={(e) => handleChange("bodyFatPercentage", e.target.value)}
+              onChange={(e) =>
+                handleChange("bodyFatPercentage", e.target.value)
+              }
             />
           </div>
 

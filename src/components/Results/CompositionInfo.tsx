@@ -7,7 +7,8 @@ const CompositionInfo = () => {
   const consulta = useSetLastConsulta();
   if (!consulta || (!consulta.results && !consulta.bioimpedance)) return;
 
-  const hasBioimpedance = consulta.bioimpedance && Object.keys(consulta.bioimpedance).length > 0;
+  const hasBioimpedance =
+    consulta.bioimpedance && Object.keys(consulta.bioimpedance).length > 0;
   const hasResults = consulta.results;
 
   return (
@@ -16,7 +17,9 @@ const CompositionInfo = () => {
       {consulta.evaluationProtocol && (
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Protocolo:</span>
-          <Badge variant="secondary">{consulta.evaluationProtocol.toUpperCase()}</Badge>
+          <Badge variant="secondary">
+            {consulta.evaluationProtocol.toUpperCase()}
+          </Badge>
         </div>
       )}
 
@@ -51,7 +54,7 @@ const CompositionInfo = () => {
         <>
           {hasResults && <Separator className="my-2" />}
           <div className="flex flex-col gap-1">
-            <h4 className="text-sm font-medium text-muted-foreground mb-1">
+            <h4 className="mb-1 text-sm font-medium text-muted-foreground">
               Bioimpedância
             </h4>
             <div className="divide-y">
@@ -66,19 +69,27 @@ const CompositionInfo = () => {
               {consulta.bioimpedance?.leanMass !== undefined && (
                 <div className="flex">
                   <div className="w-2/3 text-sm text-gray-400">MASSA MAGRA</div>
-                  <div className="font-semibold">{consulta.bioimpedance?.leanMass} kg</div>
+                  <div className="font-semibold">
+                    {consulta.bioimpedance?.leanMass} kg
+                  </div>
                 </div>
               )}
               {consulta.bioimpedance?.fatMass !== undefined && (
                 <div className="flex">
                   <div className="w-2/3 text-sm text-gray-400">MASSA GORDA</div>
-                  <div className="font-semibold">{consulta.bioimpedance?.fatMass} kg</div>
+                  <div className="font-semibold">
+                    {consulta.bioimpedance?.fatMass} kg
+                  </div>
                 </div>
               )}
               {consulta.bioimpedance?.muscleMass !== undefined && (
                 <div className="flex">
-                  <div className="w-2/3 text-sm text-gray-400">MASSA MUSCULAR</div>
-                  <div className="font-semibold">{consulta.bioimpedance?.muscleMass} kg</div>
+                  <div className="w-2/3 text-sm text-gray-400">
+                    MASSA MUSCULAR
+                  </div>
+                  <div className="font-semibold">
+                    {consulta.bioimpedance?.muscleMass} kg
+                  </div>
                 </div>
               )}
               {consulta.bioimpedance?.waterPercentage !== undefined && (
@@ -92,7 +103,9 @@ const CompositionInfo = () => {
               {consulta.bioimpedance?.bmr !== undefined && (
                 <div className="flex">
                   <div className="w-2/3 text-sm text-gray-400">TMB</div>
-                  <div className="font-semibold">{consulta.bioimpedance?.bmr} kcal</div>
+                  <div className="font-semibold">
+                    {consulta.bioimpedance?.bmr} kcal
+                  </div>
                 </div>
               )}
             </div>

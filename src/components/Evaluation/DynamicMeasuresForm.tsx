@@ -1,7 +1,7 @@
-import { IMeasures } from "@/domain/entities/consulta";
-import { IMeasurePoint } from "@/domain/entities/evaluation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { IMeasures } from "@/domain/entities/consulta";
+import { IMeasurePoint } from "@/domain/entities/evaluation";
 
 interface DynamicMeasuresFormProps {
   measurePoints: IMeasurePoint[];
@@ -9,7 +9,11 @@ interface DynamicMeasuresFormProps {
   onChange: (measures: IMeasures) => void;
 }
 
-export function DynamicMeasuresForm({ measurePoints, values, onChange }: DynamicMeasuresFormProps) {
+export function DynamicMeasuresForm({
+  measurePoints,
+  values,
+  onChange,
+}: DynamicMeasuresFormProps) {
   const handleMeasureChange = (measureId: string, value: string) => {
     const numValue = value === "" ? undefined : parseFloat(value);
     onChange({ ...values, [measureId]: numValue });
@@ -19,7 +23,7 @@ export function DynamicMeasuresForm({ measurePoints, values, onChange }: Dynamic
 
   if (enabledMeasures.length === 0) {
     return (
-      <div className="text-sm text-muted-foreground py-4">
+      <div className="py-4 text-sm text-muted-foreground">
         Nenhuma medida circunferencial configurada para este tipo de consulta.
       </div>
     );

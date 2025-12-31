@@ -58,7 +58,7 @@ const paymentSchema = z
     {
       message: "Número de parcelas deve ser entre 2 e 24",
       path: ["installmentsCount"],
-    }
+    },
   );
 
 type PaymentFormInputs = z.infer<typeof paymentSchema>;
@@ -78,7 +78,8 @@ export const AddPaymentDialog = ({
 }: AddPaymentDialogProps) => {
   const { dbUid } = useAuth();
   const { toast } = useToast();
-  const [addPayment, { isLoading: isSavingPayment }] = useAddPaymentToFinanceMutation();
+  const [addPayment, { isLoading: isSavingPayment }] =
+    useAddPaymentToFinanceMutation();
   const [isOpen, setIsOpen] = useState(false);
 
   const {
@@ -362,11 +363,10 @@ export const AddPaymentDialog = ({
             >
               Cancelar
             </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting || isSavingPayment}
-            >
-              {isSubmitting || isSavingPayment ? "Salvando..." : "Adicionar Pagamento"}
+            <Button type="submit" disabled={isSubmitting || isSavingPayment}>
+              {isSubmitting || isSavingPayment
+                ? "Salvando..."
+                : "Adicionar Pagamento"}
             </Button>
           </DialogFooter>
         </form>

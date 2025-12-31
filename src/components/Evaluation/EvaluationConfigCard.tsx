@@ -1,46 +1,55 @@
-import { useState, useEffect } from "react";
+import { Loader2, RotateCcw, Save } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Save, RotateCcw } from "lucide-react";
 
-import { useAuth } from "@/infra/firebase/hooks/useAuth";
 import {
   useFetchEvaluationConfigQuery,
   useFetchEvaluationPresetsQuery,
   useUpdateEvaluationConfigMutation,
 } from "@/app/state/features/evaluationSlice";
-import { IAppointmentTypeEvaluationConfig } from "@/domain/entities/evaluation";
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PresetSelector } from "./PresetSelector";
-import { MeasurePointsEditor } from "./MeasurePointsEditor";
-import { FoldPointsSelector } from "./FoldPointsSelector";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { IAppointmentTypeEvaluationConfig } from "@/domain/entities/evaluation";
+import { useAuth } from "@/infra/firebase/hooks/useAuth";
+
+import { FoldPointsSelector } from "./FoldPointsSelector";
+import { MeasurePointsEditor } from "./MeasurePointsEditor";
+import { PresetSelector } from "./PresetSelector";
 
 interface EvaluationConfigCardProps {
   appointmentType: "online" | "presencial";
 }
 
-export function EvaluationConfigCard({ appointmentType }: EvaluationConfigCardProps) {
+export function EvaluationConfigCard({
+  appointmentType,
+}: EvaluationConfigCardProps) {
   const { dbUid } = useAuth();
   const [hasChanges, setHasChanges] = useState(false);
-  const [localConfig, setLocalConfig] = useState<IAppointmentTypeEvaluationConfig | null>(null);
+  const [localConfig, setLocalConfig] =
+    useState<IAppointmentTypeEvaluationConfig | null>(null);
 
-  const { data: configData, isLoading: configLoading } = useFetchEvaluationConfigQuery(dbUid || "", {
-    skip: !dbUid,
-  });
-
-  const { data: presets = [], isLoading: presetsLoading } = useFetchEvaluationPresetsQuery(
-    dbUid || "",
-    {
+  const { data: configData, isLoading: configLoading } =
+    useFetchEvaluationConfigQuery(dbUid || "", {
       skip: !dbUid,
-    }
-  );
+    });
 
-  const [updateConfig, { isLoading: isSaving }] = useUpdateEvaluationConfigMutation();
+  const { data: presets = [], isLoading: presetsLoading } =
+    useFetchEvaluationPresetsQuery(dbUid || "", {
+      skip: !dbUid,
+    });
+
+  const [updateConfig, { isLoading: isSaving }] =
+    useUpdateEvaluationConfigMutation();
 
   // Initialize local config when data loads
   useEffect(() => {
@@ -69,7 +78,9 @@ export function EvaluationConfigCard({ appointmentType }: EvaluationConfigCardPr
           fields: {
             ...preset.fields,
             // Never enable folds for online
-            ...(appointmentType === "online" && { folds: { enabled: false, points: [] } }),
+            ...(appointmentType === "online" && {
+              folds: { enabled: false, points: [] },
+            }),
           },
         });
       }
@@ -77,12 +88,16 @@ export function EvaluationConfigCard({ appointmentType }: EvaluationConfigCardPr
     setHasChanges(true);
   };
 
-  const handleFieldToggle = (fieldName: keyof IAppointmentTypeEvaluationConfig["fields"]) => {
+  const handleFieldToggle = (
+    fieldName: keyof IAppointmentTypeEvaluationConfig["fields"],
+  ) => {
     if (!localConfig) return;
 
     // Prevent enabling folds for online
     if (appointmentType === "online" && fieldName === "folds") {
-      toast.error("Dobras cutâneas não podem ser habilitadas para consultas online");
+      toast.error(
+        "Dobras cutâneas não podem ser habilitadas para consultas online",
+      );
       return;
     }
 
@@ -141,7 +156,9 @@ export function EvaluationConfigCard({ appointmentType }: EvaluationConfigCardPr
   if (!localConfig) {
     return (
       <Alert>
-        <AlertDescription>Erro ao carregar configuração de avaliação.</AlertDescription>
+        <AlertDescription>
+          Erro ao carregar configuração de avaliação.
+        </AlertDescription>
       </Alert>
     );
   }
@@ -152,7 +169,9 @@ export function EvaluationConfigCard({ appointmentType }: EvaluationConfigCardPr
     <Card>
       <CardHeader>
         <CardTitle>
-          {isOnline ? "Configuração de Avaliação Online" : "Configuração de Avaliação Presencial"}
+          {isOnline
+            ? "Configuração de Avaliação Online"
+            : "Configuração de Avaliação Presencial"}
         </CardTitle>
         <CardDescription>
           {isOnline
@@ -182,7 +201,10 @@ export function EvaluationConfigCard({ appointmentType }: EvaluationConfigCardPr
                 checked={localConfig.fields.weight?.enabled}
                 onCheckedChange={() => handleFieldToggle("weight")}
               />
-              <Label htmlFor={`${appointmentType}-weight`} className="cursor-pointer">
+              <Label
+                htmlFor={`${appointmentType}-weight`}
+                className="cursor-pointer"
+              >
                 Peso
               </Label>
             </div>
@@ -193,7 +215,10 @@ export function EvaluationConfigCard({ appointmentType }: EvaluationConfigCardPr
                 checked={localConfig.fields.height?.enabled}
                 onCheckedChange={() => handleFieldToggle("height")}
               />
-              <Label htmlFor={`${appointmentType}-height`} className="cursor-pointer">
+              <Label
+                htmlFor={`${appointmentType}-height`}
+                className="cursor-pointer"
+              >
                 Altura
               </Label>
             </div>
@@ -204,7 +229,10 @@ export function EvaluationConfigCard({ appointmentType }: EvaluationConfigCardPr
                 checked={localConfig.fields.photos?.enabled}
                 onCheckedChange={() => handleFieldToggle("photos")}
               />
-              <Label htmlFor={`${appointmentType}-photos`} className="cursor-pointer">
+              <Label
+                htmlFor={`${appointmentType}-photos`}
+                className="cursor-pointer"
+              >
                 Fotos de Evolução
               </Label>
             </div>
@@ -215,7 +243,10 @@ export function EvaluationConfigCard({ appointmentType }: EvaluationConfigCardPr
                 checked={localConfig.fields.measures?.enabled}
                 onCheckedChange={() => handleFieldToggle("measures")}
               />
-              <Label htmlFor={`${appointmentType}-measures`} className="cursor-pointer">
+              <Label
+                htmlFor={`${appointmentType}-measures`}
+                className="cursor-pointer"
+              >
                 Medidas Circunferenciais
               </Label>
             </div>
@@ -251,30 +282,34 @@ export function EvaluationConfigCard({ appointmentType }: EvaluationConfigCardPr
                 checked={localConfig.fields.folds?.enabled}
                 onCheckedChange={() => handleFieldToggle("folds")}
               />
-              <Label htmlFor={`${appointmentType}-folds`} className="cursor-pointer font-medium">
+              <Label
+                htmlFor={`${appointmentType}-folds`}
+                className="cursor-pointer font-medium"
+              >
                 Dobras Cutâneas
               </Label>
             </div>
 
-            {localConfig.fields.folds?.enabled && localConfig.fields.folds.points && (
-              <FoldPointsSelector
-                foldPoints={localConfig.fields.folds.points}
-                protocol={localConfig.fields.folds.protocol}
-                onPointsChange={(points) => {
-                  setLocalConfig({
-                    ...localConfig,
-                    fields: {
-                      ...localConfig.fields,
-                      folds: {
-                        ...localConfig.fields.folds!,
-                        points,
+            {localConfig.fields.folds?.enabled &&
+              localConfig.fields.folds.points && (
+                <FoldPointsSelector
+                  foldPoints={localConfig.fields.folds.points}
+                  protocol={localConfig.fields.folds.protocol}
+                  onPointsChange={(points) => {
+                    setLocalConfig({
+                      ...localConfig,
+                      fields: {
+                        ...localConfig.fields,
+                        folds: {
+                          ...localConfig.fields.folds!,
+                          points,
+                        },
                       },
-                    },
-                  });
-                  setHasChanges(true);
-                }}
-              />
-            )}
+                    });
+                    setHasChanges(true);
+                  }}
+                />
+              )}
           </div>
         )}
 
@@ -286,7 +321,10 @@ export function EvaluationConfigCard({ appointmentType }: EvaluationConfigCardPr
               checked={localConfig.fields.bioimpedance?.enabled}
               onCheckedChange={() => handleFieldToggle("bioimpedance")}
             />
-            <Label htmlFor={`${appointmentType}-bioimpedance`} className="cursor-pointer">
+            <Label
+              htmlFor={`${appointmentType}-bioimpedance`}
+              className="cursor-pointer"
+            >
               Bioimpedância (opcional, pode ser usado com ou sem dobras)
             </Label>
           </div>
@@ -294,7 +332,7 @@ export function EvaluationConfigCard({ appointmentType }: EvaluationConfigCardPr
 
         {/* Action Buttons */}
         {hasChanges && (
-          <div className="flex gap-2 pt-4 border-t">
+          <div className="flex gap-2 border-t pt-4">
             <Button onClick={handleSave} disabled={isSaving}>
               {isSaving ? (
                 <>

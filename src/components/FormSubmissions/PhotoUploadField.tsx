@@ -1,9 +1,11 @@
+import { Camera, Loader2, X } from "lucide-react";
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Camera, X, Loader2 } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
-import { cn } from "@/lib/utils";
 
 interface PhotoUploadFieldProps {
   position: "front" | "back" | "side";
@@ -43,7 +45,9 @@ export function PhotoUploadField({
 
         // Validate file size
         if (selectedFile.size > maxSize) {
-          alert(`Arquivo muito grande. Máximo ${(maxSize / 1024 / 1024).toFixed(0)}MB`);
+          alert(
+            `Arquivo muito grande. Máximo ${(maxSize / 1024 / 1024).toFixed(0)}MB`,
+          );
           return;
         }
 
@@ -56,7 +60,7 @@ export function PhotoUploadField({
         onFileSelect(selectedFile);
       }
     },
-    [maxSize, onFileSelect]
+    [maxSize, onFileSelect],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -77,7 +81,9 @@ export function PhotoUploadField({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium">{label || POSITION_LABELS[position]}</label>
+        <label className="text-sm font-medium">
+          {label || POSITION_LABELS[position]}
+        </label>
         {hasImage && !isProcessing && (
           <Button
             type="button"
@@ -86,7 +92,7 @@ export function PhotoUploadField({
             onClick={onRemove}
             className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
           >
-            <X className="h-3 w-3 mr-1" />
+            <X className="mr-1 h-3 w-3" />
             Remover
           </Button>
         )}
@@ -95,17 +101,17 @@ export function PhotoUploadField({
       <div
         {...getRootProps()}
         className={cn(
-          "relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-4 transition-colors cursor-pointer",
+          "relative flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-4 transition-colors",
           isDragActive && "border-primary bg-primary/5",
           !hasImage && "hover:border-primary/50",
           hasImage && "border-solid",
-          isProcessing && "pointer-events-none opacity-70"
+          isProcessing && "pointer-events-none opacity-70",
         )}
       >
         <input {...getInputProps()} disabled={isProcessing} />
 
         {isProcessing ? (
-          <div className="flex flex-col items-center gap-2 w-full">
+          <div className="flex w-full flex-col items-center gap-2">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-sm text-muted-foreground">
               {compressing ? "Comprimindo..." : `Enviando... ${progress}%`}
@@ -113,11 +119,11 @@ export function PhotoUploadField({
             {uploading && <Progress value={progress} className="w-full" />}
           </div>
         ) : hasImage && previewUrl ? (
-          <div className="relative w-full aspect-video">
+          <div className="relative aspect-video w-full">
             <img
               src={previewUrl}
               alt={`Foto ${label}`}
-              className="object-cover w-full h-full rounded"
+              className="h-full w-full rounded object-cover"
             />
           </div>
         ) : (
@@ -125,9 +131,13 @@ export function PhotoUploadField({
             <Camera className="h-8 w-8 text-muted-foreground" />
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
-                {isDragActive ? "Solte a foto aqui" : "Clique ou arraste uma foto"}
+                {isDragActive
+                  ? "Solte a foto aqui"
+                  : "Clique ou arraste uma foto"}
               </p>
-              <p className="text-xs text-muted-foreground mt-1">JPG, PNG (máx. 4MB)</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                JPG, PNG (máx. 4MB)
+              </p>
             </div>
           </div>
         )}

@@ -1,13 +1,15 @@
 import { FileCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { useAuth } from "@/infra/firebase/hooks/useAuth";
-import { selectPendingSubmissionsCount } from "@/app/state/features/formSubmissionsSlice";
-import { useFetchFormSubmissionsQuery } from "@/app/state/features/formSubmissionsSlice";
-import { useAppSelector } from "@/app/state/hooks";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ROUTES } from "@/app/router/routes";
+import {
+  selectPendingSubmissionsCount,
+  useFetchFormSubmissionsQuery,
+} from "@/app/state/features/formSubmissionsSlice";
+import { useAppSelector } from "@/app/state/hooks";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/infra/firebase/hooks/useAuth";
 
 export function FormSubmissionsNotificationBadge() {
   const { dbUid } = useAuth();
@@ -19,7 +21,7 @@ export function FormSubmissionsNotificationBadge() {
 
   // Select pending count from the cache
   const pendingCount = useAppSelector((state) =>
-    selectPendingSubmissionsCount(dbUid)(state)
+    selectPendingSubmissionsCount(dbUid)(state),
   );
 
   if (!dbUid || pendingCount === 0) {
@@ -38,9 +40,7 @@ export function FormSubmissionsNotificationBadge() {
             {pendingCount > 9 ? "9+" : pendingCount}
           </Badge>
         )}
-        <span className="sr-only">
-          {pendingCount} submissões pendentes
-        </span>
+        <span className="sr-only">{pendingCount} submissões pendentes</span>
       </Button>
     </Link>
   );

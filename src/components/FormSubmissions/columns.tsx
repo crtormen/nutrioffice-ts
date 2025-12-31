@@ -1,9 +1,8 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Eye, CheckCircle, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { CheckCircle, Eye, MoreHorizontal, XCircle } from "lucide-react";
 
-import { IFormSubmission } from "@/domain/entities/formSubmission";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,12 +13,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { IFormSubmission } from "@/domain/entities/formSubmission";
 
 interface ColumnsProps {
   onViewDetails: (submission: IFormSubmission) => void;
 }
 
-export const columns = ({ onViewDetails }: ColumnsProps): ColumnDef<IFormSubmission>[] => [
+export const columns = ({
+  onViewDetails,
+}: ColumnsProps): ColumnDef<IFormSubmission>[] => [
   {
     accessorKey: "customerData.name",
     header: "Nome do Paciente",

@@ -1,7 +1,7 @@
-import { IFolds } from "@/domain/entities/consulta";
-import { IFoldPoint } from "@/domain/entities/evaluation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { IFolds } from "@/domain/entities/consulta";
+import { IFoldPoint } from "@/domain/entities/evaluation";
 
 interface DynamicFoldsFormProps {
   foldPoints: IFoldPoint[];
@@ -9,7 +9,11 @@ interface DynamicFoldsFormProps {
   onChange: (folds: IFolds) => void;
 }
 
-export function DynamicFoldsForm({ foldPoints, values, onChange }: DynamicFoldsFormProps) {
+export function DynamicFoldsForm({
+  foldPoints,
+  values,
+  onChange,
+}: DynamicFoldsFormProps) {
   const handleFoldChange = (foldId: string, value: string) => {
     const numValue = value === "" ? undefined : parseFloat(value);
     onChange({ ...values, [foldId]: numValue });
@@ -19,7 +23,7 @@ export function DynamicFoldsForm({ foldPoints, values, onChange }: DynamicFoldsF
 
   if (enabledFolds.length === 0) {
     return (
-      <div className="text-sm text-muted-foreground py-4">
+      <div className="py-4 text-sm text-muted-foreground">
         Nenhuma dobra configurada para este tipo de consulta.
       </div>
     );

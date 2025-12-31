@@ -1,8 +1,9 @@
-import { useState } from "react";
 import { Loader2, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { initializeUserSettings } from "@/app/services/UserSettingsService";
+import { useState } from "react";
 import { toast } from "sonner";
+
+import { initializeUserSettings } from "@/app/services/UserSettingsService";
+import { Button } from "@/components/ui/button";
 
 interface InitializeUserSettingsButtonProps {
   userId?: string;
@@ -39,7 +40,7 @@ export function InitializeUserSettingsButton({
             Tipo de configuração: ${result.settingsType}
             Campos de anamnese: ${result.fieldsCount}
           `,
-        }
+        },
       );
     } catch (error: any) {
       console.error("Erro ao inicializar configurações:", error);

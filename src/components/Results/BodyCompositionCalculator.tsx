@@ -1,10 +1,15 @@
+import { Calculator, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Calculator, Loader2 } from "lucide-react";
 
-import { auth } from "@/infra/firebase/firebaseConfig";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -14,8 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { IFolds } from "@/domain/entities/consulta";
+import { auth } from "@/infra/firebase/firebaseConfig";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/nutri-office/us-central1/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5001/nutri-office/us-central1/api";
 
 interface BodyCompositionCalculatorProps {
   customerId: string;
@@ -48,7 +56,9 @@ export function BodyCompositionCalculator({
   onResultsCalculated,
 }: BodyCompositionCalculatorProps) {
   const [protocol, setProtocol] = useState<"jp3" | "jp7" | "dw4">("jp7");
-  const [densityEquation, setDensityEquation] = useState<"siri" | "brozek">("siri");
+  const [densityEquation, setDensityEquation] = useState<"siri" | "brozek">(
+    "siri",
+  );
   const [isCalculating, setIsCalculating] = useState(false);
   const [results, setResults] = useState<CalculationResults | null>(null);
 
@@ -69,22 +79,25 @@ export function BodyCompositionCalculator({
       const token = await user.getIdToken();
       const uid = user.uid;
 
-      const response = await fetch(`${API_BASE_URL}/users/${uid}/calculate-body-composition`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `${API_BASE_URL}/users/${uid}/calculate-body-composition`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            gender: customerGender,
+            age: customerAge,
+            weight,
+            height,
+            folds,
+            protocol,
+            densityEquation,
+          }),
         },
-        body: JSON.stringify({
-          gender: customerGender,
-          age: customerAge,
-          weight,
-          height,
-          folds,
-          protocol,
-          densityEquation,
-        }),
-      });
+      );
 
       if (!response.ok) {
         const error = await response.json();
@@ -115,34 +128,45 @@ export function BodyCompositionCalculator({
           Calculadora de Composição Corporal
         </CardTitle>
         <CardDescription>
-          Calcule a composição corporal usando diferentes protocolos antropométricos
+          Calcule a composição corporal usando diferentes protocolos
+          antropométricos
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Protocol Selection */}
         <div className="space-y-2">
           <Label htmlFor="protocol">Protocolo de Cálculo</Label>
-          <Select value={protocol} onValueChange={(value: any) => setProtocol(value)}>
+          <Select
+            value={protocol}
+            onValueChange={(value: any) => setProtocol(value)}
+          >
             <SelectTrigger id="protocol">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="jp3">Jackson-Pollock 3 Dobras</SelectItem>
-              <SelectItem value="jp7">Jackson-Pollock 7 Dobras (padrão)</SelectItem>
+              <SelectItem value="jp7">
+                Jackson-Pollock 7 Dobras (padrão)
+              </SelectItem>
               <SelectItem value="dw4">Durnin-Womersley 4 Dobras</SelectItem>
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">
             {protocol === "jp3" && "Usa: Peitoral, Abdômen, Coxa"}
-            {protocol === "jp7" && "Usa: Tríceps, Peitoral, Subescapular, Axilar, Supra-ilíaca, Abdômen, Coxa"}
-            {protocol === "dw4" && "Usa: Bíceps, Tríceps, Subescapular, Supra-ilíaca"}
+            {protocol === "jp7" &&
+              "Usa: Tríceps, Peitoral, Subescapular, Axilar, Supra-ilíaca, Abdômen, Coxa"}
+            {protocol === "dw4" &&
+              "Usa: Bíceps, Tríceps, Subescapular, Supra-ilíaca"}
           </p>
         </div>
 
         {/* Density Equation Selection */}
         <div className="space-y-2">
           <Label htmlFor="densityEquation">Equação de Conversão</Label>
-          <Select value={densityEquation} onValueChange={(value: any) => setDensityEquation(value)}>
+          <Select
+            value={densityEquation}
+            onValueChange={(value: any) => setDensityEquation(value)}
+          >
             <SelectTrigger id="densityEquation">
               <SelectValue />
             </SelectTrigger>
@@ -157,7 +181,11 @@ export function BodyCompositionCalculator({
         </div>
 
         {/* Calculate Button */}
-        <Button onClick={handleCalculate} disabled={isCalculating} className="w-full">
+        <Button
+          onClick={handleCalculate}
+          disabled={isCalculating}
+          className="w-full"
+        >
           {isCalculating ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -176,7 +204,9 @@ export function BodyCompositionCalculator({
           <div className="mt-4 space-y-3 rounded-lg border bg-muted/50 p-4">
             <div className="flex items-center justify-between border-b pb-2">
               <h4 className="text-sm font-medium">Resultados</h4>
-              <span className="text-xs text-muted-foreground">{results.formula}</span>
+              <span className="text-xs text-muted-foreground">
+                {results.formula}
+              </span>
             </div>
 
             <div className="grid gap-2 text-sm">
@@ -189,14 +219,20 @@ export function BodyCompositionCalculator({
 
               {results.bodyDensity !== undefined && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Densidade Corporal:</span>
-                  <span className="font-medium">{results.bodyDensity} g/cm³</span>
+                  <span className="text-muted-foreground">
+                    Densidade Corporal:
+                  </span>
+                  <span className="font-medium">
+                    {results.bodyDensity} g/cm³
+                  </span>
                 </div>
               )}
 
               <div className="flex justify-between">
                 <span className="text-muted-foreground">% Gordura:</span>
-                <span className="font-semibold text-primary">{results.bodyFatPercentage}%</span>
+                <span className="font-semibold text-primary">
+                  {results.bodyFatPercentage}%
+                </span>
               </div>
 
               <div className="flex justify-between">

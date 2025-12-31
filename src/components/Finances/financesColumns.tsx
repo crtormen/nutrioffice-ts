@@ -3,6 +3,11 @@ import { ColumnDef } from "@tanstack/react-table";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { MoreHorizontal } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+
+import { ROUTES } from "@/app/router/routes";
+import { useDeleteFinanceMutation } from "@/app/state/features/customerFinancesSlice";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,13 +27,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Link } from "react-router-dom";
-import { ROUTES } from "@/app/router/routes";
-import { AddPaymentDialog } from "./AddPaymentDialog";
-import { useState } from "react";
-import { useToast } from "../ui/use-toast";
 import { useAuth } from "@/infra/firebase";
-import { useDeleteFinanceMutation } from "@/app/state/features/customerFinancesSlice";
+
+import { useToast } from "../ui/use-toast";
+import { AddPaymentDialog } from "./AddPaymentDialog";
 
 export type FinanceTableData = {
   id: EntityId;
@@ -162,7 +164,7 @@ export const financesColumns: ColumnDef<FinanceTableData>[] = [
       const auth = useAuth();
       const uid = auth.dbUid;
 
-            const handleDelete = async () => {
+      const handleDelete = async () => {
         if (!uid) {
           toast({
             title: "Erro",
@@ -229,50 +231,50 @@ export const financesColumns: ColumnDef<FinanceTableData>[] = [
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                  className="text-destructive"
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    setShowDeleteDialog(true);
-                  }}
-                >
-                  Excluir
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                className="text-destructive"
+                onSelect={(e) => {
+                  e.preventDefault();
+                  setShowDeleteDialog(true);
+                }}
+              >
+                Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-            <AlertDialog
-              open={showDeleteDialog}
-              onOpenChange={setShowDeleteDialog}
-            >
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Tem certeza que deseja excluir esta venda? Esta ação também
-                    irá:
-                    <ul className="mt-2 list-inside list-disc">
-                      <li>Excluir todos os pagamentos relacionados</li>
-                      <li>Excluir todas as parcelas relacionadas</li>
-                      <li>Remover créditos concedidos (se houver)</li>
-                    </ul>
-                    Esta ação não pode ser desfeita.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel disabled={isDeleting}>
-                    Cancelar
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    {isDeleting ? "Excluindo..." : "Excluir"}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </>
+          <AlertDialog
+            open={showDeleteDialog}
+            onOpenChange={setShowDeleteDialog}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja excluir esta venda? Esta ação também
+                  irá:
+                  <ul className="mt-2 list-inside list-disc">
+                    <li>Excluir todos os pagamentos relacionados</li>
+                    <li>Excluir todas as parcelas relacionadas</li>
+                    <li>Remover créditos concedidos (se houver)</li>
+                  </ul>
+                  Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeleting}>
+                  Cancelar
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {isDeleting ? "Excluindo..." : "Excluir"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
       );
     },
   },
