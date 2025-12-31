@@ -39,7 +39,9 @@ export const useSaveNewCustomer = () => {
           toast.success("Cliente cadastrado com sucesso!");
           // Small delay to allow real-time listener to update cache
           setTimeout(() => {
-            navigate(ROUTES.CUSTOMERS.DETAILS(dataRef.id), { replace: true });
+            if (dataRef.id) {
+              navigate(ROUTES.CUSTOMERS.DETAILS(dataRef.id), { replace: true });
+            }
           }, 300);
         })
         .catch((error) => {

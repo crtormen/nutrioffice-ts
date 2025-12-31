@@ -30,12 +30,12 @@ const EditAnamnesisPage = () => {
     { label: "Clientes", href: ROUTES.CUSTOMERS.BASE },
     {
       label: customerName || "Cliente",
-      href: customerId ? `/${ROUTES.CUSTOMERS.DETAILS(customerId)} : undefined,
+      href: customerId ? ROUTES.CUSTOMERS.DETAILS(customerId) : undefined,
     },
     {
       label: "Anamnese",
       href: customerId
-        ? `/${ROUTES.CUSTOMERS.DETAILS(customerId)}/anamnesis`
+        ? `${ROUTES.CUSTOMERS.DETAILS(customerId)}/anamnesis`
         : undefined,
     },
     { label: "Editar" },
@@ -57,7 +57,7 @@ const EditAnamnesisPage = () => {
         description: "As alterações foram salvas com sucesso.",
       });
 
-      navigate(ROUTES.CUSTOMERS.DETAILS(customerId)}/anamnesis`);
+      navigate(`${ROUTES.CUSTOMERS.DETAILS(customerId)}/anamnesis`);
     } catch (error) {
       toast({
         title: "Erro ao salvar",

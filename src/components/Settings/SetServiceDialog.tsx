@@ -28,7 +28,7 @@ const serviceFormSchema = z.object({
     .number()
     .positive({ message: "Preço deve ser maior que zero" }),
   credits: z.coerce.number().int().min(0).optional(),
-  category: z.enum(["consulta", "pacote", "produto", "outro"]),
+  category: z.enum(["consulta", "pacote", "protocolo", "produto", "outro"]),
   active: z.boolean().default(true),
 });
 
