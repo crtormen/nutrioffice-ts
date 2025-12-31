@@ -3,9 +3,9 @@ import { Route } from "react-router-dom";
 
 import { ConsultaProvider } from "@/components/Consultas/context/ConsultaContext";
 import RequireAuthLayout from "@/pages/_layouts/RequireAuthLayout";
-import { LoadingFallback } from "./LoadingFallback";
 
-import { ROUTES } from "./routes";
+import { LoadingFallback } from "./LoadingFallback";
+import { ROUTE_PATHS } from "./routes";
 const CustomersPage = React.lazy(
   () => import("@/pages/customers/CustomersPage"),
 );
@@ -29,7 +29,7 @@ const NewConsultaPage = React.lazy(
 );
 
 export const CustomerRoutes = (
-  <Route path={ROUTES.CUSTOMERS.BASE}>
+  <Route path={ROUTE_PATHS.CUSTOMERS.BASE}>
     <Route
       index
       element={
@@ -43,7 +43,7 @@ export const CustomerRoutes = (
       }
     />
     <Route
-      path="create"
+      path={ROUTE_PATHS.CUSTOMERS.CREATE}
       element={
         <RequireAuthLayout
           allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}
@@ -55,7 +55,7 @@ export const CustomerRoutes = (
       }
     />
     <Route
-      path=":customerId/create-anamnesis"
+      path={`:customerId/${ROUTE_PATHS.CUSTOMERS.CREATE_ANAMNESIS}`}
       element={
         <RequireAuthLayout
           allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}
@@ -67,7 +67,7 @@ export const CustomerRoutes = (
       }
     />
     <Route
-      path=":customerId/edit-anamnesis/:anamnesisId"
+      path={`:customerId/${ROUTE_PATHS.CUSTOMERS.EDIT_ANAMNESIS}/:anamnesisId`}
       element={
         <RequireAuthLayout
           allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}
@@ -79,7 +79,7 @@ export const CustomerRoutes = (
       }
     />
     <Route
-      path=":customerId/consultas/create"
+      path={`:customerId/${ROUTE_PATHS.CUSTOMERS.CONSULTAS.BASE}/${ROUTE_PATHS.CUSTOMERS.CONSULTAS.CREATE}`}
       element={
         <RequireAuthLayout
           allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}
@@ -93,7 +93,7 @@ export const CustomerRoutes = (
       }
     />
     <Route
-      path=":customerId/consultas/:consultaId/*"
+      path={`:customerId/${ROUTE_PATHS.CUSTOMERS.CONSULTAS.BASE}/:consultaId/*`}
       element={
         <RequireAuthLayout
           allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}

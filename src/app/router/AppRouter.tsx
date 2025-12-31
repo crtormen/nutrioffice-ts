@@ -8,8 +8,8 @@ import { ChartsDemo } from "@/pages/demo/ChartsDemo";
 import { ConsultaRoutes } from "./consultaRoutes";
 import { CustomerRoutes } from "./customerRoutes";
 import { FinanceRoutes } from "./financeRoutes";
-import { ROUTES } from "./routes";
 import { LoadingFallback } from "./LoadingFallback";
+import { ROUTES, ROUTE_PATHS } from "./routes";
 
 const Dashboard = React.lazy(() => import("@/pages/infra/DashboardPage"));
 const LoginPage = React.lazy(() => import("@/pages/infra/LoginPage"));
@@ -69,7 +69,7 @@ function App(): JSX.Element {
         {ConsultaRoutes}
         {FinanceRoutes}
         <Route
-          path={ROUTES.FORM_SUBMISSIONS}
+          path={ROUTE_PATHS.FORM_SUBMISSIONS}
           element={
             <RequireAuthLayout allowedRoles={["PROFESSIONAL", "ADMIN"]}>
               <Suspense fallback={<LoadingFallback />}>
@@ -78,9 +78,9 @@ function App(): JSX.Element {
             </RequireAuthLayout>
           }
         />
-        <Route path={ROUTES.USER.BASE}>
+        <Route path={ROUTE_PATHS.USER.BASE}>
           <Route
-            path="profile/*"
+            path={`${ROUTE_PATHS.USER.PROFILE}/*`}
             element={
               <Suspense fallback={<LoadingFallback />}>
                 <AccountPage />
@@ -88,7 +88,7 @@ function App(): JSX.Element {
             }
           />
           <Route
-            path="settings/*"
+            path={`${ROUTE_PATHS.USER.SETTINGS}/*`}
             element={
               <Suspense fallback={<LoadingFallback />}>
                 <SettingsPage />
@@ -97,7 +97,7 @@ function App(): JSX.Element {
           />
         </Route>
         <Route
-          path={ROUTES.SUBSCRIPTION.MANAGE}
+          path={ROUTE_PATHS.SUBSCRIPTION.MANAGE}
           element={
             <Suspense fallback={<LoadingFallback />}>
               <SubscriptionManagementPage />
@@ -155,9 +155,7 @@ function App(): JSX.Element {
         <Route
           path="login"
           element={
-            <Suspense
-              fallback={<LoadingFallback />}
-            >
+            <Suspense fallback={<LoadingFallback />}>
               <LoginPage />
             </Suspense>
           }
@@ -165,9 +163,7 @@ function App(): JSX.Element {
         <Route
           path="signup"
           element={
-            <Suspense
-              fallback={<LoadingFallback />}
-            >
+            <Suspense fallback={<LoadingFallback />}>
               <SignUpPage />
             </Suspense>
           }
@@ -175,9 +171,7 @@ function App(): JSX.Element {
         <Route
           path="accept-invitation"
           element={
-            <Suspense
-              fallback={<LoadingFallback />}
-            >
+            <Suspense fallback={<LoadingFallback />}>
               <AcceptInvitationPage />
             </Suspense>
           }

@@ -3,8 +3,9 @@ import { Route } from "react-router-dom";
 
 import { ConsultaProvider } from "@/components/Consultas/context/ConsultaContext";
 import RequireAuthLayout from "@/pages/_layouts/RequireAuthLayout";
+
 import { LoadingFallback } from "./LoadingFallback";
-import { ROUTES } from "./routes";
+import { ROUTE_PATHS } from "./routes";
 
 const ConsultasPage = React.lazy(
   () => import("@/pages/consultas/ConsultasPage"),
@@ -17,7 +18,7 @@ const ConsultaDetailsPage = React.lazy(
 );
 
 export const ConsultaRoutes = (
-  <Route path={ROUTES.CONSULTAS.BASE}>
+  <Route path={ROUTE_PATHS.CONSULTAS.BASE}>
     <Route
       index
       element={
