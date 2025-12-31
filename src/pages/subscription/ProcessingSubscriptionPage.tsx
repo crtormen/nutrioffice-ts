@@ -2,7 +2,6 @@ import { httpsCallable } from "firebase/functions";
 import { CreditCard, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { toast } from "sonner";
 
 import { ROUTES } from "@/app/router/routes";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -63,11 +62,13 @@ const ProcessingSubscriptionPage = () => {
 
         // Redirect to Mercado Pago payment page
         window.location.href = data.initPoint;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("❌ Error creating subscription:", error);
-        setError(
-          error.message || "Erro ao processar assinatura. Tente novamente.",
-        );
+        const errorMessage =
+          error && typeof error === "object" && "message" in error
+            ? String(error.message)
+            : "Erro ao processar assinatura. Tente novamente.";
+        setError(errorMessage);
       }
     };
 

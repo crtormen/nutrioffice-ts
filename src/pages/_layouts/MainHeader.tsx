@@ -2,8 +2,8 @@
 // import { Search } from './Search'
 // import { Separator } from '@/components/ui/separator'
 import logo from "@/assets/images/logo.png";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { FormSubmissionsNotificationBadge } from "@/components/FormSubmissions/FormSubmissionsNotificationBadge";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 import { UserNav } from "./UserNav";
 

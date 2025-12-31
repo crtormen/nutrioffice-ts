@@ -60,12 +60,13 @@ const SubscriptionManagementPage = () => {
 
   const { data: subscription, isLoading: subscriptionLoading } =
     useFetchSubscriptionQuery(dbUid || "", { skip: !dbUid });
-  const { data: invoices = [], isLoading: invoicesLoading } =
-    useFetchInvoicesQuery(dbUid || "", {
-      skip: !dbUid,
-    });
-  const { data: paymentHistory = [], isLoading: historyLoading } =
-    useFetchPaymentHistoryQuery(dbUid || "", { skip: !dbUid });
+  const { data: invoices = [] } = useFetchInvoicesQuery(dbUid || "", {
+    skip: !dbUid,
+  });
+  const { data: paymentHistory = [] } = useFetchPaymentHistoryQuery(
+    dbUid || "",
+    { skip: !dbUid },
+  );
 
   const breadcrumbs = [
     { label: "Dashboard", href: ROUTES.DASHBOARD },
@@ -111,10 +112,14 @@ const SubscriptionManagementPage = () => {
       });
 
       setShowCancelDialog(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error canceling subscription:", error);
+      const errorMessage =
+        error && typeof error === "object" && "message" in error
+          ? String(error.message)
+          : "Tente novamente mais tarde.";
       toast.error("Erro ao cancelar assinatura", {
-        description: error.message || "Tente novamente mais tarde.",
+        description: errorMessage,
       });
     } finally {
       setIsCanceling(false);

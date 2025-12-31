@@ -1,19 +1,18 @@
-import { MoreHorizontal, Plus } from "lucide-react";
+import { GripVertical, MoreHorizontal, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { useAppSelector } from "@/app/state";
-import { ISettings } from "@/domain/entities";
 import {
   selectCustomAnamnesisSettings,
   selectDefaultAnamnesisSettings,
   useFetchSettingsQuery,
   useSetSettingsMutation,
 } from "@/app/state/features/settingsSlice";
-import SetAnamnesisFieldDialog from "@/components/Settings/SetAnamnesisFieldDialog";
 import { InitializeUserSettingsButton } from "@/components/Admin/InitializeUserSettingsButton";
-import { Button } from "@/components/ui/button";
+import SetAnamnesisFieldDialog from "@/components/Settings/SetAnamnesisFieldDialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
@@ -31,6 +30,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import {
+  Sortable,
+  SortableContent,
+  SortableItem,
+  SortableItemHandle,
+} from "@/components/ui/sortable";
+import {
   Table,
   TableBody,
   TableCell,
@@ -38,7 +43,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FieldSetting, FieldValuesSetting, GENDERS } from "@/domain/entities";
+import {
+  FieldSetting,
+  FieldValuesSetting,
+  GENDERS,
+  ISettings,
+} from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
 import { cn } from "@/lib/utils";
 
@@ -46,11 +56,6 @@ type settingType = "custom" | "default";
 type fieldEdittingType = {
   field: FieldValuesSetting | undefined;
   type: settingType | "";
-};
-type tableRowProps = {
-  anamnesisFields: FieldSetting;
-  gender?: string;
-  className?: string;
 };
 type fieldDetailsProps = {
   field: FieldValuesSetting;
@@ -141,96 +146,165 @@ const AnamnesisSettingsTab = () => {
     setFieldToEdit({ field: undefined, type: "" });
   }
 
-  const GenderRows = ({ anamnesisFields, gender, className }: tableRowProps) =>
-    Object.entries(anamnesisFields)
+  const getSortedFieldEntries = (
+    fields: FieldSetting,
+    gender?: string,
+  ): [string, FieldValuesSetting][] => {
+    return Object.entries(fields)
       .filter(([, value]) => value.gender === gender)
-      .map(
-        ([key, value]) =>
-          value && (
-            <Collapsible key={key} asChild>
-              <>
-                <TableRow className={cn("h-20 text-left", className)}>
-                  <TableCell>
-                    <CollapsibleTrigger asChild className="cursor-pointer">
-                      <div>{value.label}</div>
-                    </CollapsibleTrigger>
-                  </TableCell>
-                  <TableCell className="">
-                    <CollapsibleTrigger asChild className="cursor-pointer">
-                      <div>{value.type}</div>
-                    </CollapsibleTrigger>
-                  </TableCell>
-                  <TableCell className="">
-                    <CollapsibleTrigger asChild className="cursor-pointer">
-                      <div>
-                        {value.gender ? GENDERS[value.gender].text : "Geral"}
-                      </div>
-                    </CollapsibleTrigger>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Abrir menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <CollapsibleTrigger asChild>
-                            <div>Ver Detalhes</div>
-                          </CollapsibleTrigger>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() =>
-                            onClickEdit({ ...value, name: key }, "custom")
-                          }
-                        >
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            onClickDelete({ ...value, name: key }, "custom")
-                          }
-                        >
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-                <CollapsibleContent asChild>
-                  <FieldDetails field={value} id={key} />
-                </CollapsibleContent>
-              </>
-            </Collapsible>
-          ),
-      );
+      .sort(([, a], [, b]) => {
+        const orderA = a.order ?? Number.MAX_SAFE_INTEGER;
+        const orderB = b.order ?? Number.MAX_SAFE_INTEGER;
+        return orderA - orderB;
+      });
+  };
 
-  const GroupRowsByGender = ({
+  const SortableFieldsTable = ({
     anamnesisFields,
+    type,
   }: {
     anamnesisFields: FieldSetting;
-  }) => (
-    <TableBody>
-      <GenderRows anamnesisFields={anamnesisFields} />
-      <GenderRows anamnesisFields={anamnesisFields} gender="B" />
-      <GenderRows
-        anamnesisFields={anamnesisFields}
-        gender="M"
-        className="bg-purple-50"
-      />
-      <GenderRows
-        anamnesisFields={anamnesisFields}
-        gender="H"
-        className="bg-blue-50"
-      />
-    </TableBody>
-  );
+    type: settingType;
+  }) => {
+    const allSortedEntries = [
+      ...getSortedFieldEntries(anamnesisFields),
+      ...getSortedFieldEntries(anamnesisFields, "B"),
+      ...getSortedFieldEntries(anamnesisFields, "M"),
+      ...getSortedFieldEntries(anamnesisFields, "H"),
+    ];
+
+    const handleReorder = (newOrder: [string, FieldValuesSetting][]) => {
+      const updatedFields: FieldSetting = {};
+      newOrder.forEach(([key, value], index) => {
+        updatedFields[key] = { ...value, order: index };
+      });
+
+      updateSettings({
+        uid: user?.uid,
+        type,
+        setting: { anamnesis: updatedFields },
+        merge: false,
+      })
+        .then(() => {
+          toast.success("Ordem dos campos atualizada com sucesso.");
+          refetch();
+        })
+        .catch(() => {
+          toast.error("Ocorreu um erro ao atualizar a ordem. Tente novamente.");
+        });
+    };
+
+    return (
+      <Sortable
+        value={allSortedEntries}
+        onValueChange={handleReorder}
+        getItemValue={(item) => item[0]}
+        orientation="vertical"
+      >
+        <SortableContent items={allSortedEntries.map(([key]) => key)}>
+          <div className="flex flex-col gap-2">
+            {allSortedEntries.map(([key, value]) => {
+              const genderClass =
+                value.gender === "M"
+                  ? "border-purple-200 bg-purple-50"
+                  : value.gender === "H"
+                    ? "border-blue-200 bg-blue-50"
+                    : "";
+
+              return (
+                value && (
+                  <SortableItem key={key} value={key}>
+                    <Collapsible>
+                      <div
+                        className={cn(
+                          "rounded-lg border bg-card text-card-foreground shadow-sm",
+                          genderClass,
+                        )}
+                      >
+                        <CollapsibleTrigger asChild>
+                          <div className="flex items-center gap-3 p-4 cursor-pointer hover:bg-accent/50">
+                            <SortableItemHandle asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="shrink-0"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <GripVertical className="h-4 w-4" />
+                              </Button>
+                            </SortableItemHandle>
+                            <div className="flex-1 grid grid-cols-3 gap-4">
+                              <div>
+                                <div className="text-sm font-medium text-muted-foreground">
+                                  Label
+                                </div>
+                                <div className="font-semibold">{value.label}</div>
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium text-muted-foreground">
+                                  Tipo
+                                </div>
+                                <div>{value.type}</div>
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium text-muted-foreground">
+                                  Gênero
+                                </div>
+                                <div>
+                                  {value.gender ? GENDERS[value.gender].text : "Geral"}
+                                </div>
+                              </div>
+                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <span className="sr-only">Abrir menu</span>
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    onClickEdit({ ...value, name: key }, type)
+                                  }
+                                >
+                                  Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    onClickDelete({ ...value, name: key }, type)
+                                  }
+                                >
+                                  Excluir
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <div className="border-t px-4 pb-4">
+                            <FieldDetails field={value} id={key} />
+                          </div>
+                        </CollapsibleContent>
+                      </div>
+                    </Collapsible>
+                  </SortableItem>
+                )
+              );
+            })}
+          </div>
+        </SortableContent>
+      </Sortable>
+    );
+  };
 
   const hasNoFields =
-    (!defaultAnamnesisFields || Object.keys(defaultAnamnesisFields).length === 0) &&
+    (!defaultAnamnesisFields ||
+      Object.keys(defaultAnamnesisFields).length === 0) &&
     (!customAnamnesisFields || Object.keys(customAnamnesisFields).length === 0);
 
   return (
@@ -248,8 +322,9 @@ const AnamnesisSettingsTab = () => {
           <AlertTitle>Nenhum campo de anamnese configurado</AlertTitle>
           <AlertDescription className="space-y-3">
             <p>
-              Você ainda não possui campos de anamnese configurados. Clique no botão abaixo para
-              inicializar os campos padrão ou crie seus próprios campos personalizados.
+              Você ainda não possui campos de anamnese configurados. Clique no
+              botão abaixo para inicializar os campos padrão ou crie seus
+              próprios campos personalizados.
             </p>
             <InitializeUserSettingsButton />
           </AlertDescription>
@@ -290,20 +365,10 @@ const AnamnesisSettingsTab = () => {
                     Campos Personalizados
                   </h2>
                 </div>
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="font-medium">Label</TableHead>
-                        <TableHead className="font-medium">Tipo</TableHead>
-                        <TableHead className="font-medium">Gênero</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <GroupRowsByGender
-                      anamnesisFields={customAnamnesisFields}
-                    />
-                  </Table>
-                </div>
+                <SortableFieldsTable
+                  anamnesisFields={customAnamnesisFields}
+                  type="custom"
+                />
               </div>
             )}
             <Separator className="bg-primary" />
@@ -314,18 +379,10 @@ const AnamnesisSettingsTab = () => {
             <div>
               <h2 className="text-md font-semibold">Campos Padrão</h2>
             </div>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="font-medium">Label</TableHead>
-                    <TableHead className="font-medium">Tipo</TableHead>
-                    <TableHead className="font-medium">Gênero</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <GroupRowsByGender anamnesisFields={defaultAnamnesisFields} />
-              </Table>
-            </div>
+            <SortableFieldsTable
+              anamnesisFields={defaultAnamnesisFields}
+              type="default"
+            />
           </div>
         )}
       </div>

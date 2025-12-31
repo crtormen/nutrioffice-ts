@@ -1,4 +1,10 @@
 import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  uploadBytes,
+} from "firebase/storage";
+import {
   Image as ImageIcon,
   Info,
   Loader2,
@@ -15,8 +21,6 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
-import { storage } from "@/infra/firebase/firebaseConfig";
 
 import {
   useFetchThemeQuery,
@@ -49,6 +53,7 @@ import {
   ThemeMode,
 } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
+import { storage } from "@/infra/firebase/firebaseConfig";
 import { cn } from "@/lib/utils";
 
 const ThemeSettingsTab = () => {
@@ -78,9 +83,13 @@ const ThemeSettingsTab = () => {
     try {
       await updateTheme({ uid: dbUid, theme: localTheme }).unwrap();
       toast.success("Tema atualizado com sucesso!");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error && typeof error === "object" && "message" in error
+          ? String(error.message)
+          : "Tente novamente mais tarde.";
       toast.error("Erro ao atualizar tema", {
-        description: error.message || "Tente novamente mais tarde.",
+        description: errorMessage,
       });
     }
   };
@@ -92,14 +101,20 @@ const ThemeSettingsTab = () => {
       await resetTheme(dbUid).unwrap();
       setLocalTheme(DEFAULT_THEME);
       toast.success("Tema restaurado para o padrão!");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error && typeof error === "object" && "message" in error
+          ? String(error.message)
+          : "Tente novamente mais tarde.";
       toast.error("Erro ao restaurar tema", {
-        description: error.message || "Tente novamente mais tarde.",
+        description: errorMessage,
       });
     }
   };
 
-  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !dbUid) return;
 
@@ -145,10 +160,14 @@ const ThemeSettingsTab = () => {
       });
 
       toast.success("Logo carregada com sucesso!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error uploading logo:", error);
+      const errorMessage =
+        error && typeof error === "object" && "message" in error
+          ? String(error.message)
+          : "Tente novamente mais tarde.";
       toast.error("Erro ao fazer upload da logo", {
-        description: error.message || "Tente novamente mais tarde.",
+        description: errorMessage,
       });
     } finally {
       setUploadingLogo(false);
@@ -178,10 +197,14 @@ const ThemeSettingsTab = () => {
       });
 
       toast.success("Logo removida com sucesso!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error removing logo:", error);
+      const errorMessage =
+        error && typeof error === "object" && "message" in error
+          ? String(error.message)
+          : "Tente novamente mais tarde.";
       toast.error("Erro ao remover logo", {
-        description: error.message || "Tente novamente mais tarde.",
+        description: errorMessage,
       });
     }
   };
@@ -229,8 +252,8 @@ const ThemeSettingsTab = () => {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            Você tem alterações não salvas. Clique em "Salvar Alterações" para
-            aplicar.
+            Você tem alterações não salvas. Clique em &quot;Salvar
+            Alterações&quot; para aplicar.
           </AlertDescription>
         </Alert>
       )}
@@ -454,7 +477,8 @@ const ThemeSettingsTab = () => {
               <div className="space-y-2">
                 <Label>Logo da Marca</Label>
                 <p className="text-xs text-muted-foreground">
-                  Faça upload de uma logo personalizada (PNG, JPG ou SVG, máx. 2MB)
+                  Faça upload de uma logo personalizada (PNG, JPG ou SVG, máx.
+                  2MB)
                 </p>
               </div>
 
@@ -469,7 +493,10 @@ const ThemeSettingsTab = () => {
                     />
                   </div>
                   <div className="flex-1 text-sm text-muted-foreground">
-                    <p>Dimensões: {localTheme.logo.width} × {localTheme.logo.height}px</p>
+                    <p>
+                      Dimensões: {localTheme.logo.width} ×{" "}
+                      {localTheme.logo.height}px
+                    </p>
                   </div>
                   <Button
                     variant="ghost"
@@ -509,10 +536,7 @@ const ThemeSettingsTab = () => {
                   )}
                 </Button>
                 {localTheme.logo && (
-                  <Button
-                    variant="ghost"
-                    onClick={handleRemoveLogo}
-                  >
+                  <Button variant="ghost" onClick={handleRemoveLogo}>
                     Remover Logo
                   </Button>
                 )}
@@ -521,7 +545,8 @@ const ThemeSettingsTab = () => {
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription>
-                  A logo será exibida no cabeçalho do sistema e em documentos gerados.
+                  A logo será exibida no cabeçalho do sistema e em documentos
+                  gerados.
                 </AlertDescription>
               </Alert>
             </div>

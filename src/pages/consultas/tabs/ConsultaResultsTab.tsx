@@ -11,11 +11,8 @@ import { NewGoalDialog } from "@/components/Consultas/NewGoalDialog";
 import { useGetCustomerData } from "@/components/Customers/hooks";
 import {
   BodyCompositionBarChart,
-  CircumferenceRadarChart,
   CompositionChart,
-  MetricsProgressChart,
   ResultsChart,
-  WeightProgressAreaChart,
 } from "@/components/Results/charts";
 import { GoalProgressCard } from "@/components/Results/GoalProgressCard";
 import { GoalsList } from "@/components/Results/GoalsList";

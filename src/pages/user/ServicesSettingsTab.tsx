@@ -1,7 +1,6 @@
 import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
 import { useState } from "react";
 
-import { useAppSelector } from "@/app/state";
 import {
   useFetchSettingsQuery,
   useSetSettingsMutation,
@@ -58,7 +57,8 @@ const ServicesSettingsTab = () => {
 
     try {
       // Get all custom services except the one to delete
-      const { [serviceToDelete.key]: removed, ...remainingServices } =
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [serviceToDelete.key]: _removed, ...remainingServices } =
         settings?.custom?.services || {};
 
       await updateSettings({
@@ -66,7 +66,7 @@ const ServicesSettingsTab = () => {
         type: "custom",
         setting: {
           services: remainingServices,
-        } as any,
+        } as Record<string, unknown>,
         merge: false, // Replace entire custom services
       }).unwrap();
 

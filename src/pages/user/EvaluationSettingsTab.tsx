@@ -1,6 +1,6 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { EvaluationConfigCard } from "@/components/Evaluation/EvaluationConfigCard";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function EvaluationSettingsTab() {
   return (
@@ -8,7 +8,8 @@ export default function EvaluationSettingsTab() {
       <div>
         <h3 className="text-lg font-medium">Configuração de Avaliação</h3>
         <p className="text-sm text-muted-foreground">
-          Configure os campos e protocolos de avaliação para consultas online e presenciais
+          Configure os campos e protocolos de avaliação para consultas online e
+          presenciais
         </p>
       </div>
       <Separator />

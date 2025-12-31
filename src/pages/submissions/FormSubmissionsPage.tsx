@@ -1,21 +1,19 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { toast } from "sonner";
 import { FileCheck, Home, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
-import { useAuth } from "@/infra/firebase/hooks/useAuth";
 import { ROUTES } from "@/app/router/routes";
 import {
-  useFetchFormSubmissionsQuery,
   useApproveFormSubmissionMutation,
+  useFetchFormSubmissionsQuery,
   useRejectFormSubmissionMutation,
 } from "@/app/state/features/formSubmissionsSlice";
-import { IFormSubmission } from "@/domain/entities/formSubmission";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DataTable } from "@/components/ui/data-table";
-import { Badge } from "@/components/ui/badge";
+import { columns } from "@/components/FormSubmissions/columns";
+import { PublicFormLinksCard } from "@/components/FormSubmissions/PublicFormLinksCard";
+import { SubmissionDetailsDialog } from "@/components/FormSubmissions/SubmissionDetailsDialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -24,32 +22,54 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { columns } from "@/components/FormSubmissions/columns";
-import { SubmissionDetailsDialog } from "@/components/FormSubmissions/SubmissionDetailsDialog";
-import { PublicFormLinksCard } from "@/components/FormSubmissions/PublicFormLinksCard";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { IFormSubmission } from "@/domain/entities/formSubmission";
+import { useAuth } from "@/infra/firebase/hooks/useAuth";
 
 export default function FormSubmissionsPage() {
   const { dbUid } = useAuth();
-  const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "rejected">("pending");
-  const [selectedSubmission, setSelectedSubmission] = useState<IFormSubmission | null>(null);
+  const [statusFilter, setStatusFilter] = useState<
+    "pending" | "approved" | "rejected"
+  >("pending");
+  const [selectedSubmission, setSelectedSubmission] =
+    useState<IFormSubmission | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
   // Fetch submissions with real-time updates
-  const { data: submissions = [], isLoading, error } = useFetchFormSubmissionsQuery(dbUid || "", {
+  const {
+    data: submissions = [],
+    isLoading,
+    error,
+  } = useFetchFormSubmissionsQuery(dbUid || "", {
     skip: !dbUid,
   });
 
-  const [approveSubmission, { isLoading: isApproving }] = useApproveFormSubmissionMutation();
-  const [rejectSubmission, { isLoading: isRejecting }] = useRejectFormSubmissionMutation();
+  const [approveSubmission, { isLoading: isApproving }] =
+    useApproveFormSubmissionMutation();
+  const [rejectSubmission, { isLoading: isRejecting }] =
+    useRejectFormSubmissionMutation();
 
   // Filter submissions by status
-  const filteredSubmissions = submissions.filter((s) => s.status === statusFilter);
+  const filteredSubmissions = submissions.filter(
+    (s) => s.status === statusFilter,
+  );
 
   // Count by status
   const pendingCount = submissions.filter((s) => s.status === "pending").length;
-  const approvedCount = submissions.filter((s) => s.status === "approved").length;
-  const rejectedCount = submissions.filter((s) => s.status === "rejected").length;
+  const approvedCount = submissions.filter(
+    (s) => s.status === "approved",
+  ).length;
+  const rejectedCount = submissions.filter(
+    (s) => s.status === "rejected",
+  ).length;
 
   const handleViewDetails = (submission: IFormSubmission) => {
     setSelectedSubmission(submission);
@@ -69,8 +89,12 @@ export default function FormSubmissionsPage() {
 
       toast.success("Submissão aprovada e cliente criado com sucesso!");
       setDetailsDialogOpen(false);
-    } catch (error: any) {
-      toast.error(error?.data || "Erro ao aprovar submissão");
+    } catch (error: unknown) {
+      const errorMessage =
+        error && typeof error === "object" && "data" in error
+          ? String(error.data)
+          : "Erro ao aprovar submissão";
+      toast.error(errorMessage);
     }
   };
 
@@ -85,16 +109,20 @@ export default function FormSubmissionsPage() {
 
       toast.success("Submissão rejeitada");
       setDetailsDialogOpen(false);
-    } catch (error: any) {
-      toast.error(error?.data || "Erro ao rejeitar submissão");
+    } catch (error: unknown) {
+      const errorMessage =
+        error && typeof error === "object" && "data" in error
+          ? String(error.data)
+          : "Erro ao rejeitar submissão";
+      toast.error(errorMessage);
     }
   };
 
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+        <div className="space-y-4 text-center">
+          <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
           <p className="text-muted-foreground">Carregando submissões...</p>
         </div>
       </div>
@@ -105,14 +133,16 @@ export default function FormSubmissionsPage() {
     return (
       <div className="p-6">
         <Alert variant="destructive">
-          <AlertDescription>Erro ao carregar submissões. Tente novamente mais tarde.</AlertDescription>
+          <AlertDescription>
+            Erro ao carregar submissões. Tente novamente mais tarde.
+          </AlertDescription>
         </Alert>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 p-6">
       {/* Breadcrumbs */}
       <Breadcrumb>
         <BreadcrumbList>
@@ -136,7 +166,9 @@ export default function FormSubmissionsPage() {
           <FileCheck className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Submissões de Formulário</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Submissões de Formulário
+          </h1>
           <p className="text-sm text-muted-foreground">
             Gerencie os formulários de anamnese enviados por novos pacientes
           </p>
@@ -162,14 +194,18 @@ export default function FormSubmissionsPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Aprovadas</CardDescription>
-            <CardTitle className="text-3xl text-green-600">{approvedCount}</CardTitle>
+            <CardTitle className="text-3xl text-green-600">
+              {approvedCount}
+            </CardTitle>
           </CardHeader>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Rejeitadas</CardDescription>
-            <CardTitle className="text-3xl text-red-600">{rejectedCount}</CardTitle>
+            <CardTitle className="text-3xl text-red-600">
+              {rejectedCount}
+            </CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -186,7 +222,10 @@ export default function FormSubmissionsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
+          <Tabs
+            value={statusFilter}
+            onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}
+          >
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="pending">
                 Pendentes
@@ -216,9 +255,11 @@ export default function FormSubmissionsPage() {
 
             <TabsContent value="pending" className="mt-6">
               {filteredSubmissions.length === 0 ? (
-                <div className="text-center py-12">
-                  <FileCheck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Nenhuma submissão pendente</p>
+                <div className="py-12 text-center">
+                  <FileCheck className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                  <p className="text-muted-foreground">
+                    Nenhuma submissão pendente
+                  </p>
                 </div>
               ) : (
                 <DataTable
@@ -230,9 +271,11 @@ export default function FormSubmissionsPage() {
 
             <TabsContent value="approved" className="mt-6">
               {filteredSubmissions.length === 0 ? (
-                <div className="text-center py-12">
-                  <FileCheck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Nenhuma submissão aprovada</p>
+                <div className="py-12 text-center">
+                  <FileCheck className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                  <p className="text-muted-foreground">
+                    Nenhuma submissão aprovada
+                  </p>
                 </div>
               ) : (
                 <DataTable
@@ -244,9 +287,11 @@ export default function FormSubmissionsPage() {
 
             <TabsContent value="rejected" className="mt-6">
               {filteredSubmissions.length === 0 ? (
-                <div className="text-center py-12">
-                  <FileCheck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Nenhuma submissão rejeitada</p>
+                <div className="py-12 text-center">
+                  <FileCheck className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                  <p className="text-muted-foreground">
+                    Nenhuma submissão rejeitada
+                  </p>
                 </div>
               ) : (
                 <DataTable

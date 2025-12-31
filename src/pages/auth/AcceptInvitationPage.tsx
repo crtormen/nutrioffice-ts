@@ -139,17 +139,21 @@ const AcceptInvitationPage = () => {
           message: "Conta criada com sucesso! Faça login para continuar.",
         },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error accepting invitation:", error);
 
       // Handle different error types
-      if (error.code) {
+      if (error && typeof error === "object" && "code" in error) {
         // Firebase Auth error
         generateFirebaseAuthError(error as AuthError);
       } else {
         // API or other error
+        const errorMessage =
+          error && typeof error === "object" && "message" in error
+            ? String(error.message)
+            : "Tente novamente mais tarde.";
         toast.error("Erro ao criar conta", {
-          description: error.message || "Tente novamente mais tarde.",
+          description: errorMessage,
         });
       }
     } finally {

@@ -1,7 +1,5 @@
-import { toast } from "sonner";
-
+import { InitializeUserSettingsButton } from "@/components/Admin/InitializeUserSettingsButton";
 import PermissionsMatrix from "@/components/Permissions/PermissionsMatrix";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,21 +8,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { reloadDefaultSettingsToUser, useAuth } from "@/infra/firebase";
-import { InitializeUserSettingsButton } from "@/components/Admin/InitializeUserSettingsButton";
+import { useAuth } from "@/infra/firebase";
 
 const PreferencesTab = () => {
   const { dbUid } = useAuth();
-
-  async function handleResetSettings() {
-    try {
-      await reloadDefaultSettingsToUser();
-      toast.success("Configurações redefinidas com sucesso!");
-    } catch (err) {
-      toast.error("Erro ao redefinir configurações!");
-      console.error(err);
-    }
-  }
 
   return (
     <div className="flex flex-col gap-6 space-y-6">

@@ -47,7 +47,11 @@ const CollaboratorsTab = () => {
 
   // Check if user is PROFESSIONAL using persisted profile (fallback to auth user just in case)
   const ability =
-    user?.roles?.ability ?? (authUser as any)?.roles?.ability ?? null;
+    user?.roles?.ability ??
+    ((authUser as unknown) as Record<string, unknown> & {
+      roles?: { ability?: string };
+    })?.roles?.ability ??
+    null;
   const isProfessional = ability === "PROFESSIONAL";
 
   if (userLoading) return <LoadingSpinner />;
@@ -187,7 +191,13 @@ const CollaboratorsTab = () => {
                       </TableCell>
                       <TableCell>
                         <PermissionsBadges
-                          role={roles as any}
+                          role={
+                            roles as
+                              | "COLLABORATOR"
+                              | "SECRETARY"
+                              | "MARKETING"
+                              | "FINANCES"
+                          }
                           professionalId={dbUid}
                           compact
                         />

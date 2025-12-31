@@ -8,10 +8,10 @@ import { useAuth } from "@/infra/firebase";
 import { SidebarNav } from "../_layouts/SidebarNav";
 import AnamnesisSettingsTab from "./AnamnesisSettingsTab";
 import AvaliationSettingsTab from "./AvaliationSettingsTab";
+import PublicFormsSettingsTab from "./PublicFormsSettingsTab";
 import ServicesSettingsTab from "./ServicesSettingsTab";
 import { SystemTab } from "./SystemTab";
 import ThemeSettingsTab from "./ThemeSettingsTab";
-import PublicFormsSettingsTab from "./PublicFormsSettingsTab";
 
 const sidebarNavItems = [
   {

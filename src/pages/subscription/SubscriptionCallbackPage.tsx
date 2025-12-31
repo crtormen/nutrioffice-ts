@@ -35,43 +35,70 @@ const SubscriptionCallbackPage = () => {
 
   useEffect(() => {
     // Get Mercado Pago callback parameters
+    // eslint-disable-next-line camelcase
     const collection_id = searchParams.get("collection_id");
+    // eslint-disable-next-line camelcase
     const collection_status = searchParams.get("collection_status");
+    // eslint-disable-next-line camelcase
     const payment_id = searchParams.get("payment_id");
+    // eslint-disable-next-line camelcase
     const status_param = searchParams.get("status");
+    // eslint-disable-next-line camelcase
     const external_reference = searchParams.get("external_reference");
+    // eslint-disable-next-line camelcase
     const payment_type = searchParams.get("payment_type");
+    // eslint-disable-next-line camelcase
     const merchant_order_id = searchParams.get("merchant_order_id");
+    // eslint-disable-next-line camelcase
     const preference_id = searchParams.get("preference_id");
+    // eslint-disable-next-line camelcase
     const site_id = searchParams.get("site_id");
+    // eslint-disable-next-line camelcase
     const processing_mode = searchParams.get("processing_mode");
+    // eslint-disable-next-line camelcase
     const merchant_account_id = searchParams.get("merchant_account_id");
 
     console.log("Mercado Pago callback params:", {
+      // eslint-disable-next-line camelcase
       collection_id,
+      // eslint-disable-next-line camelcase
       collection_status,
+      // eslint-disable-next-line camelcase
       payment_id,
+      // eslint-disable-next-line camelcase
       status: status_param,
+      // eslint-disable-next-line camelcase
       external_reference,
+      // eslint-disable-next-line camelcase
       payment_type,
+      // eslint-disable-next-line camelcase
       merchant_order_id,
+      // eslint-disable-next-line camelcase
       preference_id,
+      // eslint-disable-next-line camelcase
       site_id,
+      // eslint-disable-next-line camelcase
       processing_mode,
+      // eslint-disable-next-line camelcase
       merchant_account_id,
     });
 
     // Determine status based on callback parameters
+    // eslint-disable-next-line camelcase
     if (collection_status === "approved" || status_param === "approved") {
       setStatus("success");
       setMessage("Pagamento aprovado! Sua assinatura foi ativada com sucesso.");
+      // eslint-disable-next-line camelcase
     } else if (collection_status === "pending" || status_param === "pending") {
       setStatus("pending");
       setMessage(
         "Pagamento pendente. Você receberá uma confirmação assim que o pagamento for processado.",
       );
+      // eslint-disable-next-line camelcase
     } else if (
+      // eslint-disable-next-line camelcase
       collection_status === "rejected" ||
+      // eslint-disable-next-line camelcase
       status_param === "rejected"
     ) {
       setStatus("error");

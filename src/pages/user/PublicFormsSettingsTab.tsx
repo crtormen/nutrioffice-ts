@@ -1,30 +1,43 @@
+import { FileCheck, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { RefreshCw, FileCheck } from "lucide-react";
 
-import { useAuth } from "@/infra/firebase/hooks/useAuth";
 import {
   useFetchAnamnesisTokensQuery,
   useGenerateAnamnesisTokenMutation,
 } from "@/app/state/features/anamnesisTokensSlice";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
-import { TokenDisplay } from "@/components/FormSubmissions/TokenDisplay";
-import { PublicFormFieldSelector } from "@/components/FormSubmissions/PublicFormFieldSelector";
 import { PublicEvaluationFieldSelector } from "@/components/FormSubmissions/PublicEvaluationFieldSelector";
+import { PublicFormFieldSelector } from "@/components/FormSubmissions/PublicFormFieldSelector";
+import { TokenDisplay } from "@/components/FormSubmissions/TokenDisplay";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/infra/firebase/hooks/useAuth";
 
 export default function PublicFormsSettingsTab() {
   const { dbUid } = useAuth();
-  const [regeneratingType, setRegeneratingType] = useState<"online" | "presencial" | null>(null);
+  const [regeneratingType, setRegeneratingType] = useState<
+    "online" | "presencial" | null
+  >(null);
 
-  const { data: tokensData, isLoading, error } = useFetchAnamnesisTokensQuery(dbUid || "", {
+  const {
+    data: tokensData,
+    isLoading,
+    error,
+  } = useFetchAnamnesisTokensQuery(dbUid || "", {
     skip: !dbUid,
   });
 
-  const [generateToken, { isLoading: isGenerating }] = useGenerateAnamnesisTokenMutation();
+  const [generateToken, { isLoading: isGenerating }] =
+    useGenerateAnamnesisTokenMutation();
 
   const handleRegenerateToken = async (type: "online" | "presencial") => {
     if (!dbUid) return;
@@ -36,9 +49,15 @@ export default function PublicFormsSettingsTab() {
         type,
       }).unwrap();
 
-      toast.success(`Link ${type === "online" ? "Online" : "Presencial"} regenerado com sucesso!`);
-    } catch (error: any) {
-      toast.error(error?.data || "Erro ao regenerar link");
+      toast.success(
+        `Link ${type === "online" ? "Online" : "Presencial"} regenerado com sucesso!`,
+      );
+    } catch (error: unknown) {
+      const errorMessage =
+        error && typeof error === "object" && "data" in error
+          ? String(error.data)
+          : "Erro ao regenerar link";
+      toast.error(errorMessage);
     } finally {
       setRegeneratingType(null);
     }
@@ -73,7 +92,9 @@ export default function PublicFormsSettingsTab() {
         </div>
         <Separator />
         <Alert variant="destructive">
-          <AlertDescription>Erro ao carregar configurações. Tente novamente mais tarde.</AlertDescription>
+          <AlertDescription>
+            Erro ao carregar configurações. Tente novamente mais tarde.
+          </AlertDescription>
         </Alert>
       </div>
     );
@@ -101,9 +122,9 @@ export default function PublicFormsSettingsTab() {
       <Alert>
         <FileCheck className="h-4 w-4" />
         <AlertDescription>
-          Compartilhe estes links com novos pacientes para que eles possam preencher a anamnese
-          antes da primeira consulta. Os dados enviados aparecerão na página de submissões para
-          aprovação.
+          Compartilhe estes links com novos pacientes para que eles possam
+          preencher a anamnese antes da primeira consulta. Os dados enviados
+          aparecerão na página de submissões para aprovação.
         </AlertDescription>
       </Alert>
 
@@ -132,7 +153,10 @@ export default function PublicFormsSettingsTab() {
           {onlineToken ? (
             <TokenDisplay token={onlineToken} type="online" />
           ) : (
-            <Button onClick={() => handleRegenerateToken("online")} disabled={isGenerating}>
+            <Button
+              onClick={() => handleRegenerateToken("online")}
+              disabled={isGenerating}
+            >
               Gerar Link Online
             </Button>
           )}
@@ -140,7 +164,7 @@ export default function PublicFormsSettingsTab() {
           <Separator />
 
           <div>
-            <h4 className="text-sm font-medium mb-3">Campos de Anamnese</h4>
+            <h4 className="mb-3 text-sm font-medium">Campos de Anamnese</h4>
             <PublicFormFieldSelector
               appointmentType="online"
               enabledFields={onlineEnabledFields || []}
@@ -150,7 +174,7 @@ export default function PublicFormsSettingsTab() {
           <Separator />
 
           <div>
-            <h4 className="text-sm font-medium mb-3">Campos de Avaliação</h4>
+            <h4 className="mb-3 text-sm font-medium">Campos de Avaliação</h4>
             <PublicEvaluationFieldSelector
               appointmentType="online"
               enabledFields={onlineEnabledEvaluationFields}
@@ -184,7 +208,10 @@ export default function PublicFormsSettingsTab() {
           {presencialToken ? (
             <TokenDisplay token={presencialToken} type="presencial" />
           ) : (
-            <Button onClick={() => handleRegenerateToken("presencial")} disabled={isGenerating}>
+            <Button
+              onClick={() => handleRegenerateToken("presencial")}
+              disabled={isGenerating}
+            >
               Gerar Link Presencial
             </Button>
           )}
@@ -192,7 +219,7 @@ export default function PublicFormsSettingsTab() {
           <Separator />
 
           <div>
-            <h4 className="text-sm font-medium mb-3">Campos de Anamnese</h4>
+            <h4 className="mb-3 text-sm font-medium">Campos de Anamnese</h4>
             <PublicFormFieldSelector
               appointmentType="presencial"
               enabledFields={presencialEnabledFields || []}
@@ -202,7 +229,7 @@ export default function PublicFormsSettingsTab() {
           <Separator />
 
           <div>
-            <h4 className="text-sm font-medium mb-3">Campos de Avaliação</h4>
+            <h4 className="mb-3 text-sm font-medium">Campos de Avaliação</h4>
             <PublicEvaluationFieldSelector
               appointmentType="presencial"
               enabledFields={presencialEnabledEvaluationFields}
