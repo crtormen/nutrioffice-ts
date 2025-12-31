@@ -44,7 +44,7 @@ const FinanceDetailsPage = () => {
         // If not found in global collection, this is an old finance record
         // We need to get it from the finances table and extract customerId from there
         if (!financeDoc) {
-          navigate(`/${ROUTES.FINANCES.BASE}`);
+          navigate(ROUTES.FINANCES.BASE}`);
           return;
         }
 
@@ -107,7 +107,7 @@ const FinanceDetailsPage = () => {
         // Note: Old finance records may not have customerId field (they were in nested collections)
       } catch (error) {
         console.error("Error loading finance details:", error);
-        navigate(`/${ROUTES.FINANCES.BASE}`);
+        navigate(ROUTES.FINANCES.BASE}`);
       } finally {
         setLoading(false);
       }
@@ -154,7 +154,7 @@ const FinanceDetailsPage = () => {
       <div className="container mx-auto py-8">
         <div className="text-center">
           <p className="mb-4 text-muted-foreground">Venda não encontrada</p>
-          <Button onClick={() => navigate(`/${ROUTES.FINANCES.BASE}`)}>
+          <Button onClick={() => navigate(ROUTES.FINANCES.BASE}`)}>
             Voltar para Finanças
           </Button>
         </div>
@@ -170,7 +170,7 @@ const FinanceDetailsPage = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(`/${ROUTES.FINANCES.BASE}`)}
+            onClick={() => navigate(ROUTES.FINANCES.BASE}`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>

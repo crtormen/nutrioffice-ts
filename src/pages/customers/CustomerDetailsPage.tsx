@@ -2,19 +2,19 @@ import React from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { ROUTES } from "@/app/router/routes";
+import { useFetchCustomersQuery } from "@/app/state/features/customersSlice";
 import { useGetCustomerData } from "@/components/Customers/hooks";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { PageHeader } from "@/components/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ICustomer } from "@/domain/entities";
+import { useAuth } from "@/infra/firebase";
 import CustomerAnamnesisTab from "@/pages/customers/CustomerAnamnesisTab";
 import CustomerConsultasTab from "@/pages/customers/CustomerConsultasTab";
 import CustomerFinancesTab from "@/pages/customers/CustomerFinancesTab";
 import CustomerProfileTab from "@/pages/customers/CustomerProfileTab";
 import CustomerResultsTab from "@/pages/customers/CustomerResultTab";
 import CustomerSummaryTab from "@/pages/customers/CustomerSummaryTab";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { useFetchCustomersQuery } from "@/app/state/features/customersSlice";
-import { useAuth } from "@/infra/firebase";
 
 const CustomerDetailsPage: React.FC = () => {
   const { customerId } = useParams();
@@ -31,7 +31,7 @@ const CustomerDetailsPage: React.FC = () => {
 
   const breadcrumbs = [
     { label: "Dashboard", href: ROUTES.DASHBOARD },
-    { label: "Clientes", href: `/${ROUTES.CUSTOMERS.BASE}` },
+    { label: "Clientes", href: ROUTES.CUSTOMERS.BASE },
     { label: customer?.name || "Cliente" },
   ];
 
@@ -47,7 +47,7 @@ const CustomerDetailsPage: React.FC = () => {
   };
 
   const handleTabChange = (value: string) => {
-    const baseUrl = `/${ROUTES.CUSTOMERS.BASE}/${customerId}`;
+    const baseUrl = ROUTES.CUSTOMERS.DETAILS(customerId!);
     if (value === "summary") {
       navigate(baseUrl);
     } else {
@@ -70,7 +70,7 @@ const CustomerDetailsPage: React.FC = () => {
       <div className="space-y-6 p-6 md:p-10">
         <PageHeader
           breadcrumbs={breadcrumbs}
-          backTo={`/${ROUTES.CUSTOMERS.BASE}`}
+          backTo={ROUTES.CUSTOMERS.BASE}
         />
         <div className="flex flex-col items-center justify-center py-12">
           <h2 className="text-2xl font-bold">Cliente não encontrado</h2>
@@ -86,7 +86,7 @@ const CustomerDetailsPage: React.FC = () => {
     <div className="space-y-6 p-6 md:p-10">
       <PageHeader
         breadcrumbs={breadcrumbs}
-        backTo={`/${ROUTES.CUSTOMERS.BASE}`}
+        backTo={ROUTES.CUSTOMERS.BASE}
       />
 
       <div className="space-y-0.5">

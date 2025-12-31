@@ -6,7 +6,6 @@ import { z } from "zod";
 import { ROUTES } from "@/app/router/routes";
 import { useConsultaContext } from "@/components/Consultas/context/ConsultaContext";
 import { MultiStepEvaluationFormProvider } from "@/components/Consultas/context/MultiStepEvaluationFormContext";
-import { NewGoalDialog } from "@/components/Consultas/NewGoalDialog";
 import { PersonalData } from "@/components/Consultas/PersonalData";
 import { SetEvaluationDrawer } from "@/components/Consultas/SetEvaluationDrawer";
 import { SetFeedingHistoryDrawer } from "@/components/Consultas/SetFeedingHistoryDrawer";
@@ -81,7 +80,7 @@ const NewConsultaPage = () => {
 
   const breadcrumbs = [
     { label: "Dashboard", href: ROUTES.DASHBOARD },
-    { label: "Clientes", href: `/${ROUTES.CUSTOMERS.BASE}` },
+    { label: "Clientes", href: ROUTES.CUSTOMERS.BASE },
     { label: customer?.name || "Cliente", href: ROUTES.CUSTOMERS.DETAILS(customerId!) },
     { label: "Nova Consulta" },
   ];

@@ -1,4 +1,4 @@
-import { DollarSign, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useParams } from "react-router-dom";
 
 import { CustomerFinancesTable } from "@/components/Finances/CustomerFinancesTable";

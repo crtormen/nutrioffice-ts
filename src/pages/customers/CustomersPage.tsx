@@ -5,8 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/app/router/routes";
 import { useFetchCustomersQuery } from "@/app/state/features/customersSlice";
 import {
-  useFetchSubscriptionQuery,
   useCanAddCustomerQuery,
+  useFetchSubscriptionQuery,
 } from "@/app/state/features/subscriptionSlice";
 import { useFetchUserQuery } from "@/app/state/features/userSlice";
 import CustomersTable from "@/components/Customers/CustomersTable";
@@ -44,7 +44,7 @@ const CustomersPage: React.FC = () => {
   const currentCount = customers.length;
   const { data: canAddCustomer = true } = useCanAddCustomerQuery(
     { uid: dbUid || "", currentCount },
-    { skip: !dbUid }
+    { skip: !dbUid },
   );
 
   const breadcrumbs = [
@@ -57,7 +57,8 @@ const CustomersPage: React.FC = () => {
   const planTier = subscription?.planTier || "free";
   const planConfig = PLAN_CONFIGS[planTier];
   const customerLimit = isPermanentFree ? Infinity : planConfig.maxCustomers;
-  const isNearLimit = !isPermanentFree && currentCount >= customerLimit * 0.8 && canAddCustomer; // 80% of limit
+  const isNearLimit =
+    !isPermanentFree && currentCount >= customerLimit * 0.8 && canAddCustomer; // 80% of limit
 
   const handleAddCustomer = () => {
     if (!canAddCustomer) {
@@ -81,7 +82,10 @@ const CustomersPage: React.FC = () => {
               <h2 className="text-3xl font-bold tracking-tight">Clientes</h2>
               <p className="text-sm text-muted-foreground">
                 {currentCount} /{" "}
-                {isPermanentFree || customerLimit === Infinity ? "∞" : customerLimit} clientes
+                {isPermanentFree || customerLimit === Infinity
+                  ? "∞"
+                  : customerLimit}{" "}
+                clientes
               </p>
             </div>
           </div>

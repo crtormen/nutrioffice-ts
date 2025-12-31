@@ -50,7 +50,7 @@ const NewCustomerPage = () => {
 
   const breadcrumbs = [
     { label: "Dashboard", href: ROUTES.DASHBOARD },
-    { label: "Clientes", href: `/${ROUTES.CUSTOMERS.BASE}` },
+    { label: "Clientes", href: ROUTES.CUSTOMERS.BASE },
     { label: "Novo Cliente" },
   ];
 
@@ -58,7 +58,7 @@ const NewCustomerPage = () => {
     <div className="space-y-6 p-6 md:p-10">
       <PageHeader
         breadcrumbs={breadcrumbs}
-        backTo={`/${ROUTES.CUSTOMERS.BASE}`}
+        backTo={ROUTES.CUSTOMERS.BASE}
       />
 
       <div className="max-w-3xl space-y-6">

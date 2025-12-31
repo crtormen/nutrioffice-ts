@@ -1,4 +1,4 @@
-import { Edit, User } from "lucide-react";
+import { Edit } from "lucide-react";
 import React from "react";
 import { useParams } from "react-router-dom";
 

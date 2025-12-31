@@ -60,7 +60,7 @@ const SignUpPage = () => {
           // User came from pricing, redirect to pricing page to complete subscription
           toast.success("Conta criada! Finalizando sua assinatura...");
           console.log("🎯 SignUpPage - Redirecting to pricing page");
-          navigate(`/${ROUTES.SUBSCRIPTION.PRICING}`);
+          navigate(ROUTES.SUBSCRIPTION.PRICING}`);
         } else {
           // Normal signup flow - redirect to login
           toast.success("Usuário cadastrado com sucesso!", {

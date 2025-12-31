@@ -14,11 +14,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ROUTES } from "@/app/router/routes";
 import { useFetchAnamnesisQuery } from "@/app/state/features/anamnesisSlice";
 import { useFetchCustomerConsultasQuery } from "@/app/state/features/customerConsultasSlice";
-import { useGetCustomerConsultaData } from "@/components/Consultas/hooks/useGetCustomerConsultas";
 import { useGetCustomerData } from "@/components/Customers/hooks";
 import { FinanceSummaryCard } from "@/components/Finances/FinanceSummaryCard";
 import { NewFinanceDialog } from "@/components/Finances/NewFinanceDialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -28,7 +26,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { IAnamnesis, ICustomerConsulta } from "@/domain/entities";
+import { ICustomerConsulta } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase/hooks/useAuth";
 
 const CustomerSummaryTab: React.FC = () => {
@@ -38,18 +36,16 @@ const CustomerSummaryTab: React.FC = () => {
   const customer = useGetCustomerData(customerId!);
 
   // Fetch all consultas
-  const { data: consultas, isLoading: consultasLoading } =
-    useFetchCustomerConsultasQuery({
-      uid: dbUid || "",
-      customerId: customerId || "",
-    });
+  const { data: consultas } = useFetchCustomerConsultasQuery({
+    uid: dbUid || "",
+    customerId: customerId || "",
+  });
 
   // Fetch anamnesis
-  const { data: anamnesisRecords, isLoading: anamnesisLoading } =
-    useFetchAnamnesisQuery({
-      uid: dbUid || "",
-      customerId: customerId || "",
-    });
+  const { data: anamnesisRecords } = useFetchAnamnesisQuery({
+    uid: dbUid || "",
+    customerId: customerId || "",
+  });
 
   // Get last consulta
   const lastConsulta =
@@ -130,7 +126,7 @@ const CustomerSummaryTab: React.FC = () => {
 
   if (!customerId) {
     console.error("No customerId defined");
-    navigate(`/${ROUTES.CUSTOMERS.BASE}`);
+    navigate(ROUTES.CUSTOMERS.BASE);
     return;
   }
 
@@ -139,7 +135,7 @@ const CustomerSummaryTab: React.FC = () => {
       {/* Quick Actions */}
       <div className="flex gap-3">
         <Button
-          onClick={() => navigate(`/${ROUTES.CONSULTAS.CREATE(customerId!)}`)}
+          onClick={() => navigate(ROUTES.CONSULTAS.CREATE(customerId!))}
         >
           <Plus className="mr-2 h-4 w-4" />
           Nova Consulta
@@ -304,7 +300,7 @@ const CustomerSummaryTab: React.FC = () => {
                 size="sm"
                 onClick={() =>
                   navigate(
-                    `/${ROUTES.CONSULTAS.DETAILS(customerId!, lastConsulta.id!)}`,
+                    ROUTES.CONSULTAS.DETAILS(customerId!, lastConsulta.id!),
                   )
                 }
               >
@@ -336,7 +332,7 @@ const CustomerSummaryTab: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() =>
-                  navigate(`/${ROUTES.CUSTOMERS.BASE}/${customerId}/consultas`)
+                  navigate(`${ROUTES.CUSTOMERS.DETAILS(customerId!)}/consultas`)
                 }
               >
                 Ver Todas as Consultas
@@ -384,7 +380,7 @@ const CustomerSummaryTab: React.FC = () => {
                   className="h-auto p-0"
                   onClick={() =>
                     navigate(
-                      `/${ROUTES.CUSTOMERS.BASE}/${customerId}/anamnesis`,
+                      `${ROUTES.CUSTOMERS.DETAILS(customerId!)}/anamnesis`,
                     )
                   }
                 >

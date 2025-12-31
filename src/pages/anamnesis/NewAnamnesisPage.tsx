@@ -20,10 +20,10 @@ const NewAnamnesisPage = () => {
 
   const breadcrumbs = [
     { label: "Dashboard", href: ROUTES.DASHBOARD },
-    { label: "Clientes", href: `/${ROUTES.CUSTOMERS.BASE}` },
+    { label: "Clientes", href: ROUTES.CUSTOMERS.BASE },
     {
       label: customerName || "Cliente",
-      href: customerId ? `/${ROUTES.CUSTOMERS.DETAILS(customerId)}` : undefined,
+      href: customerId ? ROUTES.CUSTOMERS.DETAILS(customerId) : undefined,
     },
     { label: "Nova Anamnese" },
   ];
@@ -35,7 +35,7 @@ const NewAnamnesisPage = () => {
       <PageHeader
         breadcrumbs={breadcrumbs}
         backTo={
-          customerId ? `/${ROUTES.CUSTOMERS.DETAILS(customerId)}` : undefined
+          customerId ? ROUTES.CUSTOMERS.DETAILS(customerId) : undefined
         }
       />
 

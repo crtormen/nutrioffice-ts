@@ -1,8 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FileText } from "lucide-react";
-import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import * as zod from "zod";
 
 import { ROUTES } from "@/app/router/routes";
 import { useUpdateAnamnesisMutation } from "@/app/state/features/anamnesisSlice";
@@ -29,10 +27,10 @@ const EditAnamnesisPage = () => {
 
   const breadcrumbs = [
     { label: "Dashboard", href: ROUTES.DASHBOARD },
-    { label: "Clientes", href: `/${ROUTES.CUSTOMERS.BASE}` },
+    { label: "Clientes", href: ROUTES.CUSTOMERS.BASE },
     {
       label: customerName || "Cliente",
-      href: customerId ? `/${ROUTES.CUSTOMERS.DETAILS(customerId)}` : undefined,
+      href: customerId ? `/${ROUTES.CUSTOMERS.DETAILS(customerId)} : undefined,
     },
     {
       label: "Anamnese",
@@ -43,7 +41,7 @@ const EditAnamnesisPage = () => {
     { label: "Editar" },
   ];
 
-  const handleUpdateAnamnesis = async (data: any) => {
+  const handleUpdateAnamnesis = async (data: Record<string, unknown>) => {
     if (!dbUid || !customerId || !anamnesisId) return;
 
     try {
@@ -51,7 +49,7 @@ const EditAnamnesisPage = () => {
         uid: dbUid,
         customerId,
         anamnesisId,
-        updatedAnamnesis: data,
+        updatedAnamnesis: data as any,
       }).unwrap();
 
       toast({
@@ -59,7 +57,7 @@ const EditAnamnesisPage = () => {
         description: "As alterações foram salvas com sucesso.",
       });
 
-      navigate(`/${ROUTES.CUSTOMERS.DETAILS(customerId)}/anamnesis`);
+      navigate(ROUTES.CUSTOMERS.DETAILS(customerId)}/anamnesis`);
     } catch (error) {
       toast({
         title: "Erro ao salvar",

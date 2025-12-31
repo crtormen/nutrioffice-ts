@@ -10,10 +10,10 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/infra/firebase";
 
 const FinancesPage = () => {
-  const { dbUid }  = useAuth();
+  const { dbUid } = useAuth();
   const { data: finances } = useFetchAllFinancesQuery(
     { uid: dbUid || "" },
-    { skip: !dbUid }
+    { skip: !dbUid },
   );
 
   const breadcrumbs = [

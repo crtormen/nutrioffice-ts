@@ -55,7 +55,7 @@ const ConsultaDetailsPage: React.FC = () => {
   };
 
   const handleTabChange = (value: string) => {
-    const baseUrl = `/${ROUTES.CUSTOMERS.BASE}/${customerId}/${ROUTES.CONSULTAS.BASE}/${consultaId}`;
+    const baseUrl = ROUTES.CONSULTAS.DETAILS(customerId!, consultaId!);
     if (value === "profile") {
       navigate(baseUrl);
     } else {
@@ -81,10 +81,10 @@ const ConsultaDetailsPage: React.FC = () => {
 
   const breadcrumbs = [
     { label: "Dashboard", href: ROUTES.DASHBOARD },
-    { label: "Clientes", href: `/${ROUTES.CUSTOMERS.BASE}` },
+    { label: "Clientes", href: ROUTES.CUSTOMERS.BASE },
     {
       label: customer?.name || "Cliente",
-      href: `/${ROUTES.CUSTOMERS.DETAILS(customerId!)}`,
+      href: `${ROUTES.CUSTOMERS.DETAILS(customerId!)}`,
     },
     { label: `Consulta ${consultaDate}` },
   ];
@@ -93,7 +93,7 @@ const ConsultaDetailsPage: React.FC = () => {
     <div className="space-y-6 p-6 md:p-10">
       <PageHeader
         breadcrumbs={breadcrumbs}
-        backTo={`/${ROUTES.CUSTOMERS.DETAILS(customerId!)}`}
+        backTo={ROUTES.CUSTOMERS.DETAILS(customerId!)}
       />
 
       {/* Page subtitle with date and edit button */}
