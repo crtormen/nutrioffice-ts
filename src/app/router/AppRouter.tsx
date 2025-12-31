@@ -9,16 +9,13 @@ import { ConsultaRoutes } from "./consultaRoutes";
 import { CustomerRoutes } from "./customerRoutes";
 import { FinanceRoutes } from "./financeRoutes";
 import { LoadingFallback } from "./LoadingFallback";
-import { ROUTES, ROUTE_PATHS } from "./routes";
+import { ROUTE_PATHS, ROUTES } from "./routes";
 
 const Dashboard = React.lazy(() => import("@/pages/infra/DashboardPage"));
 const LoginPage = React.lazy(() => import("@/pages/infra/LoginPage"));
 const NotFoundPage = React.lazy(() => import("@/pages/infra/NotFoundPage"));
 const SignUpPage = React.lazy(() => import("@/pages/infra/SignUpPage"));
 
-const UnauthorizedPage = React.lazy(
-  () => import("@/pages/infra/UnauthorizedPage"),
-);
 const AcceptInvitationPage = React.lazy(
   () => import("@/pages/auth/AcceptInvitationPage"),
 );

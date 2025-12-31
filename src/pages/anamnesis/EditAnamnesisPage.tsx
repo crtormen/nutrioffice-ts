@@ -49,7 +49,7 @@ const EditAnamnesisPage = () => {
         uid: dbUid,
         customerId,
         anamnesisId,
-        updatedAnamnesis: data as any,
+        updatedAnamnesis: data as Record<string, unknown>,
       }).unwrap();
 
       toast({
