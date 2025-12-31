@@ -18,9 +18,33 @@ import { PaymentsService } from "@/app/services/PaymentsService";
 import { FinancesService } from "@/app/services/FinancesService";
 import { CustomerFinancesService } from "@/app/services/CustomerFinancesService";
 
+/**
+ * PHASE 1 MIGRATION HELPER: Convert old numeric payment methods to strings
+ * Old V1 system used numbers (1 = dinheiro, 2 = cartão, etc)
+ * New system uses strings ("dinheiro", "credito", "pix", etc)
+ */
+function convertLegacyPaymentMethod(method: string | number): string {
+  // If already a string, return as is
+  if (typeof method === "string") {
+    return method;
+  }
+
+  // Convert old numeric methods to new string format
+  const methodMap: Record<number, string> = {
+    1: "dinheiro",
+    2: "credito",
+    3: "debito",
+    4: "pix",
+    5: "transferencia",
+  };
+
+  return methodMap[method] || "outro";
+}
+
 export const paymentsSlice = firestoreApi.injectEndpoints({
   endpoints: (builder) => ({
     // Fetch all payments for a finance record
+    // PHASE 1 MIGRATION: Backwards-compatible read layer for embedded payments
     fetchFinancePayments: builder.query<
       IPayment[],
       { uid: string; financeId: string }
@@ -33,6 +57,7 @@ export const paymentsSlice = firestoreApi.injectEndpoints({
       ) => {
         await cacheDataLoaded;
         const service = PaymentsService(uid);
+        const financesService = FinancesService(uid);
         if (!service) return;
 
         // Query payments for specific finance
@@ -42,9 +67,11 @@ export const paymentsSlice = firestoreApi.injectEndpoints({
           orderBy("createdAt", "desc"),
         );
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
           updateCachedData((draft) => {
             draft.splice(0, draft.length);
+
+            // Add payments from separate collection
             snapshot.docs.forEach((doc) => {
               const data = doc.data();
               draft.push({
@@ -53,6 +80,42 @@ export const paymentsSlice = firestoreApi.injectEndpoints({
                 createdAt: data.createdAt?.toDate().toISOString() || "",
               } as IPayment);
             });
+
+            // BACKWARDS COMPATIBILITY: If no payments found in separate collection,
+            // check for embedded payments in the finance document
+            if (draft.length === 0 && financesService) {
+              financesService.getOne(financeId).then((finance) => {
+                if (finance?.payments && finance.payments.length > 0) {
+                  // Extract embedded payments and add to cache
+                  // Handle both string (already converted) and Timestamp (raw from Firestore)
+                  const legacyPayments = finance.payments.map((payment, index): IPayment => {
+                    const createdAt = payment.createdAt
+                      ? typeof payment.createdAt === "string"
+                        ? payment.createdAt
+                        : (payment.createdAt as any).toDate().toISOString()
+                      : "";
+
+                    return {
+                      id: `legacy_${financeId}_${index}`,
+                      financeId: financeId,
+                      customerId: finance.customerId,
+                      createdAt,
+                      method: convertLegacyPaymentMethod(payment.method as any),
+                      valor: payment.valor,
+                      obs: payment.obs,
+                      hasInstallments: false,
+                    };
+                  });
+
+                  updateCachedData((innerDraft) => {
+                    innerDraft.splice(0, innerDraft.length);
+                    innerDraft.push(...legacyPayments);
+                  });
+                }
+              }).catch((error) => {
+                console.warn("Error checking for embedded payments:", error);
+              });
+            }
           });
         });
 

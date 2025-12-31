@@ -8,6 +8,7 @@ export type FieldValuesSetting = {
   description?: string;
   error_message?: string;
   gender?: Gender;
+  order?: number;
 } & FormInputProps;
 
 export type FieldSetting = Record<string, FieldValuesSetting>;
@@ -15,6 +16,7 @@ export type FieldSetting = Record<string, FieldValuesSetting>;
 export const serviceCategories = [
   "consulta",
   "pacote",
+  "protocolo",
   "produto",
   "outro",
 ] as const;
@@ -49,6 +51,7 @@ export const SERVICE_CATEGORIES: Record<
 > = {
   consulta: { text: "Consulta", value: "consulta" },
   pacote: { text: "Pacote", value: "pacote" },
+  protocolo: { text: "Protocolo", value: "protocolo" },
   produto: { text: "Produto", value: "produto" },
   outro: { text: "Outro", value: "outro" },
 };

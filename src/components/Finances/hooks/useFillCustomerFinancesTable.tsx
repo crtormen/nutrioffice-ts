@@ -29,12 +29,15 @@ export const useFillCustomerFinancesTable = (customerId: string) => {
   const uid = auth.dbUid;
 
   const { data, isLoading, isFetching, isSuccess, isError, error } =
-    useFetchCustomerFinancesQuery({
-      uid: uid || "",
-      customerId,
-    }, {
-      skip: !uid, // Skip query if uid is not available
-    });
+    useFetchCustomerFinancesQuery(
+      {
+        uid: uid || "",
+        customerId,
+      },
+      {
+        skip: !uid, // Skip query if uid is not available
+      },
+    );
 
   useEffect(() => {
     if (!uid) return;

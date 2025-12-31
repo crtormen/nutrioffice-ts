@@ -16,6 +16,7 @@ const transformToTableData = (
   return data.map((record) => ({
     id: record.id!,
     createdAt: record.createdAt || "",
+    customerId: record.customerId,
     customerName: (record as any).name || "Cliente não identificado",
     services: record.items?.map((item) => item.serviceName).join(", ") || "",
     total: record.total || 0,
