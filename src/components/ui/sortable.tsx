@@ -189,7 +189,7 @@ const SortableItem = React.forwardRef<HTMLDivElement, SortableItemProps>(
       isDragging,
     } = useSortable({ id: value, disabled });
 
-    const { activeId, flatCursor } = useSortableContext();
+    const { _activeId, _flatCursor } = useSortableContext();
 
     const ref = useComposedRefs(
       setNodeRef as React.Ref<HTMLDivElement>,

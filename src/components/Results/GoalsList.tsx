@@ -3,7 +3,6 @@ import { Calendar, Target } from "lucide-react";
 import { useFetchGoalsQuery } from "@/app/state/features/goalsSlice";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 
 import { GoalStatusBadge } from "./GoalStatusBadge";
 import { useGoalProgress } from "./hooks/useGoalProgress";

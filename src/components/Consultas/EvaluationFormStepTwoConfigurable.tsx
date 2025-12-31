@@ -1,6 +1,4 @@
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { FieldErrors, UseFormRegister } from "react-hook-form";
 
 import { useFetchEvaluationConfigQuery } from "@/app/state/features/evaluationSlice";
 import { DynamicFoldsForm } from "@/components/Evaluation/DynamicFoldsForm";

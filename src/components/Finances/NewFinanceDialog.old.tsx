@@ -18,7 +18,6 @@ interface NewFinanceDialogProps {
 }
 
 export const NewFinanceDialog = ({
-  customerId,
   variant = "default",
   children,
 }: NewFinanceDialogProps) => {

@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { IServiceConfig, SERVICE_CATEGORIES } from "@/domain/entities/settings";
+import { IServiceConfig } from "@/domain/entities/settings";
 import { useAuth } from "@/infra/firebase/hooks";
 
 const serviceFormSchema = z.object({

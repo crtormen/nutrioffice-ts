@@ -1,5 +1,5 @@
 import { format, parse } from "date-fns";
-import { Bar, BarChart, CartesianGrid, Legend, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { useFetchCustomerConsultasQuery } from "@/app/state/features/customerConsultasSlice";
 import {
