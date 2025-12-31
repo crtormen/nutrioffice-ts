@@ -1,5 +1,5 @@
 import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
   Breadcrumb,
@@ -66,8 +66,8 @@ export const PageHeader = ({
                     <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
                   ) : (
                     <>
-                      <BreadcrumbLink href={crumb.href}>
-                        {crumb.label}
+                      <BreadcrumbLink asChild>
+                        <Link to={crumb.href || "#"}>{crumb.label}</Link>
                       </BreadcrumbLink>
                       <BreadcrumbSeparator />
                     </>
