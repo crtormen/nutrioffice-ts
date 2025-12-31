@@ -19,13 +19,13 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   FOLDS,
   ICustomerConsulta,
-  MEASURES,
-  RESULTS,
+  IFolds,
+  IMeal,
+  IMeasures,
   IResults,
   IStructure,
-  IFolds,
-  IMeasures,
-  IMeal,
+  MEASURES,
+  RESULTS,
 } from "@/domain/entities/consulta";
 import { useAuth } from "@/infra/firebase/hooks/useAuth";
 
@@ -59,7 +59,14 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
     notes: consulta.notes || [],
     dobras: consulta.dobras || {},
     medidas: consulta.medidas || {},
-    results: consulta.results || { dobras: 0, fat: 0, mg: 0, mm: 0, mo: 0, mr: 0 },
+    results: consulta.results || {
+      dobras: 0,
+      fat: 0,
+      mg: 0,
+      mm: 0,
+      mo: 0,
+      mr: 0,
+    },
     structure: consulta.structure || { altura: 0, joelho: 0, punho: 0 },
     meals: consulta.meals || [],
   });
@@ -74,7 +81,7 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
         customerId: customerId!,
         consulta: {
           ...consulta,
-          peso: formData.peso,
+          peso: String(formData.peso),
           idade: formData.idade ? Number(formData.idade) : undefined,
           obs: formData.obs,
           notes: formData.notes,

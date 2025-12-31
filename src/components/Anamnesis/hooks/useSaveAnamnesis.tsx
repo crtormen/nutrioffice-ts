@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import * as zod from "zod";
 
+import { ROUTES } from "@/app/router/routes";
 import {
   useAddAnamnesisMutation,
   useFetchAnamnesisQuery,
@@ -40,7 +41,7 @@ export const useSaveAnamnesis = () => {
         .unwrap()
         .then(() => {
           toast.success("Anamnese cadastrada com sucesso!");
-          navigate(`/customers/${customerId}/anamnesis`, {
+          navigate(`${ROUTES.CUSTOMERS.DETAILS(customerId!)}/anamnesis`, {
             replace: true,
             state: { refetch: true },
           });

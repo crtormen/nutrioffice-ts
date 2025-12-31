@@ -1,10 +1,10 @@
 import { Loader2 } from "lucide-react";
 
-import { useAuth } from "@/infra/firebase/hooks/useAuth";
 import { useFetchEvaluationConfigQuery } from "@/app/state/features/evaluationSlice";
 import { DynamicMeasuresForm } from "@/components/Evaluation/DynamicMeasuresForm";
-import { IMeasures } from "@/domain/entities/consulta";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { IMeasures } from "@/domain/entities/consulta";
+import { useAuth } from "@/infra/firebase/hooks/useAuth";
 
 interface EvaluationFormStepThreeConfigurableProps {
   online: boolean;
@@ -19,9 +19,12 @@ export const EvaluationFormStepThreeConfigurable = ({
 }: EvaluationFormStepThreeConfigurableProps) => {
   const { dbUid } = useAuth();
 
-  const { data: evaluationConfig, isLoading } = useFetchEvaluationConfigQuery(dbUid || "", {
-    skip: !dbUid,
-  });
+  const { data: evaluationConfig, isLoading } = useFetchEvaluationConfigQuery(
+    dbUid || "",
+    {
+      skip: !dbUid,
+    },
+  );
 
   if (isLoading) {
     return (
@@ -39,7 +42,8 @@ export const EvaluationFormStepThreeConfigurable = ({
       <Alert>
         <AlertDescription>
           Medidas circunferenciais não estão configuradas para consultas{" "}
-          {online ? "online" : "presenciais"}. Configure em Configurações → Avaliação.
+          {online ? "online" : "presenciais"}. Configure em Configurações →
+          Avaliação.
         </AlertDescription>
       </Alert>
     );

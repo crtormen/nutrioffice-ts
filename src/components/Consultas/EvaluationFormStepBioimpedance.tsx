@@ -1,10 +1,10 @@
 import { Loader2 } from "lucide-react";
 
-import { useAuth } from "@/infra/firebase/hooks/useAuth";
 import { useFetchEvaluationConfigQuery } from "@/app/state/features/evaluationSlice";
 import { BioimpedanceForm } from "@/components/Evaluation/BioimpedanceForm";
-import { IBioimpedance } from "@/domain/entities/consulta";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { IBioimpedance } from "@/domain/entities/consulta";
+import { useAuth } from "@/infra/firebase/hooks/useAuth";
 
 interface EvaluationFormStepBioimpedanceProps {
   online: boolean;
@@ -19,9 +19,12 @@ export const EvaluationFormStepBioimpedance = ({
 }: EvaluationFormStepBioimpedanceProps) => {
   const { dbUid } = useAuth();
 
-  const { data: evaluationConfig, isLoading } = useFetchEvaluationConfigQuery(dbUid || "", {
-    skip: !dbUid,
-  });
+  const { data: evaluationConfig, isLoading } = useFetchEvaluationConfigQuery(
+    dbUid || "",
+    {
+      skip: !dbUid,
+    },
+  );
 
   if (isLoading) {
     return (
@@ -38,8 +41,9 @@ export const EvaluationFormStepBioimpedance = ({
     return (
       <Alert>
         <AlertDescription>
-          Bioimpedância não está configurada para consultas {online ? "online" : "presenciais"}.
-          Configure em Configurações → Avaliação.
+          Bioimpedância não está configurada para consultas{" "}
+          {online ? "online" : "presenciais"}. Configure em Configurações →
+          Avaliação.
         </AlertDescription>
       </Alert>
     );

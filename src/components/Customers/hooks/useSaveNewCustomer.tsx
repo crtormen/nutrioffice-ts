@@ -3,6 +3,7 @@ import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
+import { ROUTES } from "@/app/router/routes";
 import { useAddCustomerMutation } from "@/app/state/features/customersSlice";
 import { ICustomer } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
@@ -38,7 +39,7 @@ export const useSaveNewCustomer = () => {
           toast.success("Cliente cadastrado com sucesso!");
           // Small delay to allow real-time listener to update cache
           setTimeout(() => {
-            navigate(`/customers/${dataRef.id}`, { replace: true });
+            navigate(ROUTES.CUSTOMERS.DETAILS(dataRef.id), { replace: true });
           }, 300);
         })
         .catch((error) => {

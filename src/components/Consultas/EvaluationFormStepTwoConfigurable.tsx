@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
-import { UseFormRegister, FieldErrors } from "react-hook-form";
 import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { FieldErrors, UseFormRegister } from "react-hook-form";
 
-import { useAuth } from "@/infra/firebase/hooks/useAuth";
 import { useFetchEvaluationConfigQuery } from "@/app/state/features/evaluationSlice";
 import { DynamicFoldsForm } from "@/components/Evaluation/DynamicFoldsForm";
-import { IFolds } from "@/domain/entities/consulta";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { IFolds } from "@/domain/entities/consulta";
+import { useAuth } from "@/infra/firebase/hooks/useAuth";
 
 interface EvaluationFormStepTwoConfigurableProps {
   online: boolean;
@@ -21,9 +21,12 @@ export const EvaluationFormStepTwoConfigurable = ({
 }: EvaluationFormStepTwoConfigurableProps) => {
   const { dbUid } = useAuth();
 
-  const { data: evaluationConfig, isLoading } = useFetchEvaluationConfigQuery(dbUid || "", {
-    skip: !dbUid,
-  });
+  const { data: evaluationConfig, isLoading } = useFetchEvaluationConfigQuery(
+    dbUid || "",
+    {
+      skip: !dbUid,
+    },
+  );
 
   if (isLoading) {
     return (
@@ -40,8 +43,9 @@ export const EvaluationFormStepTwoConfigurable = ({
     return (
       <Alert>
         <AlertDescription>
-          Dobras cutâneas não estão configuradas para consultas {online ? "online" : "presenciais"}.
-          Configure em Configurações → Avaliação.
+          Dobras cutâneas não estão configuradas para consultas{" "}
+          {online ? "online" : "presenciais"}. Configure em Configurações →
+          Avaliação.
         </AlertDescription>
       </Alert>
     );
@@ -51,7 +55,11 @@ export const EvaluationFormStepTwoConfigurable = ({
 
   return (
     <div className="flex w-full flex-col">
-      <DynamicFoldsForm foldPoints={foldPoints} values={folds} onChange={onFoldsChange} />
+      <DynamicFoldsForm
+        foldPoints={foldPoints}
+        values={folds}
+        onChange={onFoldsChange}
+      />
     </div>
   );
 };
