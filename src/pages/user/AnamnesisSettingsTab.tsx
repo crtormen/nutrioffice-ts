@@ -222,7 +222,7 @@ const AnamnesisSettingsTab = () => {
                         )}
                       >
                         <CollapsibleTrigger asChild>
-                          <div className="flex items-center gap-3 p-4 cursor-pointer hover:bg-accent/50">
+                          <div className="flex cursor-pointer items-center gap-3 p-4 hover:bg-accent/50">
                             <SortableItemHandle asChild>
                               <Button
                                 variant="ghost"
@@ -233,12 +233,14 @@ const AnamnesisSettingsTab = () => {
                                 <GripVertical className="h-4 w-4" />
                               </Button>
                             </SortableItemHandle>
-                            <div className="flex-1 grid grid-cols-3 gap-4">
+                            <div className="grid flex-1 grid-cols-3 gap-4">
                               <div>
                                 <div className="text-sm font-medium text-muted-foreground">
                                   Label
                                 </div>
-                                <div className="font-semibold">{value.label}</div>
+                                <div className="font-semibold">
+                                  {value.label}
+                                </div>
                               </div>
                               <div>
                                 <div className="text-sm font-medium text-muted-foreground">
@@ -251,7 +253,9 @@ const AnamnesisSettingsTab = () => {
                                   Gênero
                                 </div>
                                 <div>
-                                  {value.gender ? GENDERS[value.gender].text : "Geral"}
+                                  {value.gender
+                                    ? GENDERS[value.gender].text
+                                    : "Geral"}
                                 </div>
                               </div>
                             </div>

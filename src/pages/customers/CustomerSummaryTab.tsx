@@ -134,9 +134,7 @@ const CustomerSummaryTab: React.FC = () => {
     <div className="space-y-6">
       {/* Quick Actions */}
       <div className="flex gap-3">
-        <Button
-          onClick={() => navigate(ROUTES.CONSULTAS.CREATE(customerId!))}
-        >
+        <Button onClick={() => navigate(ROUTES.CONSULTAS.CREATE(customerId!))}>
           <Plus className="mr-2 h-4 w-4" />
           Nova Consulta
         </Button>

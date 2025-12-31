@@ -1,4 +1,5 @@
 import {
+  closestCenter,
   DndContext,
   DragEndEvent,
   DragOverlay,
@@ -6,14 +7,16 @@ import {
   KeyboardSensor,
   PointerSensor,
   UniqueIdentifier,
-  closestCenter,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { restrictToParentElement, restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
-  SortableContext,
+  restrictToParentElement,
+  restrictToVerticalAxis,
+} from "@dnd-kit/modifiers";
+import {
   arrayMove,
+  SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
@@ -151,14 +154,15 @@ type SortableItemContextValue = {
   ref: (node: HTMLElement | null) => void;
 };
 
-const SortableItemContext = React.createContext<SortableItemContextValue | null>(
-  null,
-);
+const SortableItemContext =
+  React.createContext<SortableItemContextValue | null>(null);
 
 function useSortableItemContext() {
   const context = React.useContext(SortableItemContext);
   if (!context) {
-    throw new Error("useSortableItemContext must be used within <SortableItem />");
+    throw new Error(
+      "useSortableItemContext must be used within <SortableItem />",
+    );
   }
   return context;
 }
@@ -187,7 +191,10 @@ const SortableItem = React.forwardRef<HTMLDivElement, SortableItemProps>(
 
     const { activeId, flatCursor } = useSortableContext();
 
-    const ref = useComposedRefs(setNodeRef as React.Ref<HTMLDivElement>, forwardedRef);
+    const ref = useComposedRefs(
+      setNodeRef as React.Ref<HTMLDivElement>,
+      forwardedRef,
+    );
     const Comp = asChild ? Slot : "div";
 
     return (
@@ -226,7 +233,11 @@ const SortableItemHandle = React.forwardRef<
   HTMLButtonElement,
   SortableItemHandleProps
 >(({ className, ...props }, forwardedRef) => {
-  const { attributes, listeners, ref: setActivatorNodeRef } = useSortableItemContext();
+  const {
+    attributes,
+    listeners,
+    ref: setActivatorNodeRef,
+  } = useSortableItemContext();
 
   const ref = useComposedRefs(
     setActivatorNodeRef as React.Ref<HTMLButtonElement>,
@@ -254,7 +265,9 @@ SortableItemHandle.displayName = "SortableItemHandle";
  * -------------------------------------------------------------------------- */
 
 type SortableOverlayProps = {
-  children: React.ReactNode | ((activeId: UniqueIdentifier | null) => React.ReactNode);
+  children:
+    | React.ReactNode
+    | ((activeId: UniqueIdentifier | null) => React.ReactNode);
 };
 
 function SortableOverlay({ children }: SortableOverlayProps) {
@@ -262,13 +275,11 @@ function SortableOverlay({ children }: SortableOverlayProps) {
 
   return (
     <DragOverlay>
-      {activeId ? (
-        typeof children === "function" ? (
-          children(activeId)
-        ) : (
-          children
-        )
-      ) : null}
+      {activeId
+        ? typeof children === "function"
+          ? children(activeId)
+          : children
+        : null}
     </DragOverlay>
   );
 }

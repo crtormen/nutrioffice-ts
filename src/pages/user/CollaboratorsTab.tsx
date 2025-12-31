@@ -48,9 +48,11 @@ const CollaboratorsTab = () => {
   // Check if user is PROFESSIONAL using persisted profile (fallback to auth user just in case)
   const ability =
     user?.roles?.ability ??
-    ((authUser as unknown) as Record<string, unknown> & {
-      roles?: { ability?: string };
-    })?.roles?.ability ??
+    (
+      authUser as unknown as Record<string, unknown> & {
+        roles?: { ability?: string };
+      }
+    )?.roles?.ability ??
     null;
   const isProfessional = ability === "PROFESSIONAL";
 

@@ -56,10 +56,7 @@ const NewCustomerPage = () => {
 
   return (
     <div className="space-y-6 p-6 md:p-10">
-      <PageHeader
-        breadcrumbs={breadcrumbs}
-        backTo={ROUTES.CUSTOMERS.BASE}
-      />
+      <PageHeader breadcrumbs={breadcrumbs} backTo={ROUTES.CUSTOMERS.BASE} />
 
       <div className="max-w-3xl space-y-6">
         <div className="space-y-1">

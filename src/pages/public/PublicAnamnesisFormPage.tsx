@@ -242,15 +242,17 @@ export default function PublicAnamnesisFormPage() {
                 <SelectValue placeholder={fieldPlaceholder || "Selecione..."} />
               </SelectTrigger>
               <SelectContent>
-                {(field.options &&
-                  typeof field.options === "object" &&
-                  Object.entries(field.options as Record<string, string>).map(
-                    ([key, label]) => (
-                      <SelectItem key={key} value={key}>
-                        {label}
-                      </SelectItem>
-                    ),
-                  )) as React.ReactNode}
+                {
+                  (field.options &&
+                    typeof field.options === "object" &&
+                    Object.entries(field.options as Record<string, string>).map(
+                      ([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label}
+                        </SelectItem>
+                      ),
+                    )) as React.ReactNode
+                }
               </SelectContent>
             </Select>
           </div>
@@ -272,21 +274,23 @@ export default function PublicAnamnesisFormPage() {
               }
               required={formConfig?.requireAllFields}
             >
-              {(field.options &&
-                typeof field.options === "object" &&
-                Object.entries(field.options as Record<string, string>).map(
-                  ([key, label]) => (
-                    <div key={key} className="flex items-center space-x-2">
-                      <RadioGroupItem value={key} id={`${fieldId}-${key}`} />
-                      <Label
-                        htmlFor={`${fieldId}-${key}`}
-                        className="font-normal"
-                      >
-                        {label}
-                      </Label>
-                    </div>
-                  ),
-                )) as React.ReactNode}
+              {
+                (field.options &&
+                  typeof field.options === "object" &&
+                  Object.entries(field.options as Record<string, string>).map(
+                    ([key, label]) => (
+                      <div key={key} className="flex items-center space-x-2">
+                        <RadioGroupItem value={key} id={`${fieldId}-${key}`} />
+                        <Label
+                          htmlFor={`${fieldId}-${key}`}
+                          className="font-normal"
+                        >
+                          {label}
+                        </Label>
+                      </div>
+                    ),
+                  )) as React.ReactNode
+              }
             </RadioGroup>
           </div>
         );
@@ -301,44 +305,46 @@ export default function PublicAnamnesisFormPage() {
               )}
             </Label>
             <div className="space-y-2">
-              {(field.options &&
-                typeof field.options === "object" &&
-                Object.entries(field.options as Record<string, string>).map(
-                  ([key, label]) => {
-                    const currentValues = Array.isArray(fieldValue)
-                      ? fieldValue
-                      : [];
-                    const isChecked = currentValues.includes(key);
+              {
+                (field.options &&
+                  typeof field.options === "object" &&
+                  Object.entries(field.options as Record<string, string>).map(
+                    ([key, label]) => {
+                      const currentValues = Array.isArray(fieldValue)
+                        ? fieldValue
+                        : [];
+                      const isChecked = currentValues.includes(key);
 
-                    return (
-                      <div key={key} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id={`${fieldId}-${key}`}
-                          checked={isChecked}
-                          onChange={(e) => {
-                            let newValues: string[];
-                            if (e.target.checked) {
-                              newValues = [...currentValues, key];
-                            } else {
-                              newValues = currentValues.filter(
-                                (v) => v !== key,
-                              );
-                            }
-                            handleAnamnesisFieldChange(fieldId, newValues);
-                          }}
-                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary"
-                        />
-                        <Label
-                          htmlFor={`${fieldId}-${key}`}
-                          className="font-normal"
-                        >
-                          {label}
-                        </Label>
-                      </div>
-                    );
-                  },
-                )) as React.ReactNode}
+                      return (
+                        <div key={key} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`${fieldId}-${key}`}
+                            checked={isChecked}
+                            onChange={(e) => {
+                              let newValues: string[];
+                              if (e.target.checked) {
+                                newValues = [...currentValues, key];
+                              } else {
+                                newValues = currentValues.filter(
+                                  (v) => v !== key,
+                                );
+                              }
+                              handleAnamnesisFieldChange(fieldId, newValues);
+                            }}
+                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary"
+                          />
+                          <Label
+                            htmlFor={`${fieldId}-${key}`}
+                            className="font-normal"
+                          >
+                            {label}
+                          </Label>
+                        </div>
+                      );
+                    },
+                  )) as React.ReactNode
+              }
             </div>
           </div>
         );

@@ -34,9 +34,7 @@ const NewAnamnesisPage = () => {
     <div className="space-y-6 p-6 md:p-10">
       <PageHeader
         breadcrumbs={breadcrumbs}
-        backTo={
-          customerId ? ROUTES.CUSTOMERS.DETAILS(customerId) : undefined
-        }
+        backTo={customerId ? ROUTES.CUSTOMERS.DETAILS(customerId) : undefined}
       />
 
       <div className="max-w-4xl space-y-8">

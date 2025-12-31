@@ -68,10 +68,7 @@ const CustomerDetailsPage: React.FC = () => {
   if (!customer && !isLoading && dbUid) {
     return (
       <div className="space-y-6 p-6 md:p-10">
-        <PageHeader
-          breadcrumbs={breadcrumbs}
-          backTo={ROUTES.CUSTOMERS.BASE}
-        />
+        <PageHeader breadcrumbs={breadcrumbs} backTo={ROUTES.CUSTOMERS.BASE} />
         <div className="flex flex-col items-center justify-center py-12">
           <h2 className="text-2xl font-bold">Cliente não encontrado</h2>
           <p className="text-muted-foreground">
@@ -84,10 +81,7 @@ const CustomerDetailsPage: React.FC = () => {
 
   return (
     <div className="space-y-6 p-6 md:p-10">
-      <PageHeader
-        breadcrumbs={breadcrumbs}
-        backTo={ROUTES.CUSTOMERS.BASE}
-      />
+      <PageHeader breadcrumbs={breadcrumbs} backTo={ROUTES.CUSTOMERS.BASE} />
 
       <div className="space-y-0.5">
         <h2 className="text-2xl font-bold tracking-tight">{customer?.name}</h2>

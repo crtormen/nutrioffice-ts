@@ -35,7 +35,10 @@ export const columns: ColumnDef<ConsultaData>[] = [
       return (
         <div className="text-left font-medium">
           <Link
-            to={ROUTES.CONSULTAS.DETAILS(consulta.customerId as string, consulta.id as string)}
+            to={ROUTES.CONSULTAS.DETAILS(
+              consulta.customerId as string,
+              consulta.id as string,
+            )}
             className="hover:underline"
           >
             Consulta nº {consulta.index}
@@ -105,7 +108,10 @@ export const columns: ColumnDef<ConsultaData>[] = [
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link
-                to={ROUTES.CONSULTAS.DETAILS(consulta.customerId as string, consulta.id as string)}
+                to={ROUTES.CONSULTAS.DETAILS(
+                  consulta.customerId as string,
+                  consulta.id as string,
+                )}
               >
                 Ver Detalhes
               </Link>
