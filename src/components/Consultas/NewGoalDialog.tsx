@@ -74,11 +74,25 @@ export type newGoalFormInputs = z.infer<typeof newGoalValidationSchema>;
 
 interface NewGoalDialogProps {
   children?: React.ReactNode;
+  consulta?: {
+    id: string;
+    results?: { fat?: number; mg?: number; mm?: number; mr?: number; mo?: number };
+    peso?: string;
+  };
 }
 
-export const NewGoalDialog = ({ children }: NewGoalDialogProps = {}) => {
+export const NewGoalDialog = ({ children, consulta: consultaProp }: NewGoalDialogProps = {}) => {
   const [goalDrawerOpen, setGoalDrawerOpen] = useState<boolean>(false);
-  const { consulta } = useConsultaContext();
+
+  // Try to get consulta from props first, otherwise use context
+  let consulta;
+  try {
+    const contextConsulta = useConsultaContext();
+    consulta = consultaProp || contextConsulta.consulta;
+  } catch {
+    // If context is not available, use prop
+    consulta = consultaProp;
+  }
   const { handleSaveGoal, isSaving } = useSaveGoal();
   const form = useForm<newGoalFormInputs>({
     resolver: zodResolver(newGoalValidationSchema),
@@ -110,6 +124,11 @@ export const NewGoalDialog = ({ children }: NewGoalDialogProps = {}) => {
   };
 
   const handleSubmitGoal = async (data: newGoalFormInputs) => {
+    if (!consulta?.id) {
+      toast.error("Consulta não encontrada. Por favor, preencha os dados da consulta primeiro.");
+      return;
+    }
+
     console.log(data.params);
     const params: {
       [key: string]: number;

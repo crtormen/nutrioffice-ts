@@ -95,7 +95,17 @@ const ConsultaResultsTab: React.FC = () => {
           {consulta && (
             <ConsultaPDFReport consulta={consulta} customer={customer} />
           )}
-          <NewGoalDialog>
+          <NewGoalDialog
+            consulta={
+              consulta
+                ? {
+                    id: consulta.id || "",
+                    results: consulta.results,
+                    peso: consulta.peso,
+                  }
+                : undefined
+            }
+          >
             <Button size="sm">
               <Plus className="mr-2 h-4 w-4" />
               Nova Meta
@@ -112,6 +122,11 @@ const ConsultaResultsTab: React.FC = () => {
           customerId={customerId}
           userId={dbUid}
           currentConsultaResults={consulta.results}
+          currentConsulta={{
+            id: consulta.id || "",
+            results: consulta.results,
+            peso: consulta.peso,
+          }}
         />
       )}
 

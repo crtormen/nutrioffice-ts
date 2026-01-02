@@ -22,6 +22,11 @@ interface GoalProgressCardProps {
   customerId: string;
   userId: string;
   currentConsultaResults?: any;
+  currentConsulta?: {
+    id: string;
+    results?: { fat?: number; mg?: number; mm?: number; mr?: number; mo?: number };
+    peso?: string;
+  };
 }
 
 const parameterLabels: Record<string, string> = {
@@ -35,6 +40,7 @@ export const GoalProgressCard = ({
   customerId,
   userId,
   currentConsultaResults,
+  currentConsulta,
 }: GoalProgressCardProps) => {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -65,7 +71,7 @@ export const GoalProgressCard = ({
             O cliente não possui meta definida. Crie uma meta após preencher os
             dados de avaliação.
           </p>
-          <NewGoalDialog>
+          <NewGoalDialog consulta={currentConsulta}>
             <Button className="w-full">
               <Plus className="mr-2 h-4 w-4" />
               Criar Meta
@@ -223,7 +229,7 @@ export const GoalProgressCard = ({
             {/* Action Buttons */}
             <div className="flex gap-2">
               {showEditButton && (
-                <NewGoalDialog>
+                <NewGoalDialog consulta={currentConsulta}>
                   <Button variant="outline" className="flex-1">
                     <Edit className="mr-2 h-4 w-4" />
                     Editar Meta
@@ -231,7 +237,7 @@ export const GoalProgressCard = ({
                 </NewGoalDialog>
               )}
               {showNewGoalButton && (
-                <NewGoalDialog>
+                <NewGoalDialog consulta={currentConsulta}>
                   <Button className="flex-1">
                     <Plus className="mr-2 h-4 w-4" />
                     Nova Meta
