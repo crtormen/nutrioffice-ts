@@ -8,6 +8,11 @@ import { db, auth, storage } from "./firebase-admin.js";
 import { sendInvitationEmail } from "./services/emailService.js";
 import { BodyCompositionService } from "./services/BodyCompositionService.js";
 
+// Helper function for backward compatibility with old "NUTRI" role
+function isProfessionalRole(role: string | undefined): boolean {
+  return role === "PROFESSIONAL" || role === "NUTRI";
+}
+
 // Hardcoded userId for development - remove in production
 // const userId = "P0gkEAaP8YSARPyS5pKak6ZWss13";
 const app = express();
@@ -411,7 +416,7 @@ app.post("/users/:userId/invitations", async (req, res) => {
     const professionalRole = professionalData?.roles?.ability;
 
     // Only PROFESSIONAL role can send invitations
-    if (professionalRole !== "PROFESSIONAL") {
+    if (!isProfessionalRole(professionalRole)) {
       return res.status(403).json({ error: "Only professionals can send invitations" });
     }
 

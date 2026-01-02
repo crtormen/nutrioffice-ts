@@ -9,6 +9,11 @@ import {
   Abilities,
 } from "@/domain/entities";
 
+// Helper function for backward compatibility with old "NUTRI" role
+const isProfessionalRole = (role: string | undefined): boolean => {
+  return role === "PROFESSIONAL" || role === "NUTRI";
+};
+
 /**
  * Hook to check user permissions
  * Provides easy permission checking for the current user
@@ -26,8 +31,8 @@ export const usePermissions = () => {
   const rolePermissions = useMemo(() => {
     if (!userRole) return null;
 
-    // PROFESSIONAL always has full access
-    if (userRole === "PROFESSIONAL") {
+    // PROFESSIONAL or NUTRI (legacy) always have full access
+    if (isProfessionalRole(userRole)) {
       return DEFAULT_PERMISSIONS.PROFESSIONAL;
     }
 
@@ -86,7 +91,7 @@ export const usePermissions = () => {
     canWrite,
     canAccess,
     getPermissionLevel,
-    isProfessional: userRole === "PROFESSIONAL",
+    isProfessional: isProfessionalRole(userRole),
   };
 };
 

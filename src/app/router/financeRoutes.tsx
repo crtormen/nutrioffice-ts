@@ -16,7 +16,7 @@ export const FinanceRoutes = (
     <Route
       index
       element={
-        <RequireAuthLayout allowedRoles={["PROFESSIONAL", "ADMIN"]}>
+        <RequireAuthLayout allowedRoles={["PROFESSIONAL", "NUTRI", "ADMIN"]}>
           <Suspense fallback={<LoadingFallback />}>
             <FinancesPage />
           </Suspense>
@@ -26,7 +26,7 @@ export const FinanceRoutes = (
     <Route
       path={`${ROUTE_PATHS.FINANCES.DETAILS_BASE}/:financeId`}
       element={
-        <RequireAuthLayout allowedRoles={["PROFESSIONAL", "ADMIN"]}>
+        <RequireAuthLayout allowedRoles={["PROFESSIONAL", "NUTRI", "ADMIN"]}>
           <Suspense fallback={<LoadingFallback />}>
             <FinanceDetailsPage />
           </Suspense>

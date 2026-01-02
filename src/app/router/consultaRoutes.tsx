@@ -23,7 +23,7 @@ export const ConsultaRoutes = (
       index
       element={
         <RequireAuthLayout
-          allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}
+          allowedRoles={["PROFESSIONAL", "NUTRI", "SECRETARY", "ADMIN"]}
         >
           <Suspense fallback={<LoadingFallback />}>
             <ConsultasPage />
@@ -35,7 +35,7 @@ export const ConsultaRoutes = (
       path=":customerId/create"
       element={
         <RequireAuthLayout
-          allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}
+          allowedRoles={["PROFESSIONAL", "NUTRI", "SECRETARY", "ADMIN"]}
         >
           <Suspense fallback={<LoadingFallback />}>
             <ConsultaProvider>
@@ -49,7 +49,7 @@ export const ConsultaRoutes = (
       path=":customerId/:consultaId/*"
       element={
         <RequireAuthLayout
-          allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}
+          allowedRoles={["PROFESSIONAL", "NUTRI", "SECRETARY", "ADMIN"]}
         >
           <Suspense fallback={<LoadingFallback />}>
             <ConsultaDetailsPage />

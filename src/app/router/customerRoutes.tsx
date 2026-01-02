@@ -34,7 +34,7 @@ export const CustomerRoutes = (
       index
       element={
         <RequireAuthLayout
-          allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}
+          allowedRoles={["PROFESSIONAL", "NUTRI", "SECRETARY", "ADMIN"]}
         >
           <Suspense fallback={<LoadingFallback />}>
             <CustomersPage />
@@ -46,7 +46,7 @@ export const CustomerRoutes = (
       path={ROUTE_PATHS.CUSTOMERS.CREATE}
       element={
         <RequireAuthLayout
-          allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}
+          allowedRoles={["PROFESSIONAL", "NUTRI", "SECRETARY", "ADMIN"]}
         >
           <Suspense fallback={<LoadingFallback />}>
             <NewCustomerPage />
@@ -58,7 +58,7 @@ export const CustomerRoutes = (
       path={`:customerId/${ROUTE_PATHS.CUSTOMERS.CREATE_ANAMNESIS}`}
       element={
         <RequireAuthLayout
-          allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}
+          allowedRoles={["PROFESSIONAL", "NUTRI", "SECRETARY", "ADMIN"]}
         >
           <Suspense fallback={<LoadingFallback />}>
             <NewAnamnesisPage />
@@ -70,7 +70,7 @@ export const CustomerRoutes = (
       path={`:customerId/${ROUTE_PATHS.CUSTOMERS.EDIT_ANAMNESIS}/:anamnesisId`}
       element={
         <RequireAuthLayout
-          allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}
+          allowedRoles={["PROFESSIONAL", "NUTRI", "SECRETARY", "ADMIN"]}
         >
           <Suspense fallback={<LoadingFallback />}>
             <EditAnamnesisPage />
@@ -82,7 +82,7 @@ export const CustomerRoutes = (
       path={`:customerId/${ROUTE_PATHS.CUSTOMERS.CONSULTAS.BASE}/${ROUTE_PATHS.CUSTOMERS.CONSULTAS.CREATE}`}
       element={
         <RequireAuthLayout
-          allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}
+          allowedRoles={["PROFESSIONAL", "NUTRI", "SECRETARY", "ADMIN"]}
         >
           <Suspense fallback={<LoadingFallback />}>
             <ConsultaProvider>
@@ -96,7 +96,7 @@ export const CustomerRoutes = (
       path={`:customerId/${ROUTE_PATHS.CUSTOMERS.CONSULTAS.BASE}/:consultaId/*`}
       element={
         <RequireAuthLayout
-          allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}
+          allowedRoles={["PROFESSIONAL", "NUTRI", "SECRETARY", "ADMIN"]}
         >
           <Suspense fallback={<LoadingFallback />}>
             <ConsultaDetailsPage />
@@ -108,7 +108,7 @@ export const CustomerRoutes = (
       path=":customerId/*"
       element={
         <RequireAuthLayout
-          allowedRoles={["PROFESSIONAL", "SECRETARY", "ADMIN"]}
+          allowedRoles={["PROFESSIONAL", "NUTRI", "SECRETARY", "ADMIN"]}
         >
           <Suspense fallback={<LoadingFallback />}>
             <CustomerDetailsPage />

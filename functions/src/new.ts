@@ -22,6 +22,11 @@ import "./firebase-admin.js";
 // Import JSON file with modern syntax
 import anamnesisFields from "./default/anamnesisFields.json" with { type: "json" };
 
+// Helper function for backward compatibility with old "NUTRI" role
+function isProfessionalRole(role: string | undefined): boolean {
+  return role === "PROFESSIONAL" || role === "NUTRI";
+}
+
 export type abilities = "PROFESSIONAL" | "COLLABORATOR" | "CUSTOMER";
 export interface IUser {
   id?: string;
@@ -105,7 +110,7 @@ export const onCreateFirestoreUserSetCustomClaims = onDocumentCreated(
       return;
     }
     const user: IUser = snapshot.data();
-    const isAdmin = user.roles?.ability === "PROFESSIONAL";
+    const isAdmin = isProfessionalRole(user.roles?.ability);
 
     try {
       await getAuth().setCustomUserClaims(userId, {
@@ -136,7 +141,7 @@ export const onCreateFirestoreUserLoadDefaultSettings = onDocumentCreated(
       return;
     }
     const user: IUser = snapshot.data();
-    const isAdmin = user.roles?.ability === "PROFESSIONAL";
+    const isAdmin = isProfessionalRole(user.roles?.ability);
 
     const userDefaultSettingsRef = db.doc(
       "/users/" + userId + "/settings/default",
@@ -184,7 +189,7 @@ export const onUpdateFirestoreUser = onDocumentUpdated(
     console.log(user);
     try {
       await getAuth().setCustomUserClaims(userId, {
-        admin: user.roles?.ability === "PROFESSIONAL",
+        admin: isProfessionalRole(user.roles?.ability),
         role: user.roles?.ability,
         contributesTo: user.contributesTo,
         contributors,
@@ -254,7 +259,7 @@ export const initializeUserSettings = onCall(async (request) => {
     const callerDoc = await db.doc(`/users/${callerId}`).get();
     const callerData = callerDoc.data() as IUser;
 
-    if (callerData?.roles?.ability !== "PROFESSIONAL") {
+    if (!isProfessionalRole(callerData?.roles?.ability)) {
       throw new functions.https.HttpsError(
         "permission-denied",
         "Apenas profissionais podem inicializar configurações para outros usuários"
@@ -275,7 +280,7 @@ export const initializeUserSettings = onCall(async (request) => {
     }
 
     const user = userDoc.data() as IUser;
-    const isProfessional = user.roles?.ability === "PROFESSIONAL";
+    const isProfessional = isProfessionalRole(user.roles?.ability);
 
     // Determinar quais configurações padrão carregar
     const settingsPath = isProfessional ? "professional" : "contributor";
@@ -353,7 +358,7 @@ export const redefineCustomClaims = onCall(async (request) => {
 
   console.log(user);
   try {
-    const isAdmin = user.roles?.ability === "PROFESSIONAL";
+    const isAdmin = isProfessionalRole(user.roles?.ability);
     await getAuth().setCustomUserClaims(userId, {
       admin: isAdmin,
       role: user.roles?.ability,

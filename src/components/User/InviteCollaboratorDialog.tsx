@@ -40,8 +40,8 @@ export type InviteCollaboratorFormInputs = z.infer<
 const getRoleOptions = (): Options => {
   const options: Options = {};
   Object.entries(ABILITIES).forEach(([role, obj]) => {
-    // Don't allow inviting as PROFESSIONAL
-    if (role !== "PROFESSIONAL") {
+    // Don't allow inviting as PROFESSIONAL or NUTRI (admin roles)
+    if (role !== "PROFESSIONAL" && role !== "NUTRI") {
       options[role] = obj.text;
     }
   });

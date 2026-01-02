@@ -4,6 +4,11 @@ import { onDocumentWritten, onDocumentCreated } from "firebase-functions/v2/fire
 import { db } from "./firebase-admin.js";
 import { getMercadoPagoService } from "./services/MercadoPagoService.js";
 
+// Helper function for backward compatibility with old "NUTRI" role
+function isProfessionalRole(role: string | undefined): boolean {
+  return role === "PROFESSIONAL" || role === "NUTRI";
+}
+
 /**
  * Create a subscription
  *
@@ -531,7 +536,7 @@ export const initializeFreeTierOnUserCreation = onDocumentCreated(
 
     // Only initialize subscription for PROFESSIONAL users
     // Collaborators inherit from the professional they contribute to
-    const isProfessional = userData.roles?.ability === "PROFESSIONAL";
+    const isProfessional = isProfessionalRole(userData.roles?.ability);
     if (!isProfessional) {
       console.log(`User ${userId} is not a professional, skipping subscription init`);
       return;

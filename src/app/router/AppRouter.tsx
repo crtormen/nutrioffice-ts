@@ -55,7 +55,7 @@ function App(): JSX.Element {
         <Route
           index
           element={
-            <RequireAuthLayout allowedRoles={["PROFESSIONAL", "ADMIN"]}>
+            <RequireAuthLayout allowedRoles={["PROFESSIONAL", "NUTRI", "ADMIN"]}>
               <Suspense fallback={<LoadingFallback />}>
                 <Dashboard />
               </Suspense>
@@ -68,7 +68,7 @@ function App(): JSX.Element {
         <Route
           path={ROUTE_PATHS.FORM_SUBMISSIONS}
           element={
-            <RequireAuthLayout allowedRoles={["PROFESSIONAL", "ADMIN"]}>
+            <RequireAuthLayout allowedRoles={["PROFESSIONAL", "NUTRI", "ADMIN"]}>
               <Suspense fallback={<LoadingFallback />}>
                 <FormSubmissionsPage />
               </Suspense>

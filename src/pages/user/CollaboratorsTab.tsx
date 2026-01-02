@@ -54,7 +54,7 @@ const CollaboratorsTab = () => {
       }
     )?.roles?.ability ??
     null;
-  const isProfessional = ability === "PROFESSIONAL";
+  const isProfessional = ability === "PROFESSIONAL" || ability === "NUTRI";
 
   if (userLoading) return <LoadingSpinner />;
 
