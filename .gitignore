@@ -40,4 +40,4 @@ functions/serviceAccount.json
 functions/src/serviceAccount.json
 functions/lib/serviceAccount.json
 .runtimeconfig.json
-functions/.runtimeconfig.json
+functions/.runtimeconfig.json/.firebase
