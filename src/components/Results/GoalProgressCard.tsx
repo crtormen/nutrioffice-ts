@@ -49,8 +49,22 @@ export const GoalProgressCard = ({
     customerId,
   });
 
-  // Get the most recent goal (assuming it's the active one)
-  const activeGoal = goals.length > 0 ? goals[goals.length - 1] : undefined;
+  // Get the most recent goal by sorting by createdAt date
+  const activeGoal = goals.length > 0
+    ? [...goals].sort((a, b) => {
+        // Parse dates in dd/MM/yyyy format
+        const parseDate = (dateStr: string) => {
+          const [day, month, year] = dateStr.split('/');
+          return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        };
+
+        const dateA = parseDate(a.createdAt || '01/01/1970');
+        const dateB = parseDate(b.createdAt || '01/01/1970');
+
+        // Sort descending (newest first)
+        return dateB.getTime() - dateA.getTime();
+      })[0]
+    : undefined;
 
   const progressData = useGoalProgress(
     activeGoal,
