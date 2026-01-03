@@ -31,13 +31,56 @@ First, update the global settings that will be used as templates:
    npm run deploy
    ```
 
-2. Call the `setDefaultSettingsOnFirestore` function via HTTP:
+2. Call the protected API endpoint:
    ```bash
-   # Using curl
-   curl -X POST https://YOUR_REGION-YOUR_PROJECT_ID.cloudfunctions.net/setDefaultSettingsOnFirestore
+   # Using curl with authentication
+   curl -X POST \
+     https://YOUR_REGION-YOUR_PROJECT_ID.cloudfunctions.net/api/admin/initialize-default-settings \
+     -H "Authorization: Bearer YOUR_ID_TOKEN" \
+     -H "Content-Type: application/json"
+   ```
 
-   # Or access directly in browser
-   https://YOUR_REGION-YOUR_PROJECT_ID.cloudfunctions.net/setDefaultSettingsOnFirestore
+   **To get your ID token:**
+   - Open browser console on your app
+   - Run: `await firebase.auth().currentUser.getIdToken()`
+   - Copy the token and use in the curl command above
+
+   **Or use the frontend:** Create a button in your admin panel:
+
+   ```typescript
+   import { getAuth } from "firebase/auth";
+
+   const handleInitializeDefaultSettings = async () => {
+     try {
+       const auth = getAuth();
+       const user = auth.currentUser;
+       if (!user) throw new Error('Not authenticated');
+
+       const token = await user.getIdToken();
+       const response = await fetch(
+         'https://YOUR_REGION-YOUR_PROJECT_ID.cloudfunctions.net/api/admin/initialize-default-settings',
+         {
+           method: 'POST',
+           headers: {
+             'Authorization': `Bearer ${token}`,
+             'Content-Type': 'application/json',
+           },
+         }
+       );
+
+       if (!response.ok) {
+         const error = await response.json();
+         throw new Error(error.error || 'Failed to initialize settings');
+       }
+
+       const result = await response.json();
+       console.log('Success:', result);
+       toast.success('Configurações padrão inicializadas com sucesso!');
+     } catch (error) {
+       console.error('Error:', error);
+       toast.error('Erro ao inicializar configurações padrão');
+     }
+   };
    ```
 
 This will update `/settings/professional` with:
