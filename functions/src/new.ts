@@ -19,8 +19,9 @@ import { getAuth } from "firebase-admin/auth";
 // Ensure Firebase Admin is initialized
 import "./firebase-admin.js";
 
-// Import JSON file with modern syntax
+// Import JSON files with modern syntax
 import anamnesisFields from "./default/anamnesisFields.json" with { type: "json" };
+import evaluationPresets from "./default/evaluationPresets.json" with { type: "json" };
 
 // Helper function for backward compatibility with old "NUTRI" role
 function isProfessionalRole(role: string | undefined): boolean {
@@ -205,8 +206,8 @@ export const onUpdateFirestoreUser = onDocumentUpdated(
   },
 );
 
-/* Commit default settings contained in JSON files located at "default" folder to 
-   Firestore root collection "settings", which I'll be loaded to User's DB on account created */
+/* Commit default settings contained in JSON files located at "default" folder to
+   Firestore root collection "settings", which will be loaded to User's DB on account created */
 export const setDefaultSettingsOnFirestore = onRequest(
   async (request, response) => {
     // const uid = request.auth?.uid;
@@ -214,21 +215,50 @@ export const setDefaultSettingsOnFirestore = onRequest(
     const settingsRef = getFirestore().collection("/settings");
     const professionalRef = settingsRef.doc("professional");
     const contributorRef = settingsRef.doc("contributor");
+
+    // Prepare default evaluation config for both appointment types
+    const defaultEvaluationConfig = {
+      presencial: {
+        enabled: true,
+        basePreset: "jp7folds",
+        fields: evaluationPresets.jp7folds.fields,
+      },
+      online: {
+        enabled: true,
+        basePreset: null,
+        fields: {
+          weight: { enabled: true, label: "Peso", required: true },
+          height: { enabled: true, label: "Altura", required: true },
+          photos: { enabled: true, label: "Fotos", positions: ["front", "back", "side"] },
+          measures: { enabled: true, points: evaluationPresets.jp7folds.fields.measures.points },
+          folds: { enabled: false, points: [] }, // Disabled for online
+          bioimpedance: { enabled: false },
+        },
+      },
+    };
+
+    // Prepare professional settings with anamnesis and evaluation
+    const professionalSettings = {
+      anamnesis: anamnesisFields.anamnesis,
+      evaluation: defaultEvaluationConfig,
+      evaluationPresets: evaluationPresets,
+    };
+
     try {
-      const result = await professionalRef.set(anamnesisFields);
+      const result = await professionalRef.set(professionalSettings);
       await contributorRef.set({});
       response.send(
-        "Anamnesis Collection successfully written.\n" + JSON.stringify(result),
+        "Default settings (anamnesis + evaluation) successfully written.\n" + JSON.stringify(result),
       );
     } catch (err) {
       functions.logger.error(
-        "Couldn't write anamnesis collection to DB. \n",
+        "Couldn't write default settings to DB. \n",
         err,
       );
       response
         .status(404)
         .send(
-          "Couldnt write anamnesis collection to DB \n" + JSON.stringify(err),
+          "Couldn't write default settings to DB \n" + JSON.stringify(err),
         );
     }
   },
@@ -324,7 +354,9 @@ export const initializeUserSettings = onCall(async (request) => {
       userId: targetUserId,
       role: user.roles?.ability,
       settingsType: settingsPath,
-      fieldsCount: defaultSettings?.anamnesis ? Object.keys(defaultSettings.anamnesis).length : 0,
+      anamnesisFieldsCount: defaultSettings?.anamnesis ? Object.keys(defaultSettings.anamnesis).length : 0,
+      hasEvaluationSettings: !!defaultSettings?.evaluation,
+      hasEvaluationPresets: !!defaultSettings?.evaluationPresets,
       created: !existingDefaultSettings.exists
     };
   } catch (err: any) {
