@@ -1625,5 +1625,157 @@ app.post("/users/:userId/calculate-body-composition", async (req, res) => {
   }
 });
 
+/**
+ * 🔐 Check custom claims for a user
+ * Users can check their own claims, professionals can check any user's claims
+ *
+ * GET /users/:userId/custom-claims
+ */
+app.get("/users/:userId/custom-claims", async (req, res) => {
+  try {
+    // Verify authentication
+    const authHeader = req.headers.authorization || "";
+    const match = authHeader.match(/^Bearer (.+)$/);
+
+    if (!match) {
+      return res.status(401).json({ error: "Missing or invalid Authorization header" });
+    }
+
+    const idToken = match[1];
+    const decodedToken = await auth.verifyIdToken(idToken);
+    const callerUid = decodedToken.uid;
+    const { userId } = req.params;
+
+    // Check authorization: users can check their own claims, professionals can check anyone's
+    if (callerUid !== userId) {
+      const callerDoc = await db.doc(`users/${callerUid}`).get();
+      const callerData = callerDoc.data();
+
+      if (!callerData || !isProfessionalRole(callerData.roles?.ability)) {
+        return res.status(403).json({
+          error: "Access denied: You can only check your own claims unless you're a professional"
+        });
+      }
+    }
+
+    // Get user's custom claims from Firebase Auth
+    const userRecord = await auth.getUser(userId);
+
+    return res.status(200).json({
+      userId: userId,
+      customClaims: userRecord.customClaims || {},
+      email: userRecord.email,
+      emailVerified: userRecord.emailVerified,
+      disabled: userRecord.disabled,
+    });
+  } catch (error: any) {
+    console.error("Error fetching custom claims:", error);
+
+    if (error.code === 'auth/user-not-found') {
+      return res.status(404).json({ error: "User not found with provided UID" });
+    }
+
+    return res.status(500).json({
+      error: "Failed to fetch custom claims",
+      details: error.message
+    });
+  }
+});
+
+/**
+ * 🔐 ADMIN ONLY: Initialize or update default settings in /settings/professional
+ * This writes anamnesis fields, evaluation config, and evaluation presets
+ * to the global settings collection that will be used as template for new users.
+ *
+ * Requires: PROFESSIONAL role (admin check)
+ * POST /admin/initialize-default-settings
+ */
+app.post("/admin/initialize-default-settings", async (req, res) => {
+  try {
+    // Verify authentication
+    const authHeader = req.headers.authorization || "";
+    const match = authHeader.match(/^Bearer (.+)$/);
+
+    if (!match) {
+      return res.status(401).json({ error: "Missing or invalid Authorization header" });
+    }
+
+    const idToken = match[1];
+    const decodedToken = await auth.verifyIdToken(idToken);
+    const callerUid = decodedToken.uid;
+
+    // Verify caller is a professional (admin)
+    const callerDoc = await db.doc(`users/${callerUid}`).get();
+    const callerData = callerDoc.data();
+
+    if (!callerData || !isProfessionalRole(callerData.roles?.ability)) {
+      return res.status(403).json({
+        error: "Access denied: Only professionals can initialize default settings"
+      });
+    }
+
+    // Import settings from JSON files
+    const anamnesisFieldsModule = await import("./default/anamnesisFields.json", { with: { type: "json" } });
+    const evaluationPresetsModule = await import("./default/evaluationPresets.json", { with: { type: "json" } });
+
+    const anamnesisFields = anamnesisFieldsModule.default;
+    const evaluationPresets = evaluationPresetsModule.default;
+
+    // Prepare default evaluation config for both appointment types
+    const defaultEvaluationConfig = {
+      presencial: {
+        enabled: true,
+        basePreset: "jp7folds",
+        fields: evaluationPresets.jp7folds.fields,
+      },
+      online: {
+        enabled: true,
+        basePreset: null,
+        fields: {
+          weight: { enabled: true, label: "Peso", required: true },
+          height: { enabled: true, label: "Altura", required: true },
+          photos: { enabled: true, label: "Fotos", positions: ["front", "back", "side"] },
+          measures: { enabled: true, points: evaluationPresets.jp7folds.fields.measures.points },
+          folds: { enabled: false, points: [] }, // Disabled for online
+          bioimpedance: { enabled: false },
+        },
+      },
+    };
+
+    // Prepare professional settings with anamnesis and evaluation
+    const professionalSettings = {
+      anamnesis: anamnesisFields.anamnesis,
+      evaluation: defaultEvaluationConfig,
+      evaluationPresets: evaluationPresets,
+    };
+
+    // Write to Firestore
+    const settingsRef = db.collection("settings");
+    const professionalRef = settingsRef.doc("professional");
+    const contributorRef = settingsRef.doc("contributor");
+
+    await professionalRef.set(professionalSettings);
+    await contributorRef.set({});
+
+    console.log("Default settings initialized successfully by", callerUid);
+
+    return res.status(200).json({
+      success: true,
+      message: "Default settings (anamnesis + evaluation) successfully written",
+      details: {
+        anamnesisFieldsCount: Object.keys(anamnesisFields.anamnesis || {}).length,
+        evaluationPresetsCount: Object.keys(evaluationPresets || {}).length,
+        initializedBy: callerUid,
+      }
+    });
+  } catch (error: any) {
+    console.error("Error initializing default settings:", error);
+    return res.status(500).json({
+      error: "Failed to initialize default settings",
+      details: error.message
+    });
+  }
+});
+
 // Export the Express app as an HTTPS Cloud Function
 export const api = functions.https.onRequest(app);
