@@ -5,6 +5,7 @@ import {
   ComposedChart,
   Line,
   ReferenceLine,
+  Scatter,
   XAxis,
   YAxis,
 } from "recharts";
@@ -27,12 +28,27 @@ interface resultsChartProps {
 export const ResultsChart = ({ param, goal }: resultsChartProps) => {
   const chartData = useSetChartData(param, goal?.createdAt);
   let endDate;
+  let currentDate;
+  let currentValue;
 
   if (goal) {
     endDate = format(
       parse(goal.endDate!, "dd/MM/yyyy", new Date()),
       "dd/MM/yy",
     );
+  }
+
+  // Get today's actual date and most recent value from consultas
+  if (chartData && chartData.length > 0) {
+    const today = format(new Date(), "dd/MM/yy");
+    const lastDataPoint = chartData[chartData.length - 1];
+
+    // Only show current point if it's different from the last data point date
+    // This avoids duplicate points
+    if (lastDataPoint.date !== today) {
+      currentDate = today;
+      currentValue = lastDataPoint[param];
+    }
   }
 
   const chartConfig = {
@@ -43,6 +59,10 @@ export const ResultsChart = ({ param, goal }: resultsChartProps) => {
     META: {
       label: "Meta",
       color: "hsl(var(--chart-2))",
+    },
+    ATUAL: {
+      label: "Atual",
+      color: "hsl(var(--chart-4))",
     },
   } satisfies ChartConfig;
 
@@ -90,6 +110,17 @@ export const ResultsChart = ({ param, goal }: resultsChartProps) => {
             strokeDasharray="5 5"
             dot={{ fill: "var(--color-META)", r: 4 }}
             data={[{ date: endDate, [param]: goal.params![param] }]}
+          />
+        )}
+        {/* Current value point - shown only when goal exists and we have data */}
+        {goal && currentValue !== undefined && (
+          <Scatter
+            name="ATUAL"
+            dataKey={param}
+            data={[{ date: currentDate, [param]: currentValue }]}
+            fill="var(--color-ATUAL)"
+            shape="circle"
+            r={6}
           />
         )}
         {goal && (

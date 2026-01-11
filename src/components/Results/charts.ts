@@ -8,3 +8,8 @@ export { GoalProgressCard } from "./GoalProgressCard";
 export { GoalsList } from "./GoalsList";
 export { GoalStatusBadge } from "./GoalStatusBadge";
 export { GoalParameterTab } from "./GoalParameterTab";
+export { CircumferenceProgressChart } from "./CircumferenceProgressChart";
+export { PhotoComparisonCard } from "./PhotoComparisonCard";
+export { OnlineConsultasCharts } from "./OnlineConsultasCharts";
+export { InPersonConsultasCharts } from "./InPersonConsultasCharts";
+export { ConsultaTypeTabsContainer } from "./ConsultaTypeTabsContainer";

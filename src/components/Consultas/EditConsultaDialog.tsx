@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 
 import { useUpdateCustomerConsultaMutation } from "@/app/state/features/customerConsultasSlice";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -45,6 +47,8 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
   const [formData, setFormData] = useState<{
     peso: string | number;
     idade: string | number;
+    date: string;
+    updateCredits: boolean;
     obs: string;
     notes: string[];
     dobras: IFolds;
@@ -52,9 +56,12 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
     results: IResults;
     structure: IStructure;
     meals: IMeal[];
+    online: boolean;
   }>({
     peso: consulta.peso || "",
     idade: consulta.idade || "",
+    date: consulta.date || "",
+    updateCredits: consulta.updateCredits ?? true,
     obs: consulta.obs || "",
     notes: consulta.notes || [],
     dobras: consulta.dobras || {},
@@ -69,6 +76,7 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
     },
     structure: consulta.structure || { altura: 0, joelho: 0, punho: 0 },
     meals: consulta.meals || [],
+    online: consulta.online || false,
   });
 
   const [newNote, setNewNote] = useState("");
@@ -83,6 +91,8 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
           ...consulta,
           peso: String(formData.peso),
           idade: formData.idade ? Number(formData.idade) : undefined,
+          date: formData.date,
+          updateCredits: formData.updateCredits,
           obs: formData.obs,
           notes: formData.notes,
           dobras: formData.dobras,
@@ -90,6 +100,7 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
           results: formData.results,
           structure: formData.structure,
           meals: formData.meals,
+          online: formData.online,
         },
       }).unwrap();
       setOpen(false);
@@ -164,6 +175,18 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
               <h4 className="text-sm font-medium">Informações Básicas</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
+                  <Label htmlFor="date">Data da Consulta</Label>
+                  <Input
+                    id="date"
+                    type="text"
+                    placeholder="dd/MM/yyyy"
+                    value={formData.date}
+                    onChange={(e) =>
+                      setFormData({ ...formData, date: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="peso">Peso (kg)</Label>
                   <Input
                     id="peso"
@@ -186,6 +209,33 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
                     }
                   />
                 </div>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <Label htmlFor="updateCredits" className="cursor-pointer">
+                  Atualizar Créditos
+                </Label>
+                <Switch
+                  id="updateCredits"
+                  checked={formData.updateCredits}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, updateCredits: checked })
+                  }
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="online"
+                  checked={formData.online}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, online: checked as boolean })
+                  }
+                />
+                <Label
+                  htmlFor="online"
+                  className="cursor-pointer text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Consulta Online (sem avaliação de composição corporal)
+                </Label>
               </div>
             </div>
 
