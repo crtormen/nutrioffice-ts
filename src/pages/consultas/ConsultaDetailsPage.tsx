@@ -5,6 +5,7 @@ import React from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { ROUTES } from "@/app/router/routes";
+import { ConsultaInfoCard } from "@/components/Consultas/ConsultaInfoCard";
 import { EditConsultaDialog } from "@/components/Consultas/EditConsultaDialog";
 import { useGetCustomerConsultaData } from "@/components/Consultas/hooks/useGetCustomerConsultas";
 import { useGetCustomerData } from "@/components/Customers/hooks";
@@ -95,6 +96,15 @@ const ConsultaDetailsPage: React.FC = () => {
         breadcrumbs={breadcrumbs}
         backTo={ROUTES.CUSTOMERS.DETAILS(customerId!)}
       />
+
+      {/* Info Card with customer and consulta details */}
+      {customer && (
+        <ConsultaInfoCard
+          customer={customer}
+          consulta={consulta}
+          customerId={customerId!}
+        />
+      )}
 
       {/* Page subtitle with date and edit button */}
       <div className="flex items-center justify-between">
