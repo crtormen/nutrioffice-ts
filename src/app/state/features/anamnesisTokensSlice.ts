@@ -1,28 +1,32 @@
 import { firestoreApi } from "../firestoreApi";
 import { auth } from "@/infra/firebase";
 import { IEnabledEvaluationFields } from "@/domain/entities/evaluation";
+import { AppointmentType } from "@/domain/entities/formSubmission";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/nutri-office/us-central1/api";
 
 interface TokensResponse {
   onlineToken: string | null;
   presencialToken: string | null;
+  reavaliacaoToken: string | null;
   onlineEnabledFields: string[];
   presencialEnabledFields: string[];
+  reavaliacaoEnabledFields: string[];
   onlineEnabledEvaluationFields?: IEnabledEvaluationFields | null;
   presencialEnabledEvaluationFields?: IEnabledEvaluationFields | null;
+  reavaliacaoEnabledEvaluationFields?: IEnabledEvaluationFields | null;
 }
 
 interface GenerateTokenRequest {
   uid: string;
-  type: "online" | "presencial";
+  type: AppointmentType;
 }
 
 interface GenerateTokenResponse {
   token: string;
   url: string;
   isActive: boolean;
-  type: "online" | "presencial";
+  type: AppointmentType;
 }
 
 /**
@@ -33,7 +37,7 @@ const getAuthToken = async (): Promise<string> => {
   if (!user) {
     throw new Error("User not authenticated");
   }
-  return await user.getIdToken();
+  return await user.getIdToken(true);
 };
 
 /**
@@ -67,10 +71,13 @@ export const anamnesisTokensSlice = firestoreApi.injectEndpoints({
           const data: TokensResponse = {
             onlineToken: rawData.online?.token || null,
             presencialToken: rawData.presencial?.token || null,
+            reavaliacaoToken: rawData.reavaliacao?.token || null,
             onlineEnabledFields: rawData.online?.enabledFields || [],
             presencialEnabledFields: rawData.presencial?.enabledFields || [],
+            reavaliacaoEnabledFields: rawData.reavaliacao?.enabledFields || [],
             onlineEnabledEvaluationFields: rawData.online?.enabledEvaluationFields || null,
             presencialEnabledEvaluationFields: rawData.presencial?.enabledEvaluationFields || null,
+            reavaliacaoEnabledEvaluationFields: rawData.reavaliacao?.enabledEvaluationFields || null,
           };
 
           return { data };

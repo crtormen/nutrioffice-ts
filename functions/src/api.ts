@@ -1,4 +1,5 @@
-import functions from "firebase-functions";
+import { logger } from "firebase-functions";
+import { onRequest } from "firebase-functions/v2/https";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import express from "express";
 import cors from "cors";
@@ -101,7 +102,7 @@ app.get("/users/:userId/inactive-customers", async (req, res) => {
 
     return res.status(200).json(result);
   } catch (error) {
-    functions.logger.error('Error getting inactive customers:', error);
+    logger.error('Error getting inactive customers:', error);
     return res.status(500).send('Internal Server Error');
   }
 });
@@ -491,7 +492,7 @@ app.post("/users/:userId/invitations", async (req, res) => {
     });
 
     if (!emailSent) {
-      functions.logger.warn(`Invitation created but email failed to send: ${invitationRef.id}`);
+      logger.warn(`Invitation created but email failed to send: ${invitationRef.id}`);
     }
 
     return res.status(201).json({
@@ -514,29 +515,30 @@ app.get("/users/:userId/invitations", async (req, res) => {
     const { userId } = req.params;
     const { status } = req.query;
 
-    let query = db
+    const snapshot = await db
       .collection("invitations")
       .where("professionalId", "==", userId)
-      .orderBy("createdAt", "desc");
+      .get();
 
-    if (status) {
-      query = query.where("status", "==", status);
-    }
-
-    const snapshot = await query.get();
-
-    const invitations = snapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        email: data.email,
-        role: data.role,
-        permissions: data.permissions,
-        status: data.status,
-        createdAt: data.createdAt?.toDate().toISOString(),
-        expiresAt: data.expiresAt?.toDate().toISOString(),
-      };
-    });
+    const invitations = snapshot.docs
+      .filter((doc) => !status || doc.data().status === status)
+      .map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          email: data.email,
+          role: data.role,
+          permissions: data.permissions,
+          status: data.status,
+          createdAt: data.createdAt?.toDate().toISOString(),
+          expiresAt: data.expiresAt?.toDate().toISOString(),
+        };
+      })
+      .sort((a, b) => {
+        if (!a.createdAt) return 1;
+        if (!b.createdAt) return -1;
+        return b.createdAt.localeCompare(a.createdAt);
+      });
 
     return res.status(200).json(invitations);
   } catch (error: any) {
@@ -793,6 +795,9 @@ app.get("/public/anamnesis-form/:token", async (req, res) => {
       const presencialTokenDoc = await db
         .doc(`users/${userDoc.id}/anamnesisFormTokens/presencial`)
         .get();
+      const reavaliacaoTokenDoc = await db
+        .doc(`users/${userDoc.id}/anamnesisFormTokens/reavaliacao`)
+        .get();
 
       if (onlineTokenDoc.exists && onlineTokenDoc.data()?.token === token) {
         tokenData = onlineTokenDoc.data();
@@ -805,6 +810,13 @@ app.get("/public/anamnesis-form/:token", async (req, res) => {
         tokenData = presencialTokenDoc.data();
         professionalId = userDoc.id;
         appointmentType = "presencial";
+        break;
+      }
+
+      if (reavaliacaoTokenDoc.exists && reavaliacaoTokenDoc.data()?.token === token) {
+        tokenData = reavaliacaoTokenDoc.data();
+        professionalId = userDoc.id;
+        appointmentType = "reavaliacao";
         break;
       }
     }
@@ -829,6 +841,8 @@ app.get("/public/anamnesis-form/:token", async (req, res) => {
     // Get anamnesis field definitions
     const defaultSettingsDoc = await db.doc(`users/${professionalId}/settings/default`).get();
     const defaultSettings = defaultSettingsDoc.data();
+    const customSettingsDoc = await db.doc(`users/${professionalId}/settings/custom`).get();
+    const customSettings = customSettingsDoc.data();
 
     // Get user logo
     const themeDoc = await db.doc(`users/${professionalId}/settings/theme`).get();
@@ -845,7 +859,7 @@ app.get("/public/anamnesis-form/:token", async (req, res) => {
     const enabledEvaluationFields = tokenData.enabledEvaluationFields || null;
 
     return res.status(200).json({
-      professionalName: professionalData?.name || "Profissional",
+      professionalName: theme?.brandName || professionalData?.name || "Profissional",
       logo: theme?.logo?.url || "",
       professionalId,
       appointmentType,
@@ -853,7 +867,7 @@ app.get("/public/anamnesis-form/:token", async (req, res) => {
       successMessage: typeSettings.successMessage,
       requireAllFields: typeSettings.requireAllFields,
       enabledFields, // Get from token, not from publicForms settings
-      anamnesisFields: defaultSettings?.anamnesis || {},
+      anamnesisFields: { ...defaultSettings?.anamnesis, ...customSettings?.anamnesis },
       enabledEvaluationFields, // Get from token
       tokenValid: true,
     });
@@ -890,6 +904,9 @@ app.post("/public/anamnesis-form/:token/submit", async (req, res) => {
       const presencialTokenDoc = await db
         .doc(`users/${userDoc.id}/anamnesisFormTokens/presencial`)
         .get();
+      const reavaliacaoTokenDoc = await db
+        .doc(`users/${userDoc.id}/anamnesisFormTokens/reavaliacao`)
+        .get();
 
       if (onlineTokenDoc.exists && onlineTokenDoc.data()?.token === token) {
         tokenData = onlineTokenDoc.data();
@@ -902,6 +919,13 @@ app.post("/public/anamnesis-form/:token/submit", async (req, res) => {
         tokenData = presencialTokenDoc.data();
         professionalId = userDoc.id;
         appointmentType = "presencial";
+        break;
+      }
+
+      if (reavaliacaoTokenDoc.exists && reavaliacaoTokenDoc.data()?.token === token) {
+        tokenData = reavaliacaoTokenDoc.data();
+        professionalId = userDoc.id;
+        appointmentType = "reavaliacao";
         break;
       }
     }
@@ -918,9 +942,10 @@ app.post("/public/anamnesis-form/:token/submit", async (req, res) => {
     const ipAddress = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
     const userAgent = req.headers["user-agent"];
 
-    // Convert birthday string to Timestamp
-    const birthdayDate = new Date(customerData.birthday);
-    const birthdayTimestamp = Timestamp.fromDate(birthdayDate);
+    // Convert birthday string to Timestamp (optional — reavaliação forms don't include it)
+    const birthdayTimestamp = customerData.birthday
+      ? Timestamp.fromDate(new Date(customerData.birthday))
+      : null;
 
     // Prepare submission data (only include ipAddress and userAgent if they exist)
     const submissionData: any = {
@@ -928,7 +953,7 @@ app.post("/public/anamnesis-form/:token/submit", async (req, res) => {
       appointmentType,
       customerData: {
         ...customerData,
-        birthday: birthdayTimestamp,
+        ...(birthdayTimestamp ? { birthday: birthdayTimestamp } : {}),
       },
       anamnesisData,
       submittedAt: FieldValue.serverTimestamp(),
@@ -978,8 +1003,8 @@ app.post("/users/:userId/anamnesis-tokens/generate", async (req, res) => {
     const { userId } = req.params;
     const { type } = req.body;
 
-    if (!type || (type !== "online" && type !== "presencial")) {
-      return res.status(400).json({ error: "Tipo inválido. Use 'online' ou 'presencial'" });
+    if (!type || (type !== "online" && type !== "presencial" && type !== "reavaliacao")) {
+      return res.status(400).json({ error: "Tipo inválido. Use 'online', 'presencial' ou 'reavaliacao'" });
     }
 
     const token = uuidv4();
@@ -1012,8 +1037,9 @@ app.post("/users/:userId/anamnesis-tokens/generate", async (req, res) => {
         const evaluationSettingsDoc = await db.doc(`users/${userId}/settings/evaluation`).get();
         const evaluationConfig = evaluationSettingsDoc.data();
 
-        if (evaluationConfig && evaluationConfig[type]) {
-          const config = evaluationConfig[type];
+        const evalConfigKey = type === "reavaliacao" ? "online" : type;
+        if (evaluationConfig && evaluationConfig[evalConfigKey]) {
+          const config = evaluationConfig[evalConfigKey];
 
           if (needsMeasuresUpdate && enabledEvaluationFields) {
             // Update only measures field, keeping other fields
@@ -1079,6 +1105,7 @@ app.get("/users/:userId/anamnesis-tokens", async (req, res) => {
 
     const onlineTokenDoc = await db.doc(`users/${userId}/anamnesisFormTokens/online`).get();
     const presencialTokenDoc = await db.doc(`users/${userId}/anamnesisFormTokens/presencial`).get();
+    const reavaliacaoTokenDoc = await db.doc(`users/${userId}/anamnesisFormTokens/reavaliacao`).get();
 
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
@@ -1103,6 +1130,7 @@ app.get("/users/:userId/anamnesis-tokens", async (req, res) => {
     return res.status(200).json({
       online: formatTokenData(onlineTokenDoc, "online"),
       presencial: formatTokenData(presencialTokenDoc, "presencial"),
+      reavaliacao: formatTokenData(reavaliacaoTokenDoc, "reavaliacao"),
     });
   } catch (error: any) {
     console.error("Error fetching tokens:", error);
@@ -1119,8 +1147,8 @@ app.put("/users/:userId/anamnesis-tokens/:type/fields", async (req, res) => {
     const { userId, type } = req.params;
     const { enabledFields } = req.body;
 
-    if (type !== "online" && type !== "presencial") {
-      return res.status(400).json({ error: "Tipo inválido. Use 'online' ou 'presencial'" });
+    if (type !== "online" && type !== "presencial" && type !== "reavaliacao") {
+      return res.status(400).json({ error: "Tipo inválido. Use 'online', 'presencial' ou 'reavaliacao'" });
     }
 
     if (!Array.isArray(enabledFields)) {
@@ -1152,8 +1180,8 @@ app.put("/users/:userId/anamnesis-tokens/:type/evaluation-fields", async (req, r
     const { userId, type } = req.params;
     const { enabledEvaluationFields } = req.body;
 
-    if (type !== "online" && type !== "presencial") {
-      return res.status(400).json({ error: "Tipo inválido. Use 'online' ou 'presencial'" });
+    if (type !== "online" && type !== "presencial" && type !== "reavaliacao") {
+      return res.status(400).json({ error: "Tipo inválido. Use 'online', 'presencial' ou 'reavaliacao'" });
     }
 
     if (!enabledEvaluationFields || typeof enabledEvaluationFields !== "object") {
@@ -1777,5 +1805,228 @@ app.post("/admin/initialize-default-settings", async (req, res) => {
   }
 });
 
-// Export the Express app as an HTTPS Cloud Function
-export const api = functions.https.onRequest(app);
+// TEMPORARY: one-shot backfill — remove after running
+// POST /users/:userId/backfill-last-consulta-date
+app.post("/users/:userId/backfill-last-consulta-date", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const customersRef = db.collection(`/users/${userId}/customers`);
+    const allSnap = await customersRef.get();
+
+    const targets = allSnap.docs.filter((doc) => {
+      const data = doc.data();
+      return (
+        typeof data.name === "string" &&
+        data.name.toLowerCase().includes("consultoria") &&
+        (data.lastConsultaDate === undefined || data.lastConsultaDate === null)
+      );
+    });
+
+    let updated = 0;
+    let skipped = 0;
+
+    for (const customerDoc of targets) {
+      const consultasRef = customersRef.doc(customerDoc.id).collection("consultas");
+      const latestSnap = await consultasRef.orderBy("date", "desc").limit(1).get();
+
+      if (latestSnap.empty) {
+        skipped++;
+        continue;
+      }
+
+      await customersRef.doc(customerDoc.id).update({
+        lastConsultaDate: latestSnap.docs[0].data().date,
+      });
+      updated++;
+    }
+
+    return res.status(200).json({ total: targets.length, updated, skipped });
+  } catch (error: any) {
+    console.error("backfill error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+// ── CRM: Leads ──────────────────────────────────────────────────────────────
+
+// GET /users/:userId/leads
+app.get("/users/:userId/leads", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const snap = await db
+      .collection(`users/${userId}/leads`)
+      .orderBy("createdAt", "desc")
+      .get();
+    const leads = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    return res.status(200).json(leads);
+  } catch (error: any) {
+    console.error("Error fetching leads:", error);
+    return res.status(500).json({ error: "Failed to fetch leads" });
+  }
+});
+
+// POST /users/:userId/leads
+app.post("/users/:userId/leads", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const now = FieldValue.serverTimestamp();
+    const ref = await db.collection(`users/${userId}/leads`).add({
+      ...req.body,
+      tags: req.body.tags ?? [],
+      isConverted: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return res.status(201).json({ id: ref.id });
+  } catch (error: any) {
+    console.error("Error creating lead:", error);
+    return res.status(500).json({ error: "Failed to create lead" });
+  }
+});
+
+// PATCH /users/:userId/leads/:leadId
+app.patch("/users/:userId/leads/:leadId", async (req, res) => {
+  try {
+    const { userId, leadId } = req.params;
+    const { id: _id, createdAt: _createdAt, ...updates } = req.body;
+    await db.doc(`users/${userId}/leads/${leadId}`).update({
+      ...updates,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    return res.status(200).json({ ok: true });
+  } catch (error: any) {
+    console.error("Error updating lead:", error);
+    return res.status(500).json({ error: "Failed to update lead" });
+  }
+});
+
+// POST /users/:userId/leads/:leadId/convert
+app.post("/users/:userId/leads/:leadId/convert", async (req, res) => {
+  try {
+    const { userId, leadId } = req.params;
+
+    const leadDoc = await db.doc(`users/${userId}/leads/${leadId}`).get();
+    if (!leadDoc.exists) {
+      return res.status(404).json({ error: "Lead not found" });
+    }
+    const lead = leadDoc.data()!;
+
+    if (lead.isConverted) {
+      return res.status(400).json({ error: "Lead already converted" });
+    }
+
+    const now = FieldValue.serverTimestamp();
+    const batch = db.batch();
+
+    // Create customer
+    const customerRef = db.collection(`users/${userId}/customers`).doc();
+    batch.set(customerRef, {
+      name: lead.name ?? "",
+      phone: lead.phone ?? "",
+      email: lead.email ?? "",
+      cameBy: `CRM - ${lead.source ?? ""}`,
+      createdAt: now,
+    });
+
+    // Mark lead as converted
+    batch.update(db.doc(`users/${userId}/leads/${leadId}`), {
+      isConverted: true,
+      convertedAt: now,
+      convertedToCustomerId: customerRef.id,
+      stage: "convertido",
+      updatedAt: now,
+    });
+
+    await batch.commit();
+
+    return res.status(200).json({ customerId: customerRef.id });
+  } catch (error: any) {
+    console.error("Error converting lead:", error);
+    return res.status(500).json({ error: "Failed to convert lead" });
+  }
+});
+
+// GET /users/:userId/chatwoot/verify
+app.get("/users/:userId/chatwoot/verify", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const snap = await db.doc(`users/${userId}/settings/crm`).get();
+    const settings = snap.data();
+
+    if (!settings?.chatwootApiUrl || !settings?.chatwootApiToken || !settings?.chatwootAccountId) {
+      return res.status(200).json({ ok: false, reason: "Integration not configured" });
+    }
+
+    // Ping the Chatwoot API
+    const baseUrl = `${settings.chatwootApiUrl.replace(/\/$/, "")}/api/v1/accounts/${settings.chatwootAccountId}`;
+    const response = await fetch(`${baseUrl}/conversations?page=1`, {
+      headers: { api_access_token: settings.chatwootApiToken },
+    });
+
+    return res.status(200).json({ ok: response.ok });
+  } catch (error: any) {
+    console.error("Error verifying Chatwoot:", error);
+    return res.status(200).json({ ok: false, reason: error.message });
+  }
+});
+
+// GET /users/:userId/chatwoot/debug-phone?phone=51995550882
+// Returns raw Chatwoot filter results for both E.164 variants of a phone number.
+app.get("/users/:userId/chatwoot/debug-phone", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const phone = req.query.phone as string;
+    if (!phone) return res.status(400).json({ error: "phone param required" });
+
+    const snap = await db.doc(`users/${userId}/settings/crm`).get();
+    const settings = snap.data();
+    if (!settings?.chatwootApiUrl || !settings?.chatwootApiToken || !settings?.chatwootAccountId) {
+      return res.status(400).json({ error: "Chatwoot not configured" });
+    }
+
+    const { ChatwootService } = await import("./services/ChatwootService.js");
+    const chatwoot = new ChatwootService({
+      apiUrl: settings.chatwootApiUrl,
+      apiToken: settings.chatwootApiToken,
+      accountId: settings.chatwootAccountId,
+    });
+
+    const digits = phone.replace(/\D/g, "");
+    let e164: string | undefined;
+    if (digits.startsWith("55") && digits.length >= 12) {
+      e164 = `+${digits}`;
+    } else if (digits.length === 10 || digits.length === 11) {
+      e164 = `+55${digits}`;
+    }
+
+    if (!e164) return res.status(400).json({ error: "Could not normalize phone to E.164" });
+
+    const variants: string[] = [e164];
+    if (e164.length === 14) variants.push(`${e164.slice(0, 5)}${e164.slice(6)}`);
+    else if (e164.length === 13) variants.push(`${e164.slice(0, 5)}9${e164.slice(5)}`);
+
+    const results: Record<string, unknown> = { e164, variants };
+    for (const v of variants) {
+      const found = await (chatwoot as any).filterByPhone(v);
+      results[v] = found;
+    }
+
+    return res.status(200).json(results);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Wrap app so it handles both:
+//   /users/...        — local dev (Vite proxy strips /api prefix)
+//   /api/users/...    — production (Firebase Hosting forwards full path)
+const root = express();
+root.use(cors({ origin: true }));
+root.use("/api", app);
+root.use("/", app);
+
+// Export the Express app as an HTTPS Cloud Function (v2 with secrets)
+export const api = onRequest(
+  { secrets: ["EMAIL_USER", "EMAIL_PASSWORD"] },
+  root
+);

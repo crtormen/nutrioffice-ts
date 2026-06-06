@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Criar Template WhatsApp</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0d0f12;
+      color: #e8edf5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      background-image: radial-gradient(ellipse 80% 50% at 50% -5%, rgba(37,211,102,0.07), transparent);
+    }
+
+    .wrapper { width: 100%; max-width: 580px; }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .header-icon {
+      width: 42px; height: 42px;
+      background: rgba(37,211,102,0.12);
+      border: 1px solid rgba(37,211,102,0.22);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .header-icon svg { width: 20px; height: 20px; fill: #25d366; }
+
+    .header h1 { font-size: 1.1rem; font-weight: 600; color: #e8edf5; letter-spacing: -0.01em; }
+    .header p  { font-size: 0.72rem; color: #4a5568; font-family: "SF Mono","Fira Code",monospace; margin-top: 2px; }
+
+    .card {
+      background: #13171e;
+      border: 1px solid #1e2430;
+      border-radius: 14px;
+      padding: 28px 30px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.03) inset;
+    }
+
+    .section-label {
+      font-family: "SF Mono","Fira Code",monospace;
+      font-size: 0.62rem; font-weight: 500;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: #3d4a5e;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #1e2430;
+      margin-bottom: 18px;
+    }
+
+    .section + .section { margin-top: 24px; }
+    .form-group { margin-bottom: 16px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    label {
+      display: block; font-size: 0.72rem; font-weight: 500;
+      color: #7a8aa0; margin-bottom: 6px; letter-spacing: 0.01em;
+    }
+
+    label code {
+      font-family: "SF Mono","Fira Code",monospace; font-size: 0.68rem;
+      color: #25d366; background: rgba(37,211,102,0.1);
+      padding: 1px 4px; border-radius: 3px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: #1a1f29; border: 1px solid #242b38; border-radius: 7px;
+      color: #e8edf5;
+      font-family: "SF Mono","Fira Code",monospace; font-size: 0.8rem;
+      padding: 9px 12px; outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+      appearance: none; -webkit-appearance: none;
+    }
+
+    input::placeholder, textarea::placeholder { color: #3d4a5e; }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #25d366;
+      box-shadow: 0 0 0 3px rgba(37,211,102,0.13);
+      background: #161b24;
+    }
+
+    textarea {
+      resize: vertical; min-height: 100px; line-height: 1.6;
+      font-family: "SF Mono","Fira Code",monospace;
+    }
+
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+      content: ''; position: absolute; right: 12px; top: 50%;
+      transform: translateY(-50%);
+      border-left: 4px solid transparent; border-right: 4px solid transparent;
+      border-top: 5px solid #3d4a5e; pointer-events: none;
+    }
+
+    .hint {
+      font-size: 0.68rem; color: #3d4a5e;
+      font-family: "SF Mono","Fira Code",monospace; margin-top: 5px;
+    }
+    .hint code { color: #25d366; background: rgba(37,211,102,0.1); padding: 1px 4px; border-radius: 3px; }
+
+    /* ── Examples grid ── */
+    #examples-grid { display: flex; flex-direction: column; gap: 10px; }
+
+    .example-row {
+      display: grid; grid-template-columns: 100px 1fr; align-items: center; gap: 10px;
+    }
+
+    .example-row label { margin-bottom: 0; white-space: nowrap; }
+
+    /* ── Buttons section ── */
+    #buttons-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 160px 1fr 32px;
+      align-items: center;
+      gap: 10px;
+      background: #1a1f29;
+      border: 1px solid #242b38;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .btn-row .drag-handle {
+      display: none; /* future drag-to-reorder */
+    }
+
+    .btn-row label { margin-bottom: 0; font-size: 0.68rem; color: #3d4a5e; }
+
+    .btn-type-wrap { position: relative; }
+    .btn-type-wrap::after {
+      content: ''; position: absolute; right: 10px; top: 50%;
+      transform: translateY(-50%);
+      border-left: 3px solid transparent; border-right: 3px solid transparent;
+      border-top: 4px solid #3d4a5e; pointer-events: none;
+    }
+
+    .btn-text-wrap { position: relative; }
+    .btn-char-count {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      font-family: "SF Mono","Fira Code",monospace;
+      font-size: 0.62rem; color: #3d4a5e; pointer-events: none;
+    }
+
+    .btn-text-wrap input { padding-right: 48px; }
+
+    .remove-btn {
+      width: 28px; height: 28px;
+      background: transparent; border: 1px solid #242b38; border-radius: 5px;
+      color: #3d4a5e; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: border-color 160ms, color 160ms, background 160ms;
+      flex-shrink: 0;
+      padding: 0;
+    }
+    .remove-btn:hover { border-color: #e05252; color: #e05252; background: rgba(224,82,82,0.08); }
+    .remove-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+    .add-btn-row {
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .add-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px;
+      background: #1a1f29; border: 1px dashed #2a3347; border-radius: 7px;
+      color: #5a6f8a; font-size: 0.78rem; font-weight: 500; cursor: pointer;
+      transition: border-color 160ms, color 160ms, background 160ms;
+    }
+    .add-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
+    .add-btn:hover { border-color: #25d366; color: #25d366; background: rgba(37,211,102,0.05); }
+    .add-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .btn-limit-hint {
+      font-family: "SF Mono","Fira Code",monospace;
+      font-size: 0.62rem; color: #3d4a5e;
+    }
+
+    /* ── Submit ── */
+    .submit-row {
+      margin-top: 24px; padding-top: 22px;
+      border-top: 1px solid #1e2430;
+    }
+
+    button[type="submit"] {
+      width: 100%; padding: 12px 20px;
+      background: #25d366; color: #021a0a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.875rem; font-weight: 600;
+      border: none; border-radius: 7px; cursor: pointer;
+      letter-spacing: 0.01em;
+      transition: background 160ms ease, box-shadow 160ms ease, transform 120ms ease;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+
+    button[type="submit"] svg { width: 15px; height: 15px; }
+
+    button[type="submit"]:hover {
+      background: #2eea72;
+      box-shadow: 0 4px 18px rgba(37,211,102,0.3);
+      transform: translateY(-1px);
+    }
+
+    button[type="submit"]:active { transform: translateY(0); box-shadow: none; }
+
+    button[type="submit"]:disabled {
+      background: #1a7a3e; color: #4a8a64; cursor: not-allowed;
+      transform: none; box-shadow: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 480px) {
+      .card { padding: 22px 18px; }
+      .form-row { grid-template-columns: 1fr; }
+      .btn-row { grid-template-columns: 1fr 1fr 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <div class="header">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Criar Template WhatsApp</h1>
+        <p>Meta Business API · templates</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <form method="POST" action="/webhook/create-template">
+
+        <!-- Identificação -->
+        <div class="section">
+          <p class="section-label">Identificação</p>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Nome do Template</label>
+              <input id="name" name="name" placeholder="lembrete_consulta_01" required />
+            </div>
+            <div class="form-group">
+              <label for="language">Linguagem</label>
+              <input id="language" name="language" value="pt_BR" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="category">Categoria</label>
+              <div class="select-wrap">
+                <select id="category" name="category">
+                  <option value="UTILITY">UTILITÁRIO</option>
+                  <option value="MARKETING">MARKETING</option>
+                  <option value="AUTHENTICATION">AUTENTICAÇÃO</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="channel">Canal</label>
+              <div class="select-wrap">
+                <select id="channel" name="channel" required>
+                  <option value="5">Clínica Charline Tormen</option>
+                  <option value="7">CS - Acompanhamento Online</option>
+                  <option value="6">Vendas - Acompanhamento Online</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conteúdo -->
+        <div class="section">
+          <p class="section-label">Conteúdo da Mensagem</p>
+
+          <div class="form-group">
+            <label for="bodyText">Texto da Mensagem</label>
+            <textarea id="bodyText" name="bodyText" required>Olá {{1}}, passando para lembrar da sua consulta em {{2}}.</textarea>
+            <p class="hint">Use <code>{{1}}</code>, <code>{{2}}</code>… para variáveis dinâmicas</p>
+          </div>
+        </div>
+
+        <!-- Exemplos (dinâmico) -->
+        <div class="section" id="examples-section">
+          <p class="section-label">Exemplos de Variáveis</p>
+          <div id="examples-grid"></div>
+        </div>
+
+        <!-- Botões -->
+        <div class="section">
+          <p class="section-label">Botões · <span style="text-transform:none;letter-spacing:0;font-size:0.6rem;color:#3d4a5e;">Opcional</span></p>
+
+          <div id="buttons-list"></div>
+
+          <div class="add-btn-row">
+            <button type="button" class="add-btn" id="add-btn-btn">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Adicionar botão
+            </button>
+            <span class="btn-limit-hint" id="btn-limit-hint"></span>
+          </div>
+        </div>
+
+        <div class="submit-row">
+          <button type="submit" id="submit-btn">
+            <svg id="submit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/>
+            </svg>
+            <svg id="submit-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="display:none;animation:spin 0.8s linear infinite;">
+              <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+              <path d="M12 2a10 10 0 0 1 10 10" stroke-opacity="1"/>
+            </svg>
+            <span id="submit-label">Criar Template</span>
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+
+  <script>
+    const BUTTON_MAX = 2;
+    const BUTTON_TEXT_MAX = 25;
+
+    // ── Helpers ─────────────────────────────────────────────────────────────
+
+    function extractParams(text) {
+      const found = new Set();
+      const re = /\{\{(\d+)\}\}/g;
+      let m;
+      while ((m = re.exec(text)) !== null) found.add(parseInt(m[1], 10));
+      return Array.from(found).sort((a, b) => a - b);
+    }
+
+    // ── Examples ─────────────────────────────────────────────────────────────
+
+    const bodyTextEl   = document.getElementById('bodyText');
+    const examplesGrid = document.getElementById('examples-grid');
+
+    function syncExamples() {
+      const params = extractParams(bodyTextEl.value);
+      const existing = {};
+      examplesGrid.querySelectorAll('input[data-param]').forEach(el => {
+        existing[el.dataset.param] = el.value;
+      });
+
+      examplesGrid.innerHTML = '';
+
+      if (params.length === 0) {
+        examplesGrid.innerHTML = '<p class="hint">Nenhuma variável detectada no texto.</p>';
+        return;
+      }
+
+      params.forEach(n => {
+        const row = document.createElement('div');
+        row.className = 'example-row';
+
+        const lbl = document.createElement('label');
+        lbl.innerHTML = `Valor para <code>{{${n}}}</code>`;
+
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.name = `example${n}`;
+        inp.dataset.param = n;
+        inp.placeholder = `Exemplo para {{${n}}}`;
+        inp.value = existing[n] || '';
+
+        row.appendChild(lbl);
+        row.appendChild(inp);
+        examplesGrid.appendChild(row);
+      });
+    }
+
+    bodyTextEl.addEventListener('input', syncExamples);
+    syncExamples(); // init
+
+    // ── Buttons ──────────────────────────────────────────────────────────────
+
+    const buttonsList   = document.getElementById('buttons-list');
+    const addBtnBtn     = document.getElementById('add-btn-btn');
+    const btnLimitHint  = document.getElementById('btn-limit-hint');
+
+    const BUTTON_TYPES = [
+      { value: 'QUICK_REPLY', label: 'Resposta rápida' },
+      // { value: 'URL',         label: 'URL' },
+      // { value: 'PHONE_NUMBER',label: 'Telefone' },
+    ];
+
+    function updateLimitHint() {
+      const count = buttonsList.children.length;
+      btnLimitHint.textContent = count > 0 ? `${count} / ${BUTTON_MAX}` : '';
+      addBtnBtn.disabled = count >= BUTTON_MAX;
+    }
+
+    function addButton() {
+      const idx = buttonsList.children.length;
+      if (idx >= BUTTON_MAX) return;
+
+      const row = document.createElement('div');
+      row.className = 'btn-row';
+
+      // Type select
+      const typeWrap = document.createElement('div');
+      typeWrap.className = 'btn-type-wrap';
+      const sel = document.createElement('select');
+      sel.name = `button_type_${idx}`;
+      sel.style.fontSize = '0.78rem';
+      BUTTON_TYPES.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.value;
+        opt.textContent = t.label;
+        sel.appendChild(opt);
+      });
+      typeWrap.appendChild(sel);
+
+      // Text input with char count
+      const textWrap = document.createElement('div');
+      textWrap.className = 'btn-text-wrap';
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.name = `button_text_${idx}`;
+      inp.placeholder = 'Texto do botão';
+      inp.maxLength = BUTTON_TEXT_MAX;
+      const counter = document.createElement('span');
+      counter.className = 'btn-char-count';
+      counter.textContent = `0/${BUTTON_TEXT_MAX}`;
+      inp.addEventListener('input', () => {
+        counter.textContent = `${inp.value.length}/${BUTTON_TEXT_MAX}`;
+        counter.style.color = inp.value.length >= BUTTON_TEXT_MAX ? '#e0a852' : '#3d4a5e';
+      });
+      textWrap.appendChild(inp);
+      textWrap.appendChild(counter);
+
+      // Remove button
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'remove-btn';
+      removeBtn.title = 'Remover botão';
+      removeBtn.innerHTML = `<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+      removeBtn.addEventListener('click', () => {
+        row.remove();
+        reindexButtons();
+        updateLimitHint();
+      });
+
+      row.appendChild(typeWrap);
+      row.appendChild(textWrap);
+      row.appendChild(removeBtn);
+
+      buttonsList.appendChild(row);
+      updateLimitHint();
+      inp.focus();
+    }
+
+    function reindexButtons() {
+      buttonsList.querySelectorAll('.btn-row').forEach((row, i) => {
+        const sel = row.querySelector('select');
+        const inp = row.querySelector('input');
+        if (sel) sel.name = `button_type_${i}`;
+        if (inp) inp.name = `button_text_${i}`;
+      });
+    }
+
+    addBtnBtn.addEventListener('click', addButton);
+    updateLimitHint();
+
+    // ── Submit loading state ──────────────────────────────────────────────────
+
+    const submitBtn     = document.getElementById('submit-btn');
+    const submitIcon    = document.getElementById('submit-icon');
+    const submitSpinner = document.getElementById('submit-spinner');
+    const submitLabel   = document.getElementById('submit-label');
+
+    document.querySelector('form').addEventListener('submit', () => {
+      submitBtn.disabled = true;
+      submitIcon.style.display = 'none';
+      submitSpinner.style.display = '';
+      submitLabel.textContent = 'Enviando...';
+    });
+  </script>
+</body>
+</html>

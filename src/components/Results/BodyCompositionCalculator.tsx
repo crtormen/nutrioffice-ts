@@ -76,7 +76,7 @@ export function BodyCompositionCalculator({
         throw new Error("Usuário não autenticado");
       }
 
-      const token = await user.getIdToken();
+      const token = await user.getIdToken(true);
       const uid = user.uid;
 
       const response = await fetch(

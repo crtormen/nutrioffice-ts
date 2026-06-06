@@ -7,6 +7,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ROUTES } from "@/app/router/routes";
 import { ConsultaInfoCard } from "@/components/Consultas/ConsultaInfoCard";
 import { EditConsultaDialog } from "@/components/Consultas/EditConsultaDialog";
+import { PlanSentCheck } from "@/components/Consultas/PlanSentCheck";
 import { useGetCustomerConsultaData } from "@/components/Consultas/hooks/useGetCustomerConsultas";
 import { useGetCustomerData } from "@/components/Customers/hooks";
 import { PageHeader } from "@/components/PageHeader";
@@ -112,6 +113,7 @@ const ConsultaDetailsPage: React.FC = () => {
           <Calendar className="h-4 w-4" />
           <p>Consulta realizada em {consultaDate}</p>
         </div>
+        <PlanSentCheck consulta={consulta} />
         <EditConsultaDialog consulta={consulta} />
       </div>
 

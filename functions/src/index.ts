@@ -27,6 +27,7 @@ export {
   redefineCustomClaims,
   checkCustomClaims,
   updateLastConsultaDate,
+  backfillLastConsultaDate,
 } from "./new.js";
 
 // Export analytics functions
@@ -59,3 +60,11 @@ export {
 export {
   onFormSubmissionCreated,
 } from "./formSubmissions.js";
+
+// Export Chatwoot integration functions
+export {
+  chatwootWebhook,
+  onLeadWritten,
+  onCustomerWritten,
+  syncCustomersToChatwoot,
+} from "./chatwoot.js";

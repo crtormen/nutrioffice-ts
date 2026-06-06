@@ -73,8 +73,9 @@ export function PublicFormLinksCard() {
 
   const hasOnlineToken = tokens?.onlineToken;
   const hasPresencialToken = tokens?.presencialToken;
+  const hasReavaliacaoToken = tokens?.reavaliacaoToken;
 
-  if (!hasOnlineToken && !hasPresencialToken) {
+  if (!hasOnlineToken && !hasPresencialToken && !hasReavaliacaoToken) {
     return (
       <Card>
         <CardHeader>
@@ -192,6 +193,49 @@ export function PublicFormLinksCard() {
                 size="icon"
                 onClick={() =>
                   window.open(getFormUrl(tokens.presencialToken!), "_blank")
+                }
+                title="Abrir em nova aba"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+        {hasReavaliacaoToken && (
+          <div className="space-y-2">
+            <div className="mb-2 flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className="border-purple-500 text-purple-700"
+              >
+                Reavaliação
+              </Badge>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={getFormUrl(tokens.reavaliacaoToken!)}
+                readOnly
+                className="font-mono text-sm"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() =>
+                  handleCopyLink(tokens.reavaliacaoToken!, "presencial")
+                }
+                title="Copiar link"
+              >
+                {copiedToken === tokens.reavaliacaoToken ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() =>
+                  window.open(getFormUrl(tokens.reavaliacaoToken!), "_blank")
                 }
                 title="Abrir em nova aba"
               >

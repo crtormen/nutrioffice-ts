@@ -9,6 +9,9 @@
     "lint": "eslint . --ext .tsx",
     "lint-fix": "eslint . --ext .tsx --fix",
     "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "serve": "firebase emulators:start",
     "emulate-old": "firebase emulators:start --only firestore,storage,auth,functions --import=./saved-data --export-on-exit",
     "emulate": "firebase emulators:start --only firestore,storage,auth,functions --import ./emulator-data --export-on-exit ./emulator-data"
@@ -77,6 +80,9 @@
   },
   "devDependencies": {
     "@rocketseat/eslint-config": "^2.2.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/firebase": "^3.2.1",
     "@types/node": "^20.11.27",
     "@types/react": "^18.2.61",
@@ -88,11 +94,14 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-simple-import-sort": "^12.1.0",
+    "happy-dom": "^20.9.0",
+    "jsdom": "^27.0.1",
     "postcss": "^8.4.35",
     "prettier-plugin-tailwindcss": "^0.5.14",
     "shadcn": "^3.5.1",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3",
-    "vite": "^5.1.4"
+    "vite": "^5.1.4",
+    "vitest": "^4.1.5"
   }
 }

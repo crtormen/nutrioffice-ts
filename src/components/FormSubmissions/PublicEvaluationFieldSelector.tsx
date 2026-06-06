@@ -17,10 +17,11 @@ import {
   IEnabledEvaluationFields,
   IMeasurePoint,
 } from "@/domain/entities/evaluation";
+import { AppointmentType } from "@/domain/entities/formSubmission";
 import { useAuth } from "@/infra/firebase/hooks/useAuth";
 
 interface PublicEvaluationFieldSelectorProps {
-  appointmentType: "online" | "presencial";
+  appointmentType: AppointmentType;
   enabledFields: IEnabledEvaluationFields | null | undefined;
 }
 
@@ -49,12 +50,14 @@ export function PublicEvaluationFieldSelector({
     bioimpedance: false,
   });
 
+  const evalConfigKey = appointmentType === "reavaliacao" ? "online" : appointmentType;
+
   useEffect(() => {
     if (initialEnabledFields) {
       setEnabledFields(initialEnabledFields);
     } else if (evaluationConfig && !initialEnabledFields) {
       // If no saved configuration exists, enable all available fields by default
-      const config = evaluationConfig[appointmentType];
+      const config = evaluationConfig[evalConfigKey];
       if (config) {
         setEnabledFields({
           weight: config.fields.weight?.enabled || false,
@@ -78,7 +81,7 @@ export function PublicEvaluationFieldSelector({
     );
   }
 
-  const config = evaluationConfig?.[appointmentType];
+  const config = evaluationConfig?.[evalConfigKey];
 
   if (!config) {
     return (

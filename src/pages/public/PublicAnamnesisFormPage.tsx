@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -46,6 +46,11 @@ const customerDataSchema = z.object({
   cameBy: z.string().optional(),
 });
 
+const reavaliacaoCustomerDataSchema = customerDataSchema.partial().extend({
+  name: z.string().min(1, "Nome é obrigatório"),
+  phone: z.string().min(1, "Telefone é obrigatório"),
+});
+
 type CustomerData = z.infer<typeof customerDataSchema>;
 
 export default function PublicAnamnesisFormPage() {
@@ -79,7 +84,11 @@ export default function PublicAnamnesisFormPage() {
     watch,
     formState: { errors },
   } = useForm<CustomerData>({
-    resolver: zodResolver(customerDataSchema),
+    resolver: (data, ctx, options) => {
+      const isReavaliacao = formConfig?.appointmentType === "reavaliacao";
+      const schema = isReavaliacao ? reavaliacaoCustomerDataSchema : customerDataSchema;
+      return zodResolver(schema)(data, ctx, options);
+    },
   });
 
   const selectedGender = watch("gender");
@@ -155,7 +164,7 @@ export default function PublicAnamnesisFormPage() {
     setAnamnesisData((prev) => ({ ...prev, [fieldId]: value }));
   };
 
-  const handlePhotosChange = (photos: {
+  const handlePhotosChange = useCallback((photos: {
     front?: string;
     back?: string;
     side?: string;
@@ -164,7 +173,7 @@ export default function PublicAnamnesisFormPage() {
       ...prev,
       photos,
     }));
-  };
+  }, []);
 
   const renderAnamnesisField = (
     fieldId: string,
@@ -411,7 +420,8 @@ export default function PublicAnamnesisFormPage() {
 
   // Form state
   const appointmentTypeLabel =
-    formConfig.appointmentType === "online" ? "Online" : "Presencial";
+    formConfig.appointmentType === "online" ? "Online" : 
+    formConfig.appointmentType === "reavaliacao" ? "Reavaliação" : "Presencial";
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 py-8">
@@ -457,140 +467,177 @@ export default function PublicAnamnesisFormPage() {
                   1
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold">Dados Pessoais</h3>
+                  <h3 className="text-xl font-bold">
+                    {formConfig?.appointmentType === "reavaliacao"
+                      ? "Identificação"
+                      : "Dados Pessoais"}
+                  </h3>
                   <p className="text-sm text-muted-foreground">
-                    Preencha suas informações básicas
+                    {formConfig?.appointmentType === "reavaliacao"
+                      ? "Para identificarmos seu cadastro"
+                      : "Preencha suas informações básicas"}
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="name">
-                    Nome Completo <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="name"
-                    {...register("name")}
-                    placeholder="Seu nome completo"
-                  />
-                  {errors.name && (
-                    <p className="text-sm text-red-500">
-                      {errors.name.message}
-                    </p>
-                  )}
+              {formConfig?.appointmentType === "reavaliacao" ? (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">
+                      Nome Completo <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="name"
+                      {...register("name")}
+                      placeholder="Seu nome completo"
+                    />
+                    {errors.name && (
+                      <p className="text-sm text-red-500">{errors.name.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">
+                      Telefone/WhatsApp <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="phone"
+                      {...register("phone")}
+                      placeholder="(00) 00000-0000"
+                    />
+                    {errors.phone && (
+                      <p className="text-sm text-red-500">{errors.phone.message}</p>
+                    )}
+                  </div>
                 </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">
+                      Nome Completo <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="name"
+                      {...register("name")}
+                      placeholder="Seu nome completo"
+                    />
+                    {errors.name && (
+                      <p className="text-sm text-red-500">
+                        {errors.name.message}
+                      </p>
+                    )}
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">
-                    Email <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    {...register("email")}
-                    placeholder="seu@email.com"
-                  />
-                  {errors.email && (
-                    <p className="text-sm text-red-500">
-                      {errors.email.message}
-                    </p>
-                  )}
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">
+                      Email <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      {...register("email")}
+                      placeholder="seu@email.com"
+                    />
+                    {errors.email && (
+                      <p className="text-sm text-red-500">
+                        {errors.email.message}
+                      </p>
+                    )}
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone">
-                    Telefone/WhatsApp <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="phone"
-                    {...register("phone")}
-                    placeholder="(00) 00000-0000"
-                  />
-                  {errors.phone && (
-                    <p className="text-sm text-red-500">
-                      {errors.phone.message}
-                    </p>
-                  )}
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">
+                      Telefone/WhatsApp <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="phone"
+                      {...register("phone")}
+                      placeholder="(00) 00000-0000"
+                    />
+                    {errors.phone && (
+                      <p className="text-sm text-red-500">
+                        {errors.phone.message}
+                      </p>
+                    )}
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="cpf">
-                    CPF <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="cpf"
-                    {...register("cpf")}
-                    placeholder="000.000.000-00"
-                  />
-                  {errors.cpf && (
-                    <p className="text-sm text-red-500">{errors.cpf.message}</p>
-                  )}
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cpf">
+                      CPF <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="cpf"
+                      {...register("cpf")}
+                      placeholder="000.000.000-00"
+                    />
+                    {errors.cpf && (
+                      <p className="text-sm text-red-500">{errors.cpf.message}</p>
+                    )}
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="gender">
-                    Gênero <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    onValueChange={(value: "H" | "M") =>
-                      setValue("gender", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="H">Masculino</SelectItem>
-                      <SelectItem value="M">Feminino</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.gender && (
-                    <p className="text-sm text-red-500">
-                      {errors.gender.message}
-                    </p>
-                  )}
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">
+                      Gênero <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      onValueChange={(value: "H" | "M") =>
+                        setValue("gender", value)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="H">Masculino</SelectItem>
+                        <SelectItem value="M">Feminino</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.gender && (
+                      <p className="text-sm text-red-500">
+                        {errors.gender.message}
+                      </p>
+                    )}
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="birthday">
-                    Data de Nascimento <span className="text-red-500">*</span>
-                  </Label>
-                  <Input id="birthday" type="date" {...register("birthday")} />
-                  {errors.birthday && (
-                    <p className="text-sm text-red-500">
-                      {errors.birthday.message}
-                    </p>
-                  )}
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="birthday">
+                      Data de Nascimento <span className="text-red-500">*</span>
+                    </Label>
+                    <Input id="birthday" type="date" {...register("birthday")} />
+                    {errors.birthday && (
+                      <p className="text-sm text-red-500">
+                        {errors.birthday.message}
+                      </p>
+                    )}
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="occupation">Profissão</Label>
-                  <Input
-                    id="occupation"
-                    {...register("occupation")}
-                    placeholder="Sua profissão"
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="occupation">Profissão</Label>
+                    <Input
+                      id="occupation"
+                      {...register("occupation")}
+                      placeholder="Sua profissão"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="instagram">Instagram</Label>
-                  <Input
-                    id="instagram"
-                    {...register("instagram")}
-                    placeholder="@seu_instagram"
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="instagram">Instagram</Label>
+                    <Input
+                      id="instagram"
+                      {...register("instagram")}
+                      placeholder="@seu_instagram"
+                    />
+                  </div>
 
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="cameBy">Como conheceu nosso trabalho?</Label>
-                  <Input
-                    id="cameBy"
-                    {...register("cameBy")}
-                    placeholder="Indicação, redes sociais, etc."
-                  />
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="cameBy">Como conheceu nosso trabalho?</Label>
+                    <Input
+                      id="cameBy"
+                      {...register("cameBy")}
+                      placeholder="Indicação, redes sociais, etc."
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Section 2: Anamnesis */}

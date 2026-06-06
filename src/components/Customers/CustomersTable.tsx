@@ -20,9 +20,7 @@ const CustomersTable = () => {
       <DataTable
         columns={columns}
         data={customers}
-        customSearchComponent={
-          <CustomerSearchInput value="" onChange={() => {}} />
-        }
+        customSearchComponent={<CustomerSearchInput value="" onChange={() => {}} />}
         globalFilterFn={customerFuzzyFilter}
       />
     )

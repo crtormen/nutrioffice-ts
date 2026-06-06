@@ -1,0 +1,768 @@
+{
+  "timestamp": "2026-01-12T13:33:32.005Z",
+  "userId": "P0gkEAaP8YSARPyS5pKak6ZWss13",
+  "metrics": {
+    "rmse": 17.422720970043684,
+    "mae": 13.433399999999999,
+    "rSquared": -1.0588242382188437,
+    "withinThreshold": 7,
+    "percentWithinThreshold": 14.000000000000002,
+    "avgConfidence": 0.6764000000000001,
+    "avgImageQuality": 74.42,
+    "totalTests": 50,
+    "successfulTests": 50,
+    "failedTests": 0
+  },
+  "results": [
+    {
+      "consultaId": "2an5crRxQH9rsMaeuxjv",
+      "customerId": "00lrQFqNWz7wCuG8vsFJ",
+      "date": {
+        "_seconds": 1571886000,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 7.96,
+      "aiBodyFat": 22,
+      "error": 14.04,
+      "relativeError": 176.3819095477387,
+      "confidence": 0.75,
+      "imageQuality": 83,
+      "status": "success"
+    },
+    {
+      "consultaId": "VTzVUgGDslQm0fFz8y6k",
+      "customerId": "00lrQFqNWz7wCuG8vsFJ",
+      "date": {
+        "_seconds": 1569196800,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 7.39,
+      "aiBodyFat": 21,
+      "error": 13.61,
+      "relativeError": 184.16779431664412,
+      "confidence": 0.75,
+      "imageQuality": 83,
+      "status": "success"
+    },
+    {
+      "consultaId": "vfGAiPeirdF01zKmJjLN",
+      "customerId": "00lrQFqNWz7wCuG8vsFJ",
+      "date": {
+        "_seconds": 1554336000,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 6.6,
+      "aiBodyFat": 14,
+      "error": 7.4,
+      "relativeError": 112.12121212121214,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "2AfgxVMS4HFiaAawWfs0",
+      "customerId": "0674c59hltqx91QuOUrZ",
+      "date": {
+        "_seconds": 1691636400,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 3.09,
+      "aiBodyFat": 32,
+      "error": 28.91,
+      "relativeError": 935.5987055016183,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "HnAk5dipOlOfmow9ZnHk",
+      "customerId": "0674c59hltqx91QuOUrZ",
+      "date": {
+        "_seconds": 1694574000,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 3.09,
+      "aiBodyFat": 32,
+      "error": 28.91,
+      "relativeError": 935.5987055016183,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "V8gI6AM8vukQqJzmddS6",
+      "customerId": "0674c59hltqx91QuOUrZ",
+      "date": {
+        "_seconds": 1688612400,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 3.09,
+      "aiBodyFat": 32,
+      "error": 28.91,
+      "relativeError": 935.5987055016183,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "MXvmwgzHnPYnCwqSxMzH",
+      "customerId": "09WtdhGJzhebx3kylBBG",
+      "date": {
+        "_seconds": 1733886000,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 18.05,
+      "aiBodyFat": 38,
+      "error": 19.95,
+      "relativeError": 110.52631578947367,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "RyCRQKpg4f4p8MtKKpHd",
+      "customerId": "09WtdhGJzhebx3kylBBG",
+      "date": {
+        "_seconds": 1723604400,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 28.26,
+      "aiBodyFat": 38,
+      "error": 9.739999999999998,
+      "relativeError": 34.465675866949745,
+      "confidence": 0.75,
+      "imageQuality": 83,
+      "status": "success"
+    },
+    {
+      "consultaId": "wJEfKvoYdvmP1dgI6iQ4",
+      "customerId": "09bmaAwUdmCfUkkHVN3s",
+      "date": {
+        "_seconds": 1633489200,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 9.27,
+      "aiBodyFat": 21,
+      "error": 11.73,
+      "relativeError": 126.53721682847899,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "yWvrkcUl1BGM9Z1vfh3k",
+      "customerId": "09bmaAwUdmCfUkkHVN3s",
+      "date": {
+        "_seconds": 1618196400,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 21.97,
+      "aiBodyFat": 26,
+      "error": 4.030000000000001,
+      "relativeError": 18.343195266272193,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "lrf6JBeG6H9mJJlw5o25",
+      "customerId": "0TEx4xzSPljKr4yiKqfn",
+      "date": {
+        "_seconds": 1582772400,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 23.05,
+      "aiBodyFat": 28,
+      "error": 4.949999999999999,
+      "relativeError": 21.47505422993492,
+      "confidence": 0.75,
+      "imageQuality": 83,
+      "status": "success"
+    },
+    {
+      "consultaId": "zsV1SCHFDkuhIDjIwM1x",
+      "customerId": "0UEkYpV5hsiv8RJbdDa4",
+      "date": {
+        "_seconds": 1598324400,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 14.97,
+      "aiBodyFat": 28,
+      "error": 13.03,
+      "relativeError": 87.04074816299264,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "9hF5QjhOcsCaxIOglPar",
+      "customerId": "0X0dwk6rAr7fVvBAxV9F",
+      "date": {
+        "_seconds": 1715050800,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 16.81,
+      "aiBodyFat": 26,
+      "error": 9.190000000000001,
+      "relativeError": 54.66983938132065,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "0hWJlkrKeSVru0gmMexv",
+      "customerId": "0YnY8AizOsl9OcReV7g1",
+      "date": {
+        "_seconds": 1763348400,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 2.77,
+      "aiBodyFat": 28,
+      "error": 25.23,
+      "relativeError": 910.8303249097472,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "S0TkBUZUtTi7XRnaqTPE",
+      "customerId": "0YnY8AizOsl9OcReV7g1",
+      "date": {
+        "_seconds": 1722222000,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 23.59,
+      "aiBodyFat": 28,
+      "error": 4.41,
+      "relativeError": 18.694362017804156,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "ejo6ULTH39cnkr7207YC",
+      "customerId": "0an9Uor2s1NJ1Wu2fU0U",
+      "date": {
+        "_seconds": 1746673200,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 44.58,
+      "aiBodyFat": 0,
+      "error": -44.58,
+      "relativeError": 100,
+      "confidence": 0,
+      "imageQuality": 0,
+      "status": "success"
+    },
+    {
+      "consultaId": "OVUIXuMOqHsT6913gz4T",
+      "customerId": "0c5faJKpk9L1iyr3lSC5",
+      "date": {
+        "_seconds": 1599620400,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 41.02,
+      "aiBodyFat": 35,
+      "error": -6.020000000000003,
+      "relativeError": 14.675767918088745,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "z1lFFRe91klPZYnJxun7",
+      "customerId": "0f71qP469PC9Ge8x1gHG",
+      "date": {
+        "_seconds": 1580958000,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 28.83,
+      "aiBodyFat": 38,
+      "error": 9.170000000000002,
+      "relativeError": 31.807145334720783,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "aoApPZk7FaXX8mRf8t2w",
+      "customerId": "0fAb7EtQhdhZLhDVzpkf",
+      "date": {
+        "_seconds": 1614049200,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 32.04,
+      "aiBodyFat": 34,
+      "error": 1.9600000000000009,
+      "relativeError": 6.117353308364548,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "UQ2PmRguLe34TK0IbewA",
+      "customerId": "0jHpL796btOAoYl9BNq1",
+      "date": {
+        "_seconds": 1707361200,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 31.53,
+      "aiBodyFat": 32,
+      "error": 0.46999999999999886,
+      "relativeError": 1.4906438312718011,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "hgQtAKxhh2i6SuXiPXBH",
+      "customerId": "0jHpL796btOAoYl9BNq1",
+      "date": {
+        "_seconds": 1718593200,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 19.13,
+      "aiBodyFat": 0,
+      "error": -19.13,
+      "relativeError": 100,
+      "confidence": 0,
+      "imageQuality": 0,
+      "status": "success"
+    },
+    {
+      "consultaId": "LfHoAbHHzYbLBgXJegqp",
+      "customerId": "0zGqSNXDG4mwSDxzG6HL",
+      "date": {
+        "_seconds": 1742439600,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 16.39,
+      "aiBodyFat": 28,
+      "error": 11.61,
+      "relativeError": 70.83587553386211,
+      "confidence": 0.8,
+      "imageQuality": 88,
+      "status": "success"
+    },
+    {
+      "consultaId": "REhVPpUGGiBSrugRLg4Z",
+      "customerId": "18kUrvxGYadrcpm47AiS",
+      "date": {
+        "_seconds": 1761534000,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 2.02,
+      "aiBodyFat": 28,
+      "error": 25.98,
+      "relativeError": 1286.1386138613861,
+      "confidence": 0.6375,
+      "imageQuality": 72,
+      "status": "success"
+    },
+    {
+      "consultaId": "qr9Jks0lvrbGgfiGW5Hh",
+      "customerId": "1CDj1E6jBToYtrEqY3lo",
+      "date": {
+        "_seconds": 1715742000,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 1.82,
+      "aiBodyFat": 38,
+      "error": 36.18,
+      "relativeError": 1987.912087912088,
+      "confidence": 0.595,
+      "imageQuality": 75,
+      "status": "success"
+    },
+    {
+      "consultaId": "OP1QII8FCx3jmEunj006",
+      "customerId": "1Kqs4JVLUKcthJbnE98h",
+      "date": {
+        "_seconds": 1551409200,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 12.36,
+      "aiBodyFat": 18,
+      "error": 5.640000000000001,
+      "relativeError": 45.63106796116506,
+      "confidence": 0.85,
+      "imageQuality": 90,
+      "status": "success"
+    },
+    {
+      "consultaId": "5zr75Idcvrq4vWDhOeSk",
+      "customerId": "1PUPY9PA0PG4Zw6fXAqy",
+      "date": {
+        "_seconds": 1607914800,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 9.7,
+      "aiBodyFat": 14,
+      "error": 4.300000000000001,
+      "relativeError": 44.3298969072165,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "r7OC6AHMd1a2NFwfVYVW",
+      "customerId": "1WzH5rrd0JfPEcwfIFR5",
+      "date": {
+        "_seconds": 1759719600,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 4.37,
+      "aiBodyFat": 28,
+      "error": 23.63,
+      "relativeError": 540.7322654462242,
+      "confidence": 0.6375,
+      "imageQuality": 75,
+      "status": "success"
+    },
+    {
+      "consultaId": "S3HR1qweGe6bVwnMjhJq",
+      "customerId": "1Y0ppZyXoxuRkmuuGVH5",
+      "date": {
+        "_seconds": 1612407600,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 13.66,
+      "aiBodyFat": 21,
+      "error": 7.34,
+      "relativeError": 53.733528550512446,
+      "confidence": 0.85,
+      "imageQuality": 90,
+      "status": "success"
+    },
+    {
+      "consultaId": "UeKj78txxB3VOwA3mRMo",
+      "customerId": "1Y0ppZyXoxuRkmuuGVH5",
+      "date": {
+        "_seconds": 1601434800,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 24.25,
+      "aiBodyFat": 32,
+      "error": 7.75,
+      "relativeError": 31.958762886597935,
+      "confidence": 0.75,
+      "imageQuality": 83,
+      "status": "success"
+    },
+    {
+      "consultaId": "fMk0csdBNChAyUCXAatL",
+      "customerId": "1Y0ppZyXoxuRkmuuGVH5",
+      "date": {
+        "_seconds": 1616554800,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 12.01,
+      "aiBodyFat": 18,
+      "error": 5.99,
+      "relativeError": 49.875104079933394,
+      "confidence": 0.85,
+      "imageQuality": 88,
+      "status": "success"
+    },
+    {
+      "consultaId": "BP4W60jddZUao5OsomzW",
+      "customerId": "1a7aofqTRv5zBjIX14YM",
+      "date": {
+        "_seconds": 1609902000,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 22.52,
+      "aiBodyFat": 28,
+      "error": 5.48,
+      "relativeError": 24.333925399644762,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "PuXtQQ7XmM5BjZGJjZc4",
+      "customerId": "1daUucT0PJjRnfGrVSF4",
+      "date": {
+        "_seconds": 1762484400,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 2.93,
+      "aiBodyFat": 23,
+      "error": 20.07,
+      "relativeError": 684.9829351535835,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "tCtCVFgTqhYbrOVUhdCn",
+      "customerId": "1iCV1P1WtVtIrPIWms23",
+      "date": {
+        "_seconds": 1657594800,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 35.77,
+      "aiBodyFat": 32,
+      "error": -3.770000000000003,
+      "relativeError": 10.53955828906906,
+      "confidence": 0.75,
+      "imageQuality": 87,
+      "status": "success"
+    },
+    {
+      "consultaId": "oau6rWf1bazotAVyapkF",
+      "customerId": "1joLuBAoMxJdYrrxuKbV",
+      "date": {
+        "_seconds": 1761274800,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 3.88,
+      "aiBodyFat": 24,
+      "error": 20.12,
+      "relativeError": 518.5567010309279,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "I1BBPhVbpkaQgtMcRbNG",
+      "customerId": "1pFui2LXYqL9YR63V9Bn",
+      "date": {
+        "_seconds": 1653966000,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 25.39,
+      "aiBodyFat": 26,
+      "error": 0.6099999999999994,
+      "relativeError": 2.4025206774320575,
+      "confidence": 0.75,
+      "imageQuality": 83,
+      "status": "success"
+    },
+    {
+      "consultaId": "CNeTlFYE1lsOB8EbrXyw",
+      "customerId": "1rKbLRGbTHO6Q1SWnnCI",
+      "date": {
+        "_seconds": 1637809200,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 21.32,
+      "aiBodyFat": 33,
+      "error": 11.68,
+      "relativeError": 54.78424015009381,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "jaqJVoBZ6uhrwT1v8L9V",
+      "customerId": "1rKbLRGbTHO6Q1SWnnCI",
+      "date": {
+        "_seconds": 1629946800,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 31.5,
+      "aiBodyFat": 32,
+      "error": 0.5,
+      "relativeError": 1.5873015873015872,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "ECZWJAHoB6CkKYyXqEJl",
+      "customerId": "1xUbEAtLLgcgZkGkfYO9",
+      "date": {
+        "_seconds": 1573441200,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 31.9,
+      "aiBodyFat": 33,
+      "error": 1.1000000000000014,
+      "relativeError": 3.44827586206897,
+      "confidence": 0.75,
+      "imageQuality": 83,
+      "status": "success"
+    },
+    {
+      "consultaId": "jDHpRceTz4oomtjhqphR",
+      "customerId": "2650BIrJOwbTzObovpxL",
+      "date": {
+        "_seconds": 1548892800,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 39.75,
+      "aiBodyFat": 0,
+      "error": -39.75,
+      "relativeError": 100,
+      "confidence": 0,
+      "imageQuality": 0,
+      "status": "success"
+    },
+    {
+      "consultaId": "745quWP3OTaNzpeVGFrn",
+      "customerId": "28IYmyypOiwRNrQ3ntHh",
+      "date": {
+        "_seconds": 1555286400,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 25.44,
+      "aiBodyFat": 0,
+      "error": -25.44,
+      "relativeError": 100,
+      "confidence": 0,
+      "imageQuality": 0,
+      "status": "success"
+    },
+    {
+      "consultaId": "vx8wSJ1iM5Ol4Vypqr8Q",
+      "customerId": "2AIEPMYy6x7F6mzXtESm",
+      "date": {
+        "_seconds": 1763348400,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 37.94,
+      "aiBodyFat": 34,
+      "error": -3.9399999999999977,
+      "relativeError": 10.38481813389562,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "8UUkiqgIdVQxwjZqTtpF",
+      "customerId": "2Cjjm1VuQ9nyi0dQjCx7",
+      "date": {
+        "_seconds": 1701313200,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 15.98,
+      "aiBodyFat": 22,
+      "error": 6.02,
+      "relativeError": 37.6720901126408,
+      "confidence": 0.85,
+      "imageQuality": 90,
+      "status": "success"
+    },
+    {
+      "consultaId": "Eiv3tLiSYwRs7GLak7XH",
+      "customerId": "2Cjjm1VuQ9nyi0dQjCx7",
+      "date": {
+        "_seconds": 1693882800,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 21.41,
+      "aiBodyFat": 0,
+      "error": -21.41,
+      "relativeError": 100,
+      "confidence": 0,
+      "imageQuality": 0,
+      "status": "success"
+    },
+    {
+      "consultaId": "HKHhsb8u6jUkN0XoIWhk",
+      "customerId": "2PrQgvaTQtdM3Ps5ZAM9",
+      "date": {
+        "_seconds": 1590462000,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 30.03,
+      "aiBodyFat": 32,
+      "error": 1.9699999999999989,
+      "relativeError": 6.560106560106556,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "zrPbwWYZTfIW5FDb3WXA",
+      "customerId": "2WDI0b1h8n2Poz1JOWpw",
+      "date": {
+        "_seconds": 1730689200,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 40.96,
+      "aiBodyFat": 38,
+      "error": -2.960000000000001,
+      "relativeError": 7.226562500000002,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "niYO3kWVMG4z0YaIB7We",
+      "customerId": "2WZsefkwoS6ZqkA39wOm",
+      "date": {
+        "_seconds": 1763348400,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 3.88,
+      "aiBodyFat": 38,
+      "error": 34.12,
+      "relativeError": 879.381443298969,
+      "confidence": 0.75,
+      "imageQuality": 83,
+      "status": "success"
+    },
+    {
+      "consultaId": "AEcMSjcbRPOAa5wDIZcK",
+      "customerId": "2dqmrq2koYON6RBkND4E",
+      "date": {
+        "_seconds": 1617591600,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 24.52,
+      "aiBodyFat": 32,
+      "error": 7.48,
+      "relativeError": 30.505709624796083,
+      "confidence": 0.75,
+      "imageQuality": 83,
+      "status": "success"
+    },
+    {
+      "consultaId": "zRSTtOpHDDMP5NGGsQRm",
+      "customerId": "2fPgkCupUT0OOB3pqQpl",
+      "date": {
+        "_seconds": 1602558000,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 29.59,
+      "aiBodyFat": 38,
+      "error": 8.41,
+      "relativeError": 28.42176410949645,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    },
+    {
+      "consultaId": "17X0FoZfx32CakD5crqP",
+      "customerId": "2wn5mxKlhbWpnBBOVqig",
+      "date": {
+        "_seconds": 1704337200,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 30.5,
+      "aiBodyFat": 42,
+      "error": 11.5,
+      "relativeError": 37.704918032786885,
+      "confidence": 0.75,
+      "imageQuality": 87,
+      "status": "success"
+    },
+    {
+      "consultaId": "VV3PdFvVmyKIrXAd89m6",
+      "customerId": "2wn5mxKlhbWpnBBOVqig",
+      "date": {
+        "_seconds": 1722481200,
+        "_nanoseconds": 0
+      },
+      "manualBodyFat": 20.45,
+      "aiBodyFat": 32,
+      "error": 11.55,
+      "relativeError": 56.47921760391199,
+      "confidence": 0.75,
+      "imageQuality": 82,
+      "status": "success"
+    }
+  ]
+}

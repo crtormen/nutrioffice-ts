@@ -25,8 +25,8 @@ const RequireAuthLayout = ({ allowedRoles, children }: AuthProps) => {
   // Load default settings from DB
   useFetchSettingsQuery(user?.uid);
 
-  const loading = authLoading || profileLoading;
-  const isAuthenticated = !!user && !!userProfile && !profileLoading;
+  const loading = authLoading || (!!user && profileLoading);
+  const isAuthenticated = !!user;
 
   if (loading) return <LoadingSpinner />;
   if (!isAuthenticated)

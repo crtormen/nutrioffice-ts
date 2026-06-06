@@ -39,7 +39,7 @@ export function PhotoUploadSection({
   // Notify parent whenever uploadedUrls changes
   useEffect(() => {
     onPhotosChange(uploadedUrls);
-  }, [uploadedUrls, onPhotosChange]);
+  }, [uploadedUrls]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFileSelect = useCallback(
     async (position: string, file: File) => {

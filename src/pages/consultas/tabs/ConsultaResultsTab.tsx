@@ -47,8 +47,8 @@ const ConsultaResultsTab: React.FC = () => {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">Metas e Resultados</h3>
         <div className="flex gap-2">
-          {consulta && (
-            <ConsultaPDFReport consulta={consulta} customer={customer} />
+          {consulta && customerId && (
+            <ConsultaPDFReport consulta={consulta} customer={customer} customerId={customerId} />
           )}
           <NewGoalDialog
             consulta={

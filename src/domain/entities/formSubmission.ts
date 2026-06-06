@@ -11,7 +11,7 @@ export type FormSubmissionStatus = "pending" | "approved" | "rejected";
 /**
  * Appointment type for form submissions
  */
-export type AppointmentType = "online" | "presencial";
+export type AppointmentType = "online" | "presencial" | "reavaliacao";
 
 /**
  * Form submission entity (Firebase format with Timestamp)

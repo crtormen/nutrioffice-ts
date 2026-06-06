@@ -1,4 +1,6 @@
 export * from "./anamnesis";
+export * from "./crm";
+export * from "./lead";
 export * from "./analytics";
 export * from "./consulta";
 export * from "./finances";

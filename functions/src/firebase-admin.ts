@@ -22,3 +22,8 @@ if (getApps().length === 0) {
 export const db = getFirestore();
 export const auth = getAuth();
 export const storage = getStorage();
+
+// Point Admin SDK to local emulators when running in the Functions emulator
+if (process.env.FUNCTIONS_EMULATOR === "true") {
+  db.settings({ host: "localhost:8080", ssl: false });
+}

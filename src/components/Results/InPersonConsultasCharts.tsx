@@ -71,7 +71,7 @@ export const InPersonConsultasCharts = ({
         )
     : [];
 
-  const formatedDate = sortedConsultas.slice(0, 5).map((c) => {
+  const formatedDate = sortedConsultas.slice(0, 6).map((c) => {
     let date;
     if (c.date) {
       try {
@@ -102,7 +102,7 @@ export const InPersonConsultasCharts = ({
             {displayConsulta.results ? (
               <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-2">
                 {/* Pie Chart */}
-                <div className="flex justify-center">
+                <div className="flex justify-center" data-chart-type="composition">
                   <CompositionChart consulta={displayConsulta} />
                 </div>
 
@@ -166,14 +166,14 @@ export const InPersonConsultasCharts = ({
             </CardTitle>
             <CardDescription>Últimas 6 consultas</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ResultsChart param="fat" goal={activeGoal} />
+          <CardContent data-chart-type="fat-progress">
+            <ResultsChart param="fat" />
           </CardContent>
         </Card>
       </div>
 
       {/* Body Composition Bar Chart Over Time */}
-      {customerId && dbUid && (
+      {/* {customerId && dbUid && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
@@ -191,7 +191,7 @@ export const InPersonConsultasCharts = ({
             />
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       {/* Data Tables Section */}
       <Card>
@@ -214,13 +214,13 @@ export const InPersonConsultasCharts = ({
                 <tbody>
                   {RESULTS.map((metric) => (
                     <tr key={metric.value} className="border-b">
-                      <td className="px-2 py-2 text-muted-foreground">
+                      <td className="px-2 py-2 text-muted-foreground w-1/5">
                         {metric.label}
                       </td>
-                      {sortedConsultas.slice(0, 5).map((c) => (
+                      {sortedConsultas.slice(0, 6).map((c) => (
                         <td
                           key={c.id}
-                          className="px-2 py-2 text-center font-medium"
+                          className={"px-2 py-2 text-center font-medium ".concat(c.id === displayConsulta.id ? "bg-primary/20" : "")}
                         >
                           {c.results?.[metric.value as keyof typeof c.results] || "-"}
                         </td>
@@ -230,10 +230,10 @@ export const InPersonConsultasCharts = ({
                   {/* Add peso row */}
                   <tr className="border-b">
                     <td className="px-2 py-2 text-muted-foreground">Peso</td>
-                    {sortedConsultas.slice(0, 5).map((c) => (
+                    {sortedConsultas.slice(0, 6).map((c) => (
                       <td
                         key={c.id}
-                        className="px-2 py-2 text-center font-medium"
+                        className={"px-2 py-2 text-center font-medium ".concat(c.id === displayConsulta.id ? "bg-primary/20" : "")}
                       >
                         {c.peso ? `${c.peso} kg` : "-"}
                       </td>
@@ -260,13 +260,13 @@ export const InPersonConsultasCharts = ({
                 <tbody>
                   {FOLDS.map((fold) => (
                     <tr key={fold.value} className="border-b">
-                      <td className="px-2 py-2 capitalize text-muted-foreground">
+                      <td className="px-2 py-2 capitalize text-muted-foreground w-1/5">
                         {fold.label}
                       </td>
-                      {sortedConsultas.slice(0, 5).map((c) => (
+                      {sortedConsultas.slice(0, 6).map((c) => (
                         <td
                           key={c.id}
-                          className="px-2 py-2 text-center font-medium"
+                          className={"px-2 py-2 text-center font-medium ".concat(c.id === displayConsulta.id ? "bg-primary/20" : "")}
                         >
                           {c.dobras?.[fold.value as keyof typeof c.dobras]
                             ? `${c.dobras[fold.value as keyof typeof c.dobras]} mm`
@@ -296,13 +296,13 @@ export const InPersonConsultasCharts = ({
                 <tbody>
                   {MEASURES.map((measure) => (
                     <tr key={measure.value} className="border-b">
-                      <td className="px-2 py-2 capitalize text-muted-foreground">
+                      <td className="px-2 py-2 capitalize text-muted-foreground w-1/5">
                         {measure.label}
                       </td>
-                      {sortedConsultas.slice(0, 5).map((c) => (
+                      {sortedConsultas.slice(0, 6).map((c) => (
                         <td
                           key={c.id}
-                          className="px-2 py-2 text-center font-medium"
+                          className={"px-2 py-2 text-center font-medium ".concat(c.id === displayConsulta.id ? "bg-primary/20" : "")}
                         >
                           {c.medidas?.[measure.value as keyof typeof c.medidas]
                             ? `${c.medidas[measure.value as keyof typeof c.medidas]} cm`

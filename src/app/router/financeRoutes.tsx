@@ -1,13 +1,13 @@
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import { Route } from "react-router-dom";
 
 import RequireAuthLayout from "@/pages/_layouts/RequireAuthLayout";
 
-import { LoadingFallback } from "./LoadingFallback";
+import { lazyWithReload, LoadingFallback } from "./LoadingFallback";
 import { ROUTE_PATHS } from "./routes";
 
-const FinancesPage = React.lazy(() => import("@/pages/finances/FinancesPage"));
-const FinanceDetailsPage = React.lazy(
+const FinancesPage = lazyWithReload(() => import("@/pages/finances/FinancesPage"));
+const FinanceDetailsPage = lazyWithReload(
   () => import("@/pages/finances/FinanceDetailsPage"),
 );
 

@@ -26,6 +26,7 @@ export const useSetAnamnesisField = (
       fieldToEdit?: FieldValuesSetting,
       fieldType?: string,
     ) => {
+      if (!user?.uid) return;
       let options = {};
       data.options.forEach((item) => {
         if (item.option.length === 0) return; // empty string added
@@ -72,7 +73,7 @@ export const useSetAnamnesisField = (
           );
         });
     },
-    [],
+    [user, anamnesisFields, updateCustomSettings, setDialogOpen],
   );
 
   return { handleSubmitAnamnesisField };

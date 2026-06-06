@@ -43,6 +43,7 @@ export interface ISettings {
 export interface IAllSettings {
   custom?: ISettings;
   default?: ISettings;
+  crm?: import("./crm").ICrmSettings;
 }
 
 export const SERVICE_CATEGORIES: Record<

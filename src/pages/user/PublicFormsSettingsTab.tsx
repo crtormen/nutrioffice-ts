@@ -25,7 +25,7 @@ import { useAuth } from "@/infra/firebase/hooks/useAuth";
 export default function PublicFormsSettingsTab() {
   const { dbUid } = useAuth();
   const [regeneratingType, setRegeneratingType] = useState<
-    "online" | "presencial" | null
+    "online" | "presencial" | "reavaliacao" | null
   >(null);
 
   const {
@@ -39,7 +39,7 @@ export default function PublicFormsSettingsTab() {
   const [generateToken, { isLoading: isGenerating }] =
     useGenerateAnamnesisTokenMutation();
 
-  const handleRegenerateToken = async (type: "online" | "presencial") => {
+  const handleRegenerateToken = async (type: "online" | "presencial" | "reavaliacao") => {
     if (!dbUid) return;
 
     setRegeneratingType(type);
@@ -49,9 +49,8 @@ export default function PublicFormsSettingsTab() {
         type,
       }).unwrap();
 
-      toast.success(
-        `Link ${type === "online" ? "Online" : "Presencial"} regenerado com sucesso!`,
-      );
+      const typeLabel = type === "online" ? "Online" : type === "presencial" ? "Presencial" : "Reavaliação";
+      toast.success(`Link ${typeLabel} regenerado com sucesso!`);
     } catch (error: unknown) {
       const errorMessage =
         error && typeof error === "object" && "data" in error
@@ -103,10 +102,13 @@ export default function PublicFormsSettingsTab() {
   const {
     onlineToken,
     presencialToken,
+    reavaliacaoToken,
     onlineEnabledFields,
     presencialEnabledFields,
+    reavaliacaoEnabledFields,
     onlineEnabledEvaluationFields,
     presencialEnabledEvaluationFields,
+    reavaliacaoEnabledEvaluationFields,
   } = tokensData || {};
 
   return (
@@ -233,6 +235,61 @@ export default function PublicFormsSettingsTab() {
             <PublicEvaluationFieldSelector
               appointmentType="presencial"
               enabledFields={presencialEnabledEvaluationFields}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Reavaliação Form */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Formulário de Reavaliação Online</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleRegenerateToken("reavaliacao")}
+              disabled={isGenerating || regeneratingType === "reavaliacao"}
+            >
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${regeneratingType === "reavaliacao" ? "animate-spin" : ""}`}
+              />
+              Regenerar Link
+            </Button>
+          </CardTitle>
+          <CardDescription>
+            Link para pacientes em acompanhamento online realizarem reavaliação
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {reavaliacaoToken ? (
+            <TokenDisplay token={reavaliacaoToken} type="reavaliacao" />
+          ) : (
+            <Button
+              onClick={() => handleRegenerateToken("reavaliacao")}
+              disabled={isGenerating}
+            >
+              Gerar Link de Reavaliação
+            </Button>
+          )}
+
+          <Separator />
+
+          <div>
+            <h4 className="mb-3 text-sm font-medium">Campos de Anamnese</h4>
+            <PublicFormFieldSelector
+              appointmentType="reavaliacao"
+              enabledFields={reavaliacaoEnabledFields || []}
+            />
+          </div>
+
+          <Separator />
+
+          <div>
+            <h4 className="mb-3 text-sm font-medium">Campos de Avaliação</h4>
+            <PublicEvaluationFieldSelector
+              appointmentType="reavaliacao"
+              enabledFields={reavaliacaoEnabledEvaluationFields}
             />
           </div>
         </CardContent>

@@ -11,6 +11,12 @@ service firebase.storage {
       allow read: if true;
     }
 
+    // Profile avatars - authenticated users only
+    match /avatars/{userId}/{filename} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
     // Brand logos - authenticated users only
     match /logos/{userId}/{filename} {
       allow read: if true; // Public read for logos

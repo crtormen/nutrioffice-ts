@@ -16,7 +16,7 @@ const getAuthToken = async (): Promise<string> => {
   if (!user) {
     throw new Error("User not authenticated");
   }
-  return await user.getIdToken();
+  return await user.getIdToken(true);
 };
 
 /**

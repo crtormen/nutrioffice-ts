@@ -15,7 +15,7 @@ export const newAnamnesisFieldValidationSchema = z.object({
       option: z.string(),
       optionId: z.string(),
     }),
-  ),
+  ).default([]),
 });
 
 export type newAnamnesisFieldFormInputs = z.infer<

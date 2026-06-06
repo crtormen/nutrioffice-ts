@@ -10,11 +10,12 @@
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": ["tsconfig.json"],
     "sourceType": "module"
   },
   "ignorePatterns": [
-    "/lib/**/*"
+    "/lib/**/*",
+    "**/*.test.ts",
+    "vitest.config.ts"
   ],
   "plugins": [
     "@typescript-eslint"

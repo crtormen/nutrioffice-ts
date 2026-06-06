@@ -477,4 +477,78 @@ export const updateLastConsultaDate = onDocumentUpdated(
   }
 );
 
+/**
+ * One-shot callable: finds all customers whose name contains "Consultoria"
+ * and who are missing the lastConsultaDate field, then backfills it from
+ * their most recent consulta.
+ *
+ * Call from the Firebase console or from a Cloud Function test runner.
+ * Expects { userId } in the request data.
+ */
+export const backfillLastConsultaDate = onCall(async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid) {
+    throw new Error("unauthenticated");
+  }
+
+  const { userId } = request.data as { userId: string };
+  if (!userId) {
+    throw new Error("userId is required");
+  }
+
+  const db = getFirestore();
+  const customersRef = db.collection(`/users/${userId}/customers`);
+
+  // Firestore doesn't support "field does not exist" queries directly, so we
+  // fetch all customers and filter in memory for name + missing field.
+  const allConsultoriaSnap = await customersRef.get();
+
+  const targets = allConsultoriaSnap.docs.filter((doc) => {
+    const data = doc.data();
+    const nameMatches =
+      typeof data.name === "string" &&
+      data.name.toLowerCase().includes("consultoria");
+    const missingField =
+      data.lastConsultaDate === undefined || data.lastConsultaDate === null;
+    return nameMatches && missingField;
+  });
+
+  functions.logger.info(
+    `backfillLastConsultaDate: found ${targets.length} customers to backfill`
+  );
+
+  let updated = 0;
+  let skipped = 0;
+
+  for (const customerDoc of targets) {
+    const customerId = customerDoc.id;
+    const consultasRef = customersRef.doc(customerId).collection("consultas");
+
+    const latestSnap = await consultasRef
+      .orderBy("date", "desc")
+      .limit(1)
+      .get();
+
+    if (latestSnap.empty) {
+      functions.logger.info(
+        `No consultas for customer ${customerId}, skipping`
+      );
+      skipped++;
+      continue;
+    }
+
+    const latestDate = latestSnap.docs[0].data().date as FirebaseFirestore.Timestamp;
+
+    await customersRef.doc(customerId).update({
+      lastConsultaDate: latestDate,
+    });
+
+    functions.logger.info(
+      `Updated lastConsultaDate for customer ${customerId}`
+    );
+    updated++;
+  }
+
+  return { updated, skipped, total: targets.length };
+});
 

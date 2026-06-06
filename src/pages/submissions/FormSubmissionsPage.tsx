@@ -9,6 +9,8 @@ import {
   useFetchFormSubmissionsQuery,
   useRejectFormSubmissionMutation,
 } from "@/app/state/features/formSubmissionsSlice";
+import { selectAnamnesisSettings, useFetchSettingsQuery } from "@/app/state/features/settingsSlice";
+import { useAppSelector } from "@/app/state/hooks";
 import { columns } from "@/components/FormSubmissions/columns";
 import { PublicFormLinksCard } from "@/components/FormSubmissions/PublicFormLinksCard";
 import { SubmissionDetailsDialog } from "@/components/FormSubmissions/SubmissionDetailsDialog";
@@ -42,6 +44,9 @@ export default function FormSubmissionsPage() {
   const [selectedSubmission, setSelectedSubmission] =
     useState<IFormSubmission | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+
+  useFetchSettingsQuery(dbUid || "", { skip: !dbUid });
+  const anamnesisFields = useAppSelector(selectAnamnesisSettings(dbUid));
 
   // Fetch submissions with real-time updates
   const {
@@ -310,6 +315,7 @@ export default function FormSubmissionsPage() {
           open={detailsDialogOpen}
           onOpenChange={setDetailsDialogOpen}
           submission={selectedSubmission}
+          anamnesisFields={anamnesisFields}
           onApprove={() => handleApprove(selectedSubmission)}
           onReject={() => handleReject(selectedSubmission)}
           isApproving={isApproving}

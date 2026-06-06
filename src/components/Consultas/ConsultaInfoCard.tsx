@@ -1,4 +1,5 @@
 import { differenceInYears, parse } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Calendar, Hash, TrendingUp, User, UserCircle } from "lucide-react";
 
 import { useFetchCustomerConsultasQuery } from "@/app/state/features/customerConsultasSlice";
@@ -26,12 +27,16 @@ export function ConsultaInfoCard({
     customerId,
   });
 
-  // Calculate age from birthday
   const calculateAge = (birthday?: string): number | null => {
     if (!birthday) return null;
     try {
-      const birthDate = new Date(birthday);
-      return differenceInYears(new Date(), birthDate);
+      // Try pt-BR locale string format first (e.g. "21 de setembro de 1974")
+      const ptParsed = parse(birthday, "d 'de' MMMM 'de' yyyy", new Date(), { locale: ptBR });
+      if (!isNaN(ptParsed.getTime())) return differenceInYears(new Date(), ptParsed);
+      // Fallback for ISO or other parseable formats
+      const fallback = new Date(birthday);
+      if (!isNaN(fallback.getTime())) return differenceInYears(new Date(), fallback);
+      return null;
     } catch {
       return null;
     }
@@ -40,8 +45,8 @@ export function ConsultaInfoCard({
   // Get gender label
   const getGenderLabel = (gender?: string): string => {
     if (!gender) return "Não informado";
-    if (gender === "M") return "Masculino";
-    if (gender === "F") return "Feminino";
+    if (gender === "H") return "Homem";
+    if (gender === "M") return "Mulher";
     return gender;
   };
 

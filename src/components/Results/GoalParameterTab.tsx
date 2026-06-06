@@ -1,3 +1,4 @@
+import { parse } from "date-fns";
 import { ArrowDown, ArrowUp, Minus } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -119,10 +120,20 @@ export const GoalParameterTab = ({
                 Alcançado!
               </Badge>
             )}
-            {!isAchieved && !isOnTrack && (
-              <Badge variant="destructive" className="text-xs">
-                Atrasado
-              </Badge>
+            {!isAchieved && !isOnTrack && goal.endDate && (
+              (() => {
+                const endDate = parse(goal.endDate, "dd/MM/yyyy", new Date());
+                const isExpired = endDate < new Date();
+                return isExpired ? (
+                  <Badge variant="destructive" className="text-xs">
+                    Atrasado
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="text-xs">
+                    Em Progresso
+                  </Badge>
+                );
+              })()
             )}
           </div>
         </div>

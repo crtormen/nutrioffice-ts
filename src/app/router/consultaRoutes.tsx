@@ -1,19 +1,19 @@
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import { Route } from "react-router-dom";
 
 import { ConsultaProvider } from "@/components/Consultas/context/ConsultaContext";
 import RequireAuthLayout from "@/pages/_layouts/RequireAuthLayout";
 
-import { LoadingFallback } from "./LoadingFallback";
+import { lazyWithReload, LoadingFallback } from "./LoadingFallback";
 import { ROUTE_PATHS } from "./routes";
 
-const ConsultasPage = React.lazy(
+const ConsultasPage = lazyWithReload(
   () => import("@/pages/consultas/ConsultasPage"),
 );
-const NewConsultaPage = React.lazy(
+const NewConsultaPage = lazyWithReload(
   () => import("@/pages/consultas/NewConsultaPage"),
 );
-const ConsultaDetailsPage = React.lazy(
+const ConsultaDetailsPage = lazyWithReload(
   () => import("@/pages/consultas/ConsultaDetailsPage"),
 );
 

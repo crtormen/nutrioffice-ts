@@ -5,7 +5,15 @@
     "redirects": [],
     "rewrites": [
       {
-        "source": "**/!(*.js|*.html|*.css|*.json|*.svg|*.png|*.jpg|*.jpeg)",
+        "source": "/api/**",
+        "function": "api"
+      },
+      {
+        "source": "/sync/syncCustomersToChatwoot",
+        "function": "syncCustomersToChatwoot"
+      },
+{
+        "source": "**",
         "destination": "/index.html"
       }
     ],

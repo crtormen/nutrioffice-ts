@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enviar WhatsApp</title>
+  <script>
+    window.__chatwootContext = null;
+    window.addEventListener('message', function(e) {
+      try {
+        var p = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+        if (p && p.event === 'appContext') window.__chatwootContext = p.data;
+      } catch(_) {}
+    });
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0d0f12;
+      color: #e8edf5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      background-image: radial-gradient(ellipse 80% 50% at 50% -5%, rgba(37,211,102,0.07), transparent);
+    }
+
+    .wrapper { width: 100%; max-width: 520px; }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .header-icon {
+      width: 42px; height: 42px;
+      background: rgba(37,211,102,0.12);
+      border: 1px solid rgba(37,211,102,0.22);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .header-icon svg { width: 20px; height: 20px; fill: #25d366; }
+
+    .header h1 { font-size: 1.1rem; font-weight: 600; color: #e8edf5; letter-spacing: -0.01em; }
+    .header p  { font-size: 0.72rem; color: #4a5568; font-family: "SF Mono","Fira Code",monospace; margin-top: 2px; }
+
+    .card {
+      background: #13171e;
+      border: 1px solid #1e2430;
+      border-radius: 14px;
+      padding: 28px 30px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.03) inset;
+    }
+
+    .section-label {
+      font-family: "SF Mono","Fira Code",monospace;
+      font-size: 0.62rem; font-weight: 500;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: #3d4a5e;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #1e2430;
+      margin-bottom: 18px;
+    }
+
+    .section + .section { margin-top: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group:last-child { margin-bottom: 0; }
+
+    label {
+      display: block; font-size: 0.72rem; font-weight: 500;
+      color: #7a8aa0; margin-bottom: 6px; letter-spacing: 0.01em;
+    }
+
+    input, textarea {
+      width: 100%;
+      background: #1a1f29; border: 1px solid #242b38; border-radius: 7px;
+      color: #e8edf5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.85rem;
+      padding: 9px 12px; outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    input::placeholder, textarea::placeholder { color: #3d4a5e; }
+
+    input:focus, textarea:focus {
+      border-color: #25d366;
+      box-shadow: 0 0 0 3px rgba(37,211,102,0.13);
+      background: #161b24;
+    }
+
+    .phone-wrap {
+      display: flex;
+      align-items: center;
+      background: #1a1f29;
+      border: 1px solid #242b38;
+      border-radius: 7px;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .phone-wrap:focus-within {
+      border-color: #25d366;
+      box-shadow: 0 0 0 3px rgba(37,211,102,0.13);
+      background: #161b24;
+    }
+
+    .phone-cc {
+      font-family: "SF Mono","Fira Code",monospace;
+      font-size: 0.78rem;
+      color: #25d366;
+      padding: 9px 0 9px 12px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .phone-cc-input {
+      font-family: "SF Mono","Fira Code",monospace;
+      font-size: 0.78rem;
+      color: #25d366 !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 9px 4px 9px 2px !important;
+      width: 38px;
+      min-width: 0;
+      outline: none;
+    }
+
+    .phone-divider {
+      width: 1px;
+      height: 18px;
+      background: #242b38;
+      flex-shrink: 0;
+      margin: 0 4px;
+    }
+
+    .phone-wrap input[name="phone"] {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding-left: 8px;
+    }
+
+    .phone-wrap input[name="phone"]:focus {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+
+    /* ── Select ── */
+    select {
+      width: 100%;
+      background: #1a1f29; border: 1px solid #242b38; border-radius: 7px;
+      color: #e8edf5;
+      font-family: "SF Mono","Fira Code",monospace; font-size: 0.8rem;
+      padding: 9px 12px; outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+      appearance: none; -webkit-appearance: none;
+    }
+
+    select:focus {
+      border-color: #25d366;
+      box-shadow: 0 0 0 3px rgba(37,211,102,0.13);
+      background: #161b24;
+    }
+
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+      content: ''; position: absolute; right: 12px; top: 50%;
+      transform: translateY(-50%);
+      border-left: 4px solid transparent; border-right: 4px solid transparent;
+      border-top: 5px solid #3d4a5e; pointer-events: none;
+    }
+
+    /* ── Chatwoot contact banner ── */
+    .contact-banner {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: rgba(37,211,102,0.06);
+      border: 1px solid rgba(37,211,102,0.2);
+      border-radius: 7px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+    }
+
+    .contact-banner.visible { display: flex; }
+
+    .contact-banner-icon {
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: rgba(37,211,102,0.12);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .contact-banner-icon svg {
+      width: 13px; height: 13px;
+      stroke: #25d366; fill: none;
+      stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .contact-banner-info { flex: 1; min-width: 0; }
+
+    .contact-banner-name {
+      font-size: 0.82rem; font-weight: 600; color: #e8edf5;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .contact-banner-meta {
+      font-family: "SF Mono","Fira Code",monospace;
+      font-size: 0.65rem; color: #25d366; margin-top: 2px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 130px;
+      line-height: 1.6;
+    }
+
+    .char-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 5px;
+    }
+
+    .char-count {
+      font-family: "SF Mono","Fira Code",monospace;
+      font-size: 0.62rem;
+      color: #3d4a5e;
+    }
+
+    .char-count.warn { color: #e0a852; }
+
+    /* ── File upload ── */
+    .file-drop {
+      border: 1.5px dashed #242b38;
+      border-radius: 8px;
+      padding: 20px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 160ms, background 160ms;
+      position: relative;
+    }
+
+    .file-drop:hover, .file-drop.drag-over {
+      border-color: #25d366;
+      background: rgba(37,211,102,0.04);
+    }
+
+    .file-drop input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer;
+      width: 100%; height: 100%;
+      padding: 0;
+    }
+
+    .file-drop-icon {
+      width: 32px; height: 32px;
+      margin: 0 auto 8px;
+      background: rgba(37,211,102,0.1);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .file-drop-icon svg {
+      width: 16px; height: 16px;
+      stroke: #25d366; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .file-drop-text {
+      font-size: 0.78rem; color: #5a6f8a;
+      line-height: 1.4;
+    }
+
+    .file-drop-text strong { color: #25d366; font-weight: 500; }
+
+    .file-drop-hint {
+      font-family: "SF Mono","Fira Code",monospace;
+      font-size: 0.62rem; color: #3d4a5e;
+      margin-top: 4px;
+    }
+
+    .file-preview {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: #1a1f29;
+      border: 1px solid #242b38;
+      border-radius: 7px;
+      padding: 10px 12px;
+      margin-top: 8px;
+    }
+
+    .file-preview.visible { display: flex; }
+
+    .file-preview-icon {
+      width: 30px; height: 30px; flex-shrink: 0;
+      background: rgba(37,211,102,0.1);
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .file-preview-icon svg {
+      width: 14px; height: 14px;
+      stroke: #25d366; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .file-preview-info { flex: 1; min-width: 0; }
+    .file-preview-name {
+      font-size: 0.78rem; color: #e8edf5;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .file-preview-size {
+      font-family: "SF Mono","Fira Code",monospace;
+      font-size: 0.62rem; color: #3d4a5e; margin-top: 2px;
+    }
+
+    .file-remove {
+      width: 24px; height: 24px; flex-shrink: 0;
+      background: transparent; border: 1px solid #242b38; border-radius: 4px;
+      color: #3d4a5e; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 160ms, color 160ms, background 160ms;
+      padding: 0;
+    }
+    .file-remove:hover { border-color: #e05252; color: #e05252; background: rgba(224,82,82,0.08); }
+    .file-remove svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+    /* ── Status ── */
+    .status {
+      display: none;
+      margin-top: 14px;
+      padding: 10px 14px;
+      border-radius: 7px;
+      font-size: 0.8rem;
+      line-height: 1.4;
+    }
+    .status.success { display: block; background: rgba(37,211,102,0.1); border: 1px solid rgba(37,211,102,0.25); color: #25d366; }
+    .status.error   { display: block; background: rgba(224,82,82,0.1);  border: 1px solid rgba(224,82,82,0.25);  color: #e05252; }
+
+    /* ── Submit ── */
+    .submit-row {
+      margin-top: 24px; padding-top: 22px;
+      border-top: 1px solid #1e2430;
+    }
+
+    button[type="submit"] {
+      width: 100%; padding: 12px 20px;
+      background: #25d366; color: #021a0a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.875rem; font-weight: 600;
+      border: none; border-radius: 7px; cursor: pointer;
+      letter-spacing: 0.01em;
+      transition: background 160ms ease, box-shadow 160ms ease, transform 120ms ease;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+
+    button[type="submit"]:hover {
+      background: #2eea72;
+      box-shadow: 0 4px 18px rgba(37,211,102,0.3);
+      transform: translateY(-1px);
+    }
+
+    button[type="submit"]:active { transform: translateY(0); box-shadow: none; }
+    button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    button[type="submit"] svg { width: 15px; height: 15px; }
+
+    @media (max-width: 480px) {
+      .card { padding: 22px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <div class="header">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Enviar Mensagem WhatsApp</h1>
+        <p>Evolution API · envio direto</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <form id="send-form" method="POST" action="/webhook/send-whatsapp" enctype="multipart/form-data">
+
+        <!-- Destinatário -->
+        <div class="section">
+          <p class="section-label">Destinatário</p>
+
+          <!-- Debug: raw event log — remove once working -->
+          <pre id="debug-box" style="display:none;background:#1a1f29;border:1px solid #ef4444;border-radius:7px;padding:10px;font-size:0.65rem;color:#fca5a5;white-space:pre-wrap;word-break:break-all;margin-bottom:12px;max-height:200px;overflow:auto;"></pre>
+
+          <!-- Populated automatically when opened from Chatwoot -->
+          <div class="contact-banner" id="contact-banner">
+            <div class="contact-banner-icon">
+              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="contact-banner-info">
+              <div class="contact-banner-name" id="banner-name">—</div>
+              <div class="contact-banner-meta" id="banner-meta">—</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Número de WhatsApp</label>
+            <div class="phone-wrap">
+              <span class="phone-cc">+</span>
+              <input
+                id="country-code"
+                class="phone-cc-input"
+                type="tel"
+                value="55"
+                maxlength="3"
+                title="Código do país"
+                autocomplete="off"
+              />
+              <div class="phone-divider"></div>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                placeholder="51 99555 0882"
+                required
+                autocomplete="off"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="channel">Canal</label>
+            <div class="select-wrap">
+              <select id="channel" name="channel" required>
+                <option value="5">Clínica Charline Tormen</option>
+                <option value="7">CS - Acompanhamento Online</option>
+                <option value="6">Vendas - Acompanhamento Online</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mensagem -->
+        <div class="section">
+          <p class="section-label">Mensagem</p>
+          <div class="form-group">
+            <label for="message">Texto</label>
+            <textarea
+              id="message"
+              name="message"
+              placeholder="Digite a mensagem..."
+              maxlength="4096"
+            ></textarea>
+            <div class="char-row">
+              <span class="char-count" id="char-count">0 / 4096</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arquivo -->
+        <div class="section">
+          <p class="section-label">Arquivo · <span style="text-transform:none;letter-spacing:0;font-size:0.6rem;color:#3d4a5e;">Opcional</span></p>
+          <div class="form-group">
+            <label for="file">Imagem, PDF ou documento</label>
+            <div class="file-drop" id="file-drop">
+              <input type="file" id="file" name="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" />
+              <div class="file-drop-icon">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              </div>
+              <p class="file-drop-text"><strong>Clique para selecionar</strong> ou arraste aqui</p>
+              <p class="file-drop-hint">Imagens, PDF, Word, Excel · máx. 16 MB</p>
+            </div>
+
+            <div class="file-preview" id="file-preview">
+              <div class="file-preview-icon">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div class="file-preview-info">
+                <div class="file-preview-name" id="file-preview-name"></div>
+                <div class="file-preview-size" id="file-preview-size"></div>
+              </div>
+              <button type="button" class="file-remove" id="file-remove" title="Remover arquivo">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="submit-row">
+          <button type="submit" id="submit-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/>
+            </svg>
+            Enviar Mensagem
+          </button>
+        </div>
+
+        <div class="status" id="status"></div>
+
+      </form>
+    </div>
+
+  </div>
+
+  <script>
+    // ── Char counter ─────────────────────────────────────────────────────────
+    const messageEl  = document.getElementById('message');
+    const charCount  = document.getElementById('char-count');
+    const MAX_CHARS  = 4096;
+
+    messageEl.addEventListener('input', () => {
+      const len = messageEl.value.length;
+      charCount.textContent = `${len} / ${MAX_CHARS}`;
+      charCount.classList.toggle('warn', len > MAX_CHARS * 0.9);
+    });
+
+    // ── File upload ──────────────────────────────────────────────────────────
+    const fileInput   = document.getElementById('file');
+    const fileDrop    = document.getElementById('file-drop');
+    const filePreview = document.getElementById('file-preview');
+    const previewName = document.getElementById('file-preview-name');
+    const previewSize = document.getElementById('file-preview-size');
+    const fileRemove  = document.getElementById('file-remove');
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    function showPreview(file) {
+      previewName.textContent = file.name;
+      previewSize.textContent = formatBytes(file.size);
+      filePreview.classList.add('visible');
+      fileDrop.style.display = 'none';
+    }
+
+    function clearFile() {
+      fileInput.value = '';
+      filePreview.classList.remove('visible');
+      fileDrop.style.display = '';
+    }
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) showPreview(fileInput.files[0]);
+    });
+
+    fileRemove.addEventListener('click', clearFile);
+
+    fileDrop.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      fileDrop.classList.add('drag-over');
+    });
+
+    fileDrop.addEventListener('dragleave', () => fileDrop.classList.remove('drag-over'));
+
+    fileDrop.addEventListener('drop', (e) => {
+      e.preventDefault();
+      fileDrop.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      fileInput.files = dt.files;
+      showPreview(file);
+    });
+
+    // ── Phone formatting ─────────────────────────────────────────────────────
+    const phoneInput = document.getElementById('phone');
+    const ccInput    = document.getElementById('country-code');
+
+    phoneInput.addEventListener('input', () => {
+      phoneInput.value = phoneInput.value.replace(/\D/g, '');
+    });
+
+    ccInput.addEventListener('input', () => {
+      ccInput.value = ccInput.value.replace(/\D/g, '');
+      ccInput.style.width = Math.max(24, ccInput.value.length * 10) + 'px';
+    });
+
+    // ── Chatwoot integration ─────────────────────────────────────────────────
+    // Chatwoot sends a 'message' event to iframes with contact/conversation data.
+    // Expected shape (subset): { type: 'chatwoot:set-context', data: { contact, conversation } }
+    // contact.phone_number: e.g. "+5551999990000"
+    // conversation.inbox_id: numeric inbox ID matching the channel select options
+
+    const contactBanner = document.getElementById('contact-banner');
+    const bannerName    = document.getElementById('banner-name');
+    const bannerMeta    = document.getElementById('banner-meta');
+    const channelSelect = document.getElementById('channel');
+
+    function applyContactContext(data) {
+      const contact      = data.contact || {};
+      const conversation = data.conversation || {};
+      const meta         = data.meta || {};
+
+      // Phone
+      const rawPhone = contact.phone_number || meta.sender?.phone_number || '';
+      if (rawPhone) {
+        const digits = rawPhone.replace(/\D/g, '');
+        // Brazilian numbers: country code 55 (2 digits) + 11-digit number
+        if (digits.startsWith('55') && digits.length >= 12) {
+          ccInput.value   = '55';
+          phoneInput.value = digits.slice(2);
+        } else {
+          ccInput.value   = '';
+          phoneInput.value = digits;
+        }
+        ccInput.style.width = Math.max(24, ccInput.value.length * 10) + 'px';
+      }
+
+      // Channel (inbox)
+      const inboxId = conversation.inbox_id;
+      if (inboxId !== undefined) {
+        const opt = channelSelect.querySelector(`option[value="${inboxId}"]`);
+        if (opt) channelSelect.value = String(inboxId);
+      }
+
+      // Contact banner
+      const name  = contact.name || meta.sender?.name || '';
+      const phone = rawPhone || (phoneInput.value ? `+${ccInput.value}${phoneInput.value}` : '');
+      const inbox = channelSelect.options[channelSelect.selectedIndex]?.text || '';
+
+      if (name || phone) {
+        bannerName.textContent = name || phone;
+        bannerMeta.textContent = [phone, inbox].filter(Boolean).join(' · ');
+        contactBanner.classList.add('visible');
+      }
+    }
+
+    const debugBox = document.getElementById('debug-box');
+    function debugLog(label, value) {
+      debugBox.style.display = 'block';
+      debugBox.textContent += `[${label}]\n${typeof value === 'object' ? JSON.stringify(value, null, 2) : value}\n\n`;
+    }
+
+    // Log ALL incoming messages so we can see exactly what Chatwoot sends
+    window.addEventListener('message', (event) => {
+      debugLog('origin', event.origin);
+      debugLog('data', event.data);
+
+      try {
+        const payload = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        if (!payload) return;
+        if (payload.event !== 'appContext') return;
+        if (payload.data) applyContactContext(payload.data);
+      } catch (e) {
+        debugLog('parse error', String(e));
+      }
+    });
+
+    // If appContext was already received before this script ran (early listener above), apply it now
+    if (window.__chatwootContext) {
+      debugLog('early-context', window.__chatwootContext);
+      applyContactContext(window.__chatwootContext);
+    } else {
+      debugLog('status', 'no early context yet — sending fetch-info and waiting');
+      // Chatwoot responds to fetch-info after ~1s; send immediately and retry once
+      window.parent.postMessage('chatwoot-dashboard-app:fetch-info', '*');
+      setTimeout(() => {
+        if (!window.__chatwootContext) {
+          window.parent.postMessage('chatwoot-dashboard-app:fetch-info', '*');
+          debugLog('retry', 'fetch-info resent at 1.5s');
+        }
+      }, 1500);
+    }
+
+    // ── Form submit ──────────────────────────────────────────────────────────
+    const form      = document.getElementById('send-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const statusEl  = document.getElementById('status');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const cc      = ccInput.value.trim();
+      const phone   = phoneInput.value.trim();
+      const message = messageEl.value.trim();
+      const file    = fileInput.files[0];
+      const channel = channelSelect.value;
+
+      if (!cc)    { showStatus('error', 'Informe o código do país.'); return; }
+      if (!phone) { showStatus('error', 'Informe o número de WhatsApp.'); return; }
+      if (!message && !file) { showStatus('error', 'Informe uma mensagem ou selecione um arquivo.'); return; }
+
+      submitBtn.disabled = true;
+      submitBtn.querySelector('svg').style.opacity = '0.5';
+      statusEl.className = 'status';
+
+      const formData = new FormData();
+      formData.append('phone', `${cc}${phone}`);
+      formData.append('channel', channel);
+      if (message) formData.append('message', message);
+      if (file)    formData.append('file', file);
+
+      try {
+        const res = await fetch(form.action, { method: 'POST', body: formData });
+        if (res.ok) {
+          showStatus('success', 'Mensagem enviada com sucesso!');
+          form.reset();
+          clearFile();
+          charCount.textContent = `0 / ${MAX_CHARS}`;
+        } else {
+          const text = await res.text().catch(() => '');
+          showStatus('error', `Erro ao enviar: ${res.status}${text ? ' — ' + text : ''}`);
+        }
+      } catch (err) {
+        showStatus('error', `Falha na requisição: ${err.message}`);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.querySelector('svg').style.opacity = '';
+      }
+    });
+
+    function showStatus(type, msg) {
+      statusEl.className = `status ${type}`;
+      statusEl.textContent = msg;
+    }
+  </script>
+</body>
+</html>

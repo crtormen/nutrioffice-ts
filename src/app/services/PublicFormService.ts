@@ -1,4 +1,5 @@
 import {
+  AppointmentType,
   IPublicFormConfiguration,
   IFormSubmissionData,
   IFormSubmissionResponse,
@@ -62,10 +63,10 @@ export const PublicFormService = {
  */
 export const updateAnamnesisFormToken = async (
   uid: string,
-  appointmentType: "online" | "presencial",
+  appointmentType: AppointmentType,
   enabledFields: string[]
 ): Promise<void> => {
-  const token = await auth.currentUser?.getIdToken();
+  const token = await auth.currentUser?.getIdToken(true);
 
   const response = await fetch(
     `${API_BASE_URL}/users/${uid}/anamnesis-tokens/${appointmentType}/fields`,
@@ -90,10 +91,10 @@ export const updateAnamnesisFormToken = async (
  */
 export const updateEvaluationFormToken = async (
   uid: string,
-  appointmentType: "online" | "presencial",
+  appointmentType: AppointmentType,
   enabledEvaluationFields: IEnabledEvaluationFields
 ): Promise<void> => {
-  const token = await auth.currentUser?.getIdToken();
+  const token = await auth.currentUser?.getIdToken(true);
 
   const response = await fetch(
     `${API_BASE_URL}/users/${uid}/anamnesis-tokens/${appointmentType}/evaluation-fields`,

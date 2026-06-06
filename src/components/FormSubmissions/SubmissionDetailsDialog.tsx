@@ -26,11 +26,13 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IFormSubmission } from "@/domain/entities/formSubmission";
+import { FieldValuesSetting } from "@/domain/entities/settings";
 
 interface SubmissionDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   submission: IFormSubmission;
+  anamnesisFields?: Record<string, FieldValuesSetting>;
   onApprove: () => void;
   onReject: () => void;
   isApproving: boolean;
@@ -41,6 +43,7 @@ export function SubmissionDetailsDialog({
   open,
   onOpenChange,
   submission,
+  anamnesisFields,
   onApprove,
   onReject,
   isApproving,
@@ -105,7 +108,11 @@ export function SubmissionDetailsDialog({
           </div>
           <DialogDescription>
             Enviado em {formatDate(submittedAt)} · Tipo:{" "}
-            {appointmentType === "online" ? "Online" : "Presencial"}
+            {appointmentType === "online"
+              ? "Online"
+              : appointmentType === "reavaliacao"
+                ? "Reavaliação"
+                : "Presencial"}
           </DialogDescription>
         </DialogHeader>
 
@@ -138,92 +145,118 @@ export function SubmissionDetailsDialog({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Nome Completo
-                      </label>
-                      <p className="mt-1 text-sm font-medium">
-                        {customerData.name}
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        CPF
-                      </label>
-                      <p className="mt-1 text-sm font-medium">
-                        {customerData.cpf}
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
-                        <Mail className="h-3 w-3" />
-                        Email
-                      </label>
-                      <p className="mt-1 text-sm">{customerData.email}</p>
-                    </div>
-
-                    <div>
-                      <label className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
-                        <Phone className="h-3 w-3" />
-                        Telefone/WhatsApp
-                      </label>
-                      <p className="mt-1 text-sm">{customerData.phone}</p>
-                    </div>
-
-                    <div>
-                      <label className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        Data de Nascimento
-                      </label>
-                      <p className="mt-1 text-sm">
-                        {customerData.birthday
-                          ? formatBirthday(customerData.birthday)
-                          : "-"}
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Gênero
-                      </label>
-                      <p className="mt-1 text-sm">
-                        {customerData.gender === "H" ? "Masculino" : "Feminino"}
-                      </p>
-                    </div>
-
-                    {customerData.occupation && (
+                  {appointmentType === "reavaliacao" ? (
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
-                          Profissão
+                          Nome Completo
                         </label>
-                        <p className="mt-1 text-sm">
-                          {customerData.occupation}
+                        <p className="mt-1 text-sm font-medium">
+                          {customerData.name}
                         </p>
                       </div>
-                    )}
-
-                    {customerData.instagram && (
                       <div>
-                        <label className="text-sm font-medium text-muted-foreground">
-                          Instagram
+                        <label className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
+                          <Phone className="h-3 w-3" />
+                          Telefone/WhatsApp
                         </label>
-                        <p className="mt-1 text-sm">{customerData.instagram}</p>
+                        <p className="mt-1 text-sm">{customerData.phone}</p>
                       </div>
-                    )}
-                  </div>
-
-                  {customerData.cameBy && (
+                    </div>
+                  ) : (
                     <>
-                      <Separator />
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">
-                          Como conheceu nosso trabalho?
-                        </label>
-                        <p className="mt-1 text-sm">{customerData.cameBy}</p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">
+                            Nome Completo
+                          </label>
+                          <p className="mt-1 text-sm font-medium">
+                            {customerData.name}
+                          </p>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">
+                            CPF
+                          </label>
+                          <p className="mt-1 text-sm font-medium">
+                            {customerData.cpf}
+                          </p>
+                        </div>
+
+                        <div>
+                          <label className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
+                            <Mail className="h-3 w-3" />
+                            Email
+                          </label>
+                          <p className="mt-1 text-sm">{customerData.email}</p>
+                        </div>
+
+                        <div>
+                          <label className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
+                            <Phone className="h-3 w-3" />
+                            Telefone/WhatsApp
+                          </label>
+                          <p className="mt-1 text-sm">{customerData.phone}</p>
+                        </div>
+
+                        <div>
+                          <label className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
+                            <Calendar className="h-3 w-3" />
+                            Data de Nascimento
+                          </label>
+                          <p className="mt-1 text-sm">
+                            {customerData.birthday
+                              ? formatBirthday(customerData.birthday)
+                              : "-"}
+                          </p>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">
+                            Gênero
+                          </label>
+                          <p className="mt-1 text-sm">
+                            {customerData.gender === "H"
+                              ? "Masculino"
+                              : "Feminino"}
+                          </p>
+                        </div>
+
+                        {customerData.occupation && (
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Profissão
+                            </label>
+                            <p className="mt-1 text-sm">
+                              {customerData.occupation}
+                            </p>
+                          </div>
+                        )}
+
+                        {customerData.instagram && (
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Instagram
+                            </label>
+                            <p className="mt-1 text-sm">
+                              {customerData.instagram}
+                            </p>
+                          </div>
+                        )}
                       </div>
+
+                      {customerData.cameBy && (
+                        <>
+                          <Separator />
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Como conheceu nosso trabalho?
+                            </label>
+                            <p className="mt-1 text-sm">{customerData.cameBy}</p>
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
                 </CardContent>
@@ -245,29 +278,38 @@ export function SubmissionDetailsDialog({
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {Object.entries(anamnesisData).map(([fieldId, value]) => (
-                        <div
-                          key={fieldId}
-                          className="border-b pb-3 last:border-b-0 last:pb-0"
-                        >
-                          <label className="text-sm font-medium capitalize text-muted-foreground">
-                            {fieldId.replace(/([A-Z])/g, " $1").trim()}
-                          </label>
-                          <div className="mt-1 text-sm">
-                            {Array.isArray(value) ? (
-                              <ul className="list-inside list-disc">
-                                {value.map((item, index) => (
-                                  <li key={index}>{item}</li>
-                                ))}
-                              </ul>
-                            ) : (
-                              <p className="whitespace-pre-wrap">
-                                {value || "-"}
-                              </p>
-                            )}
+                      {Object.entries(anamnesisData).map(([fieldId, value]) => {
+                        const fieldDef = anamnesisFields?.[fieldId];
+                        const label = fieldDef?.label || fieldId.replace(/([A-Z])/g, " $1").trim();
+                        const options = fieldDef?.options as Record<string, string> | undefined;
+
+                        const resolveValue = (v: string) =>
+                          options?.[v] ?? v;
+
+                        return (
+                          <div
+                            key={fieldId}
+                            className="border-b pb-3 last:border-b-0 last:pb-0"
+                          >
+                            <label className="text-sm font-medium text-muted-foreground">
+                              {label}
+                            </label>
+                            <div className="mt-1 text-sm">
+                              {Array.isArray(value) ? (
+                                <ul className="list-inside list-disc">
+                                  {value.map((item, index) => (
+                                    <li key={index}>{resolveValue(item)}</li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="whitespace-pre-wrap">
+                                  {resolveValue(value as string) || "-"}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </CardContent>
@@ -420,7 +462,7 @@ export function SubmissionDetailsDialog({
               ) : (
                 <>
                   <CheckCircle className="mr-2 h-4 w-4" />
-                  Aprovar e Criar Cliente
+                  Aprovar e Salvar
                 </>
               )}
             </Button>

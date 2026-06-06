@@ -117,6 +117,7 @@ export interface ICustomerConsulta {
   online?: boolean;
   pending?: boolean;
   createdAt?: string;
+  planId?: string;
   date?: string;
   updateCredits?: boolean;
   howmuch?: number;
@@ -138,6 +139,7 @@ export interface ICustomerConsulta {
 export interface ICustomerConsultaFirebase {
   id?: string;
   pending?: boolean;
+  planId?: string;
   online?: boolean;
   createdAt?: Timestamp;
   date?: Timestamp;
@@ -162,6 +164,7 @@ export interface IConsulta {
   id: string;
   customer_id: string;
   createdAt?: string;
+  planId?: string;
   online?: boolean;
   date?: string;
   gender?: string;
@@ -173,6 +176,7 @@ export interface IConsulta {
 
 export interface IConsultaFirebase {
   id?: string;
+  planId?: string;
   online?: boolean;
   customer_id: string;
   createdAt?: Timestamp;

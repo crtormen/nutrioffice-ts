@@ -84,4 +84,10 @@ export const selectCustomAnamnesisSettings = (uid: string | undefined) => {
   );
 };
 
+export const selectCrmSettings = (uid: string | undefined) =>
+  createSelector(
+    settingsSlice.endpoints.fetchSettings.select(uid),
+    ({ data: settings }) => settings?.crm,
+  );
+
 export const { useFetchSettingsQuery, useSetSettingsMutation } = settingsSlice;

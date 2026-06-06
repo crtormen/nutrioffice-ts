@@ -37,6 +37,12 @@ const ROUTE_PATHS = {
     ANAMNESIS_BASE: "/anamnesis/public",
   },
   FORM_SUBMISSIONS: "form-submissions",
+  CHATWOOT: "chatwoot",
+  CRM: {
+    BASE: "crm",
+    LEAD_DETAILS: "leads",
+    SETTINGS: "settings",
+  },
 };
 
 // Navigation helpers (absolute paths for navigate())
@@ -77,6 +83,12 @@ export const ROUTES = {
     ANAMNESIS_FORM: (token: string) => `/anamnesis/public/${token}`,
   },
   FORM_SUBMISSIONS: "/form-submissions",
+  CHATWOOT: "/chatwoot",
+  CRM: {
+    BASE: "/crm",
+    LEAD_DETAILS: (leadId: string) => `/crm/leads/${leadId}`,
+    SETTINGS: "/crm/settings",
+  },
 };
 
 // Export route paths for route definitions

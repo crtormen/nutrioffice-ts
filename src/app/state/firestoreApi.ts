@@ -22,6 +22,8 @@ export const firestoreApi = createApi({
     "AnamnesisTokens",
     "EvaluationPresets",
     "EvaluationConfig",
+    "Leads",
+    "CrmSettings",
   ],
   endpoints: () => ({}),
 });

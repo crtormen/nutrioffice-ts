@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 
 import NotAuthLayout from "@/pages/_layouts/NotAuthLayout";
@@ -6,38 +6,45 @@ import RequireAuthLayout from "@/pages/_layouts/RequireAuthLayout";
 import { ChartsDemo } from "@/pages/demo/ChartsDemo";
 
 import { ConsultaRoutes } from "./consultaRoutes";
+import { CrmRoutes } from "./crmRoutes";
 import { CustomerRoutes } from "./customerRoutes";
 import { FinanceRoutes } from "./financeRoutes";
-import { LoadingFallback } from "./LoadingFallback";
+import { lazyWithReload, LoadingFallback } from "./LoadingFallback";
 import { ROUTE_PATHS, ROUTES } from "./routes";
 
-const Dashboard = React.lazy(() => import("@/pages/infra/DashboardPage"));
-const LoginPage = React.lazy(() => import("@/pages/infra/LoginPage"));
-const NotFoundPage = React.lazy(() => import("@/pages/infra/NotFoundPage"));
-const SignUpPage = React.lazy(() => import("@/pages/infra/SignUpPage"));
+const Dashboard = lazyWithReload(() => import("@/pages/infra/DashboardPage"));
+const LoginPage = lazyWithReload(() => import("@/pages/infra/LoginPage"));
+const NotFoundPage = lazyWithReload(() => import("@/pages/infra/NotFoundPage"));
+const SignUpPage = lazyWithReload(() => import("@/pages/infra/SignUpPage"));
 
-const AcceptInvitationPage = React.lazy(
+const AcceptInvitationPage = lazyWithReload(
   () => import("@/pages/auth/AcceptInvitationPage"),
 );
-const AccountPage = React.lazy(() => import("@/pages/user/AccountPage"));
-const SettingsPage = React.lazy(() => import("@/pages/user/SettingsPage"));
-const PricingPage = React.lazy(
+const AccountPage = lazyWithReload(() => import("@/pages/user/AccountPage"));
+const SettingsPage = lazyWithReload(() => import("@/pages/user/SettingsPage"));
+const PricingPage = lazyWithReload(
   () => import("@/pages/subscription/PricingPage"),
 );
-const ProcessingSubscriptionPage = React.lazy(
+const ProcessingSubscriptionPage = lazyWithReload(
   () => import("@/pages/subscription/ProcessingSubscriptionPage"),
 );
-const SubscriptionCallbackPage = React.lazy(
+const SubscriptionCallbackPage = lazyWithReload(
   () => import("@/pages/subscription/SubscriptionCallbackPage"),
 );
-const SubscriptionManagementPage = React.lazy(
+const SubscriptionManagementPage = lazyWithReload(
   () => import("@/pages/subscription/SubscriptionManagementPage"),
 );
-const PublicAnamnesisFormPage = React.lazy(
+const PublicAnamnesisFormPage = lazyWithReload(
   () => import("@/pages/public/PublicAnamnesisFormPage"),
 );
-const FormSubmissionsPage = React.lazy(
+const FormSubmissionsPage = lazyWithReload(
   () => import("@/pages/submissions/FormSubmissionsPage"),
+);
+const ChatwootPage = lazyWithReload(
+  () =>
+    import("@/pages/chatwoot/ChatwootPage").then((m) => ({
+      default: m.ChatwootPage,
+    })),
 );
 
 function App(): JSX.Element {
@@ -65,6 +72,15 @@ function App(): JSX.Element {
         {CustomerRoutes}
         {ConsultaRoutes}
         {FinanceRoutes}
+        {CrmRoutes}
+        <Route
+          path={ROUTE_PATHS.CHATWOOT}
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <ChatwootPage />
+            </Suspense>
+          }
+        />
         <Route
           path={ROUTE_PATHS.FORM_SUBMISSIONS}
           element={

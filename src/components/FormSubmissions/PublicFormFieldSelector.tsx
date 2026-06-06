@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { updateAnamnesisFormToken } from "@/app/services/PublicFormService";
 import { useFetchSettingsQuery } from "@/app/state/features/settingsSlice";
+import { AppointmentType } from "@/domain/entities/formSubmission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/infra/firebase/hooks/useAuth";
 
 interface PublicFormFieldSelectorProps {
-  appointmentType: "online" | "presencial";
+  appointmentType: AppointmentType;
   enabledFields: string[];
 }
 

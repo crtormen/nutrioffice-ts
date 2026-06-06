@@ -9,7 +9,7 @@ import { auth } from "@/infra/firebase/firebaseConfig";
 const getFunctionsUrl = () => {
   // Check if running in emulator
   const isEmulator = window.location.hostname === "localhost";
-
+  console.log(isEmulator);
   if (isEmulator) {
     // Local emulator URL
     return "http://localhost:5001/nutri-office/us-central1/api";
@@ -29,7 +29,7 @@ const getAuthToken = async (): Promise<string> => {
   if (!currentUser) {
     throw new Error("User not authenticated");
   }
-  return await currentUser.getIdToken();
+  return await currentUser.getIdToken(true);
 };
 
 /**

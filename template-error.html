@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Erro ao Enviar Template</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0d0f12;
+      color: #e8edf5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      background-image: radial-gradient(ellipse 80% 50% at 50% -5%, rgba(239,68,68,0.07), transparent);
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .card {
+      background: #13171e;
+      border: 1px solid #1e2430;
+      border-radius: 14px;
+      padding: 36px 32px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.03) inset;
+    }
+
+    .status-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 32px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid #1e2430;
+    }
+
+    .error-ring {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .error-ring svg {
+      width: 24px;
+      height: 24px;
+      stroke: #ef4444;
+      fill: none;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .status-header h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #e8edf5;
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.68rem;
+      font-weight: 500;
+      color: #ef4444;
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.2);
+      padding: 3px 9px;
+      border-radius: 20px;
+      margin-top: 8px;
+    }
+
+    .status-badge::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #ef4444;
+    }
+
+    .fields {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .field {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 11px 14px;
+      background: #1a1f29;
+      border: 1px solid #242b38;
+      border-radius: 7px;
+    }
+
+    .field.message {
+      flex-direction: column;
+      gap: 8px;
+      border-color: rgba(239,68,68,0.2);
+      background: rgba(239,68,68,0.04);
+    }
+
+    .field-key {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.68rem;
+      font-weight: 500;
+      color: #3d4a5e;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .field-value {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.78rem;
+      color: #c8d4e8;
+      text-align: right;
+      word-break: break-all;
+    }
+
+    .field-value.error-message {
+      color: #fca5a5;
+      text-align: left;
+      line-height: 1.5;
+    }
+
+    .back-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      width: 100%;
+      padding: 11px 20px;
+      background: #1a1f29;
+      border: 1px solid #242b38;
+      border-radius: 7px;
+      color: #7a8aa0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 0.825rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+    }
+
+    .back-link svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    .back-link:hover {
+      border-color: #ef4444;
+      color: #ef4444;
+      background: rgba(239,68,68,0.04);
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 28px 18px; }
+      .field { flex-direction: column; gap: 4px; }
+      .field-value { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="card">
+
+      <div class="status-header">
+        <div class="error-ring">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </div>
+        <h2>Erro ao Enviar Template</h2>
+        <span class="status-badge">{{$json.error.name}}</span>
+      </div>
+
+      <div class="fields">
+        <div class="field message">
+          <span class="field-key">Mensagem</span>
+          <span class="field-value error-message">{{$json.error.message}}</span>
+        </div>
+        <div class="field">
+          <span class="field-key">Descrição</span>
+          <span class="field-value">{{$json.error.description}}</span>
+        </div>
+      </div>
+
+      <a href="/webhook/template-form" class="back-link">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Tentar Novamente
+      </a>
+
+    </div>
+  </div>
+</body>
+</html>

@@ -1,30 +1,30 @@
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import { Route } from "react-router-dom";
 
 import { ConsultaProvider } from "@/components/Consultas/context/ConsultaContext";
 import RequireAuthLayout from "@/pages/_layouts/RequireAuthLayout";
 
-import { LoadingFallback } from "./LoadingFallback";
+import { lazyWithReload, LoadingFallback } from "./LoadingFallback";
 import { ROUTE_PATHS } from "./routes";
-const CustomersPage = React.lazy(
+const CustomersPage = lazyWithReload(
   () => import("@/pages/customers/CustomersPage"),
 );
-const CustomerDetailsPage = React.lazy(
+const CustomerDetailsPage = lazyWithReload(
   () => import("@/pages/customers/CustomerDetailsPage"),
 );
-const NewCustomerPage = React.lazy(
+const NewCustomerPage = lazyWithReload(
   () => import("@/pages/customers/NewCustomerPage"),
 );
-const NewAnamnesisPage = React.lazy(
+const NewAnamnesisPage = lazyWithReload(
   () => import("@/pages/anamnesis/NewAnamnesisPage"),
 );
-const EditAnamnesisPage = React.lazy(
+const EditAnamnesisPage = lazyWithReload(
   () => import("@/pages/anamnesis/EditAnamnesisPage"),
 );
-const ConsultaDetailsPage = React.lazy(
+const ConsultaDetailsPage = lazyWithReload(
   () => import("@/pages/consultas/ConsultaDetailsPage"),
 );
-const NewConsultaPage = React.lazy(
+const NewConsultaPage = lazyWithReload(
   () => import("@/pages/consultas/NewConsultaPage"),
 );
 

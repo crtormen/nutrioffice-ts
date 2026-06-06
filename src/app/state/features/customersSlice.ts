@@ -181,6 +181,26 @@ export const customersSlice = firestoreApi
     }),
   });
 
+const normalizePhone = (value: string) => {
+  const digits = value.replace(/\D/g, "");
+  // Strip Brazilian country code (55) when followed by 10 or 11 digits
+  const phone = digits.replace(/^55(\d{10,11})$/, "$1");
+  return phone;
+};
+
+export const selectCustomerByPhone = (
+  uid: string | undefined,
+  phone: string,
+) => {
+  return createSelector(
+    customersSlice.endpoints.fetchCustomers.select(uid),
+    ({ data: customers }) =>
+      customers?.find(
+        (c) => normalizePhone(c.phone ?? "") === normalizePhone(phone),
+      ),
+  );
+};
+
 export const selectCustomerById = (
   uid: string | undefined,
   customerId: string | undefined,

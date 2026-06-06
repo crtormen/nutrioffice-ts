@@ -1,4 +1,4 @@
-import { compareAsc, format, parse } from "date-fns";
+import { compareAsc, format, parse, parseISO, isAfter } from "date-fns";
 
 import { IResults } from "@/domain/entities";
 
@@ -19,25 +19,44 @@ export function useSetChartData(
   if (!consultas) return undefined;
 
   if (createdAt) {
-    consultas = consultas.filter(
-      (consulta) =>
-        compareAsc(
-          parse(consulta.date!, "dd/MM/yyyy", new Date()),
-          parse(createdAt, "dd/MM/yyyy", new Date()),
-        ) >= 0,
-    );
+    const goalStartDate = parse(createdAt, "dd/MM/yyyy", new Date());
+    consultas = consultas.filter((consulta) => {
+      if (!consulta.date) return false;
+      const consultaDate = parseISO(consulta.date);
+      return (
+        isAfter(consultaDate, goalStartDate) ||
+        consultaDate.getTime() === goalStartDate.getTime()
+      );
+    });
   }
 
   const chartData = consultas
-    .map((consulta) => ({
-      date: format(parse(consulta.date!, "dd/MM/yyyy", new Date()), "dd/MM/yy"),
-      [param]:
-        param === "weight"
-          ? consulta.peso
-          : consulta.results
-            ? consulta.results[param as keyof IResults]
-            : "",
-    }))
+    .map((consulta) => {
+      // Try to parse date - handle both ISO and dd/MM/yyyy formats
+      let dateFormatted: string;
+      try {
+        // First try ISO format
+        dateFormatted = format(parseISO(consulta.date!), "dd/MM/yy");
+      } catch {
+        // If ISO fails, try dd/MM/yyyy format
+        try {
+          dateFormatted = format(parse(consulta.date!, "dd/MM/yyyy", new Date()), "dd/MM/yy");
+        } catch {
+          // If both fail, use the date as-is
+          dateFormatted = consulta.date!;
+        }
+      }
+
+      return {
+        date: dateFormatted,
+        [param]:
+          param === "weight"
+            ? consulta.peso
+            : consulta.results
+              ? consulta.results[param as keyof IResults]
+              : "",
+      };
+    })
     .reverse();
 
   return chartData;

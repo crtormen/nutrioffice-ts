@@ -1,45 +1,29 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
-import functions from "firebase-functions";
+import { logger } from "firebase-functions";
 
-/**
- * Email service for sending invitation and notification emails
- *
- * Configuration:
- * - Uses Gmail SMTP by default (requires app password)
- * - Set environment variables:
- *   firebase functions:config:set email.user="your-email@gmail.com"
- *   firebase functions:config:set email.password="your-app-password"
- *
- * For Gmail app password:
- * 1. Go to Google Account settings
- * 2. Security > 2-Step Verification
- * 3. App passwords > Generate new password
- */
+// v2 functions use process.env instead of functions.config()
+// Set with: firebase functions:secrets:set EMAIL_USER EMAIL_PASSWORD
+// Or add to .env in functions/ for local emulator
 
-// Create reusable transporter
 let transporter: Transporter | null = null;
 
 const getTransporter = (): Transporter => {
   if (transporter) return transporter;
 
-  // Get email config from Firebase functions config
-  const emailConfig = functions.config().email;
+  const user = process.env.EMAIL_USER;
+  const pass = process.env.EMAIL_PASSWORD;
 
-  if (!emailConfig?.user || !emailConfig?.password) {
-    functions.logger.warn(
-      "Email configuration not found. Set with: firebase functions:config:set email.user=... email.password=..."
+  if (!user || !pass) {
+    logger.warn(
+      "Email configuration not found. Set EMAIL_USER and EMAIL_PASSWORD environment variables."
     );
-    // For development/testing, create test account
     throw new Error("Email service not configured");
   }
 
   transporter = nodemailer.createTransport({
     service: "gmail",
-    auth: {
-      user: emailConfig.user,
-      pass: emailConfig.password,
-    },
+    auth: { user, pass },
   });
 
   return transporter;
@@ -217,11 +201,10 @@ Este é um e-mail automático, por favor não responda.
 © ${new Date().getFullYear()} NutriOffice - Sistema de Gestão Nutricional
     `;
 
-    const emailConfig = functions.config().email;
     const info = await transport.sendMail({
       from: {
         name: "NutriOffice",
-        address: emailConfig?.user || "noreply@nutrioffice.com",
+        address: process.env.EMAIL_USER || "noreply@nutrioffice.com",
       },
       to: data.recipientEmail,
       subject: `Convite para colaborar no NutriOffice - ${roleName}`,
@@ -229,10 +212,10 @@ Este é um e-mail automático, por favor não responda.
       html: htmlContent,
     });
 
-    functions.logger.info(`Invitation email sent successfully: ${info.messageId}`);
+    logger.info(`Invitation email sent successfully: ${info.messageId}`);
     return true;
   } catch (error) {
-    functions.logger.error("Error sending invitation email:", error);
+    logger.error("Error sending invitation email:", error);
     return false;
   }
 };
@@ -398,11 +381,10 @@ Este é um e-mail automático, por favor não responda.
 © ${new Date().getFullYear()} NutriOffice - Sistema de Gestão Nutricional
     `;
 
-    const emailConfig = functions.config().email;
     const info = await transport.sendMail({
       from: {
         name: "NutriOffice",
-        address: emailConfig?.user || "noreply@nutrioffice.com",
+        address: process.env.EMAIL_USER || "noreply@nutrioffice.com",
       },
       to: data.recipientEmail,
       subject: `Nova Submissão de Formulário - ${data.customerName}`,
@@ -410,10 +392,10 @@ Este é um e-mail automático, por favor não responda.
       html: htmlContent,
     });
 
-    functions.logger.info(`Form submission email sent successfully: ${info.messageId}`);
+    logger.info(`Form submission email sent successfully: ${info.messageId}`);
     return true;
   } catch (error) {
-    functions.logger.error("Error sending form submission email:", error);
+    logger.error("Error sending form submission email:", error);
     return false;
   }
 };
@@ -424,12 +406,11 @@ Este é um e-mail automático, por favor não responda.
 export const sendTestEmail = async (recipientEmail: string): Promise<boolean> => {
   try {
     const transport = getTransporter();
-    const emailConfig = functions.config().email;
 
     const info = await transport.sendMail({
       from: {
         name: "NutriOffice",
-        address: emailConfig?.user || "noreply@nutrioffice.com",
+        address: process.env.EMAIL_USER || "noreply@nutrioffice.com",
       },
       to: recipientEmail,
       subject: "Teste de Configuração de E-mail - NutriOffice",
@@ -442,10 +423,10 @@ export const sendTestEmail = async (recipientEmail: string): Promise<boolean> =>
       `,
     });
 
-    functions.logger.info(`Test email sent successfully: ${info.messageId}`);
+    logger.info(`Test email sent successfully: ${info.messageId}`);
     return true;
   } catch (error) {
-    functions.logger.error("Error sending test email:", error);
+    logger.error("Error sending test email:", error);
     return false;
   }
 };
