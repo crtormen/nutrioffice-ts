@@ -50,7 +50,7 @@ export function PublicEvaluationFieldSelector({
     bioimpedance: false,
   });
 
-  const evalConfigKey = appointmentType === "reavaliacao" ? "online" : appointmentType;
+  const evalConfigKey: "online" | "presencial" = (appointmentType === "reavaliacao" || appointmentType === "consultoria" || appointmentType === "hibrido") ? "online" : appointmentType as "online" | "presencial";
 
   useEffect(() => {
     if (initialEnabledFields) {

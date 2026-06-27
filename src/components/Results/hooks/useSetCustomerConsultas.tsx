@@ -8,14 +8,12 @@ export const useSetCustomerConsultas = () => {
   const customerId = params.customerId || params.id;
   const { dbUid } = useAuth();
 
+  const { data: consultas } = useFetchCustomerConsultasQuery(
+    { uid: dbUid, customerId },
+    { skip: !dbUid || !customerId },
+  );
+
   if (!dbUid || !customerId) return undefined;
 
-  const { data: consultas } = useFetchCustomerConsultasQuery({
-    uid: dbUid,
-    customerId,
-  });
-
-  if (!consultas) return undefined;
-
-  return consultas;
+  return consultas ?? undefined;
 };

@@ -40,7 +40,7 @@ const ConsultaResultsTab: React.FC = () => {
   if (!consulta) {
     return <div>Carregando...</div>;
   }
-
+  
   return (
     <div className="space-y-6">
       {/* Header Actions */}

@@ -22,8 +22,8 @@ export const useSaveAnamnesis = () => {
   const navigate = useNavigate();
 
   const handleNewAnamnesis = useCallback(
-    (data: Record<string, zod.ZodTypeAny>) => {
-      let anamnesis: IAnamnesis = {};
+    (data: Record<string, zod.ZodTypeAny>, extraFields?: Record<string, string>) => {
+      let anamnesis: IAnamnesis = extraFields ? { ...extraFields } : {};
 
       // transform radio, checkbox and multiple-selector values into array of strings
       for (const field in data) {

@@ -18,6 +18,11 @@ export function useSetChartData(
   let consultas = useSetCustomerConsultas();
   if (!consultas) return undefined;
 
+  // Results-based params only exist on presencial consultas
+  if (param !== "weight" && param !== "peso") {
+    consultas = consultas.filter((c) => !c.online);
+  }
+
   if (createdAt) {
     const goalStartDate = parse(createdAt, "dd/MM/yyyy", new Date());
     consultas = consultas.filter((consulta) => {
@@ -50,11 +55,11 @@ export function useSetChartData(
       return {
         date: dateFormatted,
         [param]:
-          param === "weight"
+          param === "weight" || param === "peso"
             ? consulta.peso
             : consulta.results
               ? consulta.results[param as keyof IResults]
-              : "",
+              : undefined,
       };
     })
     .reverse();

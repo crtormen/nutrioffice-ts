@@ -47,7 +47,11 @@ export const onFormSubmissionCreated = onDocumentCreated(
       if (emailEnabled && recipientEmail) {
         const professionalName = userData.name || "Profissional";
         const customerName = submissionData.customerData?.name || "Cliente";
-        const appointmentType = submissionData.appointmentType === "online" ? "Online" : "Presencial";
+        const appointmentType =
+          submissionData.appointmentType === "online" ? "Online" :
+          submissionData.appointmentType === "reavaliacao" ? "Reavaliação" :
+          submissionData.appointmentType === "consultoria" ? "Consultoria" :
+          submissionData.appointmentType === "hibrido" ? "Híbrido" : "Presencial";
         const submittedAt = submissionData.submittedAt?.toDate() || new Date();
 
         // TODO: Update with actual frontend URL

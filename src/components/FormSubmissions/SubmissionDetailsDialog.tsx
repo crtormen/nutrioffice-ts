@@ -8,6 +8,7 @@ import {
   Mail,
   MapPin,
   Phone,
+  RefreshCw,
   User,
   XCircle,
 } from "lucide-react";
@@ -35,8 +36,10 @@ interface SubmissionDetailsDialogProps {
   anamnesisFields?: Record<string, FieldValuesSetting>;
   onApprove: () => void;
   onReject: () => void;
+  onReprocess: () => void;
   isApproving: boolean;
   isRejecting: boolean;
+  isReprocessing: boolean;
 }
 
 export function SubmissionDetailsDialog({
@@ -46,8 +49,10 @@ export function SubmissionDetailsDialog({
   anamnesisFields,
   onApprove,
   onReject,
+  onReprocess,
   isApproving,
   isRejecting,
+  isReprocessing,
 }: SubmissionDetailsDialogProps) {
   const {
     customerData,
@@ -112,7 +117,11 @@ export function SubmissionDetailsDialog({
               ? "Online"
               : appointmentType === "reavaliacao"
                 ? "Reavaliação"
-                : "Presencial"}
+                : appointmentType === "consultoria"
+                  ? "Consultoria"
+                  : appointmentType === "hibrido"
+                    ? "Híbrido"
+                    : "Presencial"}
           </DialogDescription>
         </DialogHeader>
 
@@ -469,22 +478,41 @@ export function SubmissionDetailsDialog({
           </DialogFooter>
         )}
 
-        {status === "approved" && submission.createdCustomerId && (
+        {status === "approved" && (
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Fechar
             </Button>
             <Button
-              onClick={() =>
-                window.open(
-                  `/customers/${submission.createdCustomerId}`,
-                  "_blank",
-                )
-              }
+              variant="outline"
+              onClick={onReprocess}
+              disabled={isReprocessing}
             >
-              <User className="mr-2 h-4 w-4" />
-              Ver Cliente Criado
+              {isReprocessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Reprocessando...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Reprocessar
+                </>
+              )}
             </Button>
+            {submission.createdCustomerId && (
+              <Button
+                onClick={() =>
+                  window.open(
+                    `/customers/${submission.createdCustomerId}`,
+                    "_blank",
+                  )
+                }
+              >
+                <User className="mr-2 h-4 w-4" />
+                Ver Cliente Criado
+              </Button>
+            )}
           </DialogFooter>
         )}
 

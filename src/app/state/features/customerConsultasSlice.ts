@@ -47,12 +47,16 @@ export const customerConsultasSlice = firestoreApi
             const consultas: ICustomerConsulta[] = [];
 
             querySnapshot?.forEach((doc) => {
+              const data = doc.data() as ICustomerConsultaFirebase;
+              console.log("DB data: ", data);
               consultas.push({
-                ...doc.data() as ICustomerConsulta,
+                ...data as unknown as ICustomerConsulta,
                 id: doc.id,
+                date: dateInString(data.date),
+                createdAt: dateInString(data.createdAt),
               });
             });
-
+            console.log(consultas);
             return {
               data: consultas,
             };
@@ -130,6 +134,24 @@ export const customerConsultasSlice = firestoreApi
             return { data: consulta };
           } catch (err: unknown) {
             console.error("Não Feito", err);
+            return { error: err };
+          }
+        },
+      }),
+      deleteCustomerConsulta: builder.mutation<
+        void,
+        { uid: string; customerId: string; consultaId: string }
+      >({
+        invalidatesTags: ["Consultas"],
+        queryFn: async ({ uid, customerId, consultaId }) => {
+          if (!uid || !customerId || !consultaId)
+            return { error: "Args not provided" };
+          try {
+            await CustomerConsultasService(uid, customerId)?.deleteOne(
+              consultaId,
+            );
+            return { data: undefined };
+          } catch (err: unknown) {
             return { error: err };
           }
         },
@@ -247,4 +269,5 @@ export const {
   useFetchCustomerConsultasQuery,
   useAddCustomerConsultaMutation,
   useUpdateCustomerConsultaMutation,
+  useDeleteCustomerConsultaMutation,
 } = customerConsultasSlice;

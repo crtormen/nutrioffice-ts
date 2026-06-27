@@ -1,5 +1,11 @@
 import { FirebaseApp, initializeApp } from "firebase/app";
-import { Auth, connectAuthEmulator, getAuth } from "firebase/auth";
+import {
+  Auth,
+  browserLocalPersistence,
+  connectAuthEmulator,
+  getAuth,
+  setPersistence,
+} from "firebase/auth";
 import {
   connectFirestoreEmulator,
   Firestore,
@@ -46,6 +52,9 @@ export const auth: Auth = getAuth(app);
 export const storage: FirebaseStorage = getStorage(app);
 export const functions: Functions = getFunctions(app);
 
+// Explicitly set localStorage persistence so the session survives page refreshes and idle periods
+setPersistence(auth, browserLocalPersistence).catch(console.error);
+
 // FUNCTIONS
 export const createAuthUser = httpsCallable(functions, "createAuthUser");
 export const redefineCustomClaims = httpsCallable(
@@ -63,7 +72,7 @@ export const initializeUserSettings = httpsCallable(
 );
 
 // CONNECT EMULATORS
-if (location.hostname === "localhost") {
+if (import.meta.env.VITE_USE_EMULATOR === "true") {
   connectFirestoreEmulator(db, "localhost", 8080);
   connectAuthEmulator(auth, "http://localhost:9099");
   connectStorageEmulator(storage, "localhost", 9199);

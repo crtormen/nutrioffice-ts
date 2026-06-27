@@ -22,14 +22,9 @@ export function getInitials(name: string | null | undefined) {
 export const dateInString = (date: Timestamp | string | undefined) => {
   if (!date) return "";
 
-  // Handle ISO string dates
+  // Handle string dates — already in dd/MM/yyyy, pass through directly
   if (typeof date === 'string') {
-    try {
-      const parsedDate = new Date(date);
-      return dateFormatter.format(parsedDate);
-    } catch {
-      return date;
-    }
+    return date;
   }
 
   // Check if it has toDate method (Firestore Timestamp)

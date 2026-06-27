@@ -74,8 +74,10 @@ export function PublicFormLinksCard() {
   const hasOnlineToken = tokens?.onlineToken;
   const hasPresencialToken = tokens?.presencialToken;
   const hasReavaliacaoToken = tokens?.reavaliacaoToken;
+  const hasConsultoriaToken = tokens?.consultoriaToken;
+  const hasHibridoToken = tokens?.hibridoToken;
 
-  if (!hasOnlineToken && !hasPresencialToken && !hasReavaliacaoToken) {
+  if (!hasOnlineToken && !hasPresencialToken && !hasReavaliacaoToken && !hasConsultoriaToken && !hasHibridoToken) {
     return (
       <Card>
         <CardHeader>
@@ -236,6 +238,90 @@ export function PublicFormLinksCard() {
                 size="icon"
                 onClick={() =>
                   window.open(getFormUrl(tokens.reavaliacaoToken!), "_blank")
+                }
+                title="Abrir em nova aba"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {hasConsultoriaToken && (
+          <div className="space-y-2">
+            <div className="mb-2 flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className="border-orange-500 text-orange-700"
+              >
+                Consultoria
+              </Badge>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={getFormUrl(tokens!.consultoriaToken!)}
+                readOnly
+                className="font-mono text-sm"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => handleCopyLink(tokens!.consultoriaToken!, "consultoria")}
+                title="Copiar link"
+              >
+                {copiedToken === tokens!.consultoriaToken ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() =>
+                  window.open(getFormUrl(tokens!.consultoriaToken!), "_blank")
+                }
+                title="Abrir em nova aba"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {hasHibridoToken && (
+          <div className="space-y-2">
+            <div className="mb-2 flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className="border-teal-500 text-teal-700"
+              >
+                Híbrido
+              </Badge>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={getFormUrl(tokens!.hibridoToken!)}
+                readOnly
+                className="font-mono text-sm"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => handleCopyLink(tokens!.hibridoToken!, "hibrido")}
+                title="Copiar link"
+              >
+                {copiedToken === tokens!.hibridoToken ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() =>
+                  window.open(getFormUrl(tokens!.hibridoToken!), "_blank")
                 }
                 title="Abrir em nova aba"
               >

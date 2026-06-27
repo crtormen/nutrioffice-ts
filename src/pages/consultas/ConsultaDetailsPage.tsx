@@ -113,8 +113,17 @@ const ConsultaDetailsPage: React.FC = () => {
           <Calendar className="h-4 w-4" />
           <p>Consulta realizada em {consultaDate}</p>
         </div>
-        <PlanSentCheck consulta={consulta} />
-        <EditConsultaDialog consulta={consulta} />
+        <div className="flex gap-2">
+          <PlanSentCheck consulta={consulta} />
+          <EditConsultaDialog
+            consulta={consulta}
+            customerGender={
+              customer?.gender === "H" || customer?.gender === "M"
+                ? customer.gender
+                : undefined
+            }
+          />
+        </div>
       </div>
 
       {/* Horizontal tabs navigation and content */}

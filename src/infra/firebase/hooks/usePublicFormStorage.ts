@@ -80,5 +80,22 @@ export function usePublicFormStorage(token: string) {
     return getDownloadURL(storageRef);
   };
 
-  return { uploadPhoto, deletePhoto, getPhotoUrl, compressImage };
+  /**
+   * Upload any file (PDF, image, etc.) to temporary storage
+   * @param file File to upload
+   * @returns UploadTask for progress monitoring and filename used
+   */
+  const uploadFile = useCallback((file: File): { task: UploadTask; filename: string } => {
+    const fileId = nanoid();
+    const ext = file.name.split(".").pop() ?? "bin";
+    const filename = `${fileId}.${ext}`;
+    const storageRef = ref(storage, `temp-uploads/${token}/attachments/${filename}`);
+    const task = uploadBytesResumable(storageRef, file, {
+      contentType: file.type,
+      customMetadata: { formToken: token, originalName: file.name },
+    });
+    return { task, filename };
+  }, [token]);
+
+  return { uploadPhoto, deletePhoto, getPhotoUrl, compressImage, uploadFile };
 }

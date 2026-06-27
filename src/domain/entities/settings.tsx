@@ -15,10 +15,7 @@ export type FieldSetting = Record<string, FieldValuesSetting>;
 
 export const serviceCategories = [
   "consulta",
-  "pacote",
-  "protocolo",
-  "produto",
-  "outro",
+  "time",
 ] as const;
 export type ServiceCategory = (typeof serviceCategories)[number];
 
@@ -51,10 +48,7 @@ export const SERVICE_CATEGORIES: Record<
   { text: string; value: string }
 > = {
   consulta: { text: "Consulta", value: "consulta" },
-  pacote: { text: "Pacote", value: "pacote" },
-  protocolo: { text: "Protocolo", value: "protocolo" },
-  produto: { text: "Produto", value: "produto" },
-  outro: { text: "Outro", value: "outro" },
+  time: { text: "Meses", value: "time" },
 };
 
 export const GENDERS: Record<Gender, { text: string; value: string }> = {

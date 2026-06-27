@@ -184,20 +184,34 @@ export const onUpdateFirestoreUser = onDocumentUpdated(
       functions.logger.info("No data associated with the event");
       return;
     }
-    const user: IUser = snapshot.after.data();
-    const contributors = user.contributors && Object.keys(user.contributors);
+    const before: IUser = snapshot.before.data();
+    const after: IUser = snapshot.after.data();
 
-    console.log(user);
+    // Only update custom claims when auth-relevant fields actually changed.
+    // setCustomUserClaims invalidates the user's current token and causes a
+    // client-side logout on the next token check, so we must not call it on
+    // every user document write (e.g. currentCustomerCount updates).
+    const beforeContributors = before.contributors && Object.keys(before.contributors);
+    const afterContributors = after.contributors && Object.keys(after.contributors);
+    const claimsUnchanged =
+      before.roles?.ability === after.roles?.ability &&
+      before.contributesTo === after.contributesTo &&
+      JSON.stringify(beforeContributors) === JSON.stringify(afterContributors);
+
+    if (claimsUnchanged) {
+      return;
+    }
+
     try {
       await getAuth().setCustomUserClaims(userId, {
-        admin: isProfessionalRole(user.roles?.ability),
-        role: user.roles?.ability,
-        contributesTo: user.contributesTo,
-        contributors,
+        admin: isProfessionalRole(after.roles?.ability),
+        role: after.roles?.ability,
+        contributesTo: after.contributesTo,
+        contributors: afterContributors,
       });
     } catch (err) {
       functions.logger.error(
-        "Error updating  custom user claims for " + userId,
+        "Error updating custom user claims for " + userId,
         err,
       );
       throw err;
@@ -207,7 +221,9 @@ export const onUpdateFirestoreUser = onDocumentUpdated(
 );
 
 /* Commit default settings contained in JSON files located at "default" folder to
-   Firestore root collection "settings", which will be loaded to User's DB on account created */
+   Firestore root collection "settings", which will be loaded to User's DB on account created 
+   To execute it use: curl https://us-central1-nutri-office.cloudfunctions.net/setDefaultSettingsOnFirestore
+*/
 export const setDefaultSettingsOnFirestore = onRequest(
   async (request, response) => {
     // const uid = request.auth?.uid;

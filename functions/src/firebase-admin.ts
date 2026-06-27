@@ -15,6 +15,7 @@ if (getApps().length === 0) {
   initializeApp({
     credential: cert(serviceAccount as ServiceAccount),
     databaseURL: "https://nutri-office.firebaseio.com",
+    storageBucket: "nutri-office.appspot.com",
   });
 }
 
@@ -23,7 +24,11 @@ export const db = getFirestore();
 export const auth = getAuth();
 export const storage = getStorage();
 
-// Point Admin SDK to local emulators when running in the Functions emulator
+const firestoreSettings: FirebaseFirestore.Settings = { ignoreUndefinedProperties: true };
+
 if (process.env.FUNCTIONS_EMULATOR === "true") {
-  db.settings({ host: "localhost:8080", ssl: false });
+  firestoreSettings.host = "localhost:8080";
+  firestoreSettings.ssl = false;
 }
+
+db.settings(firestoreSettings);

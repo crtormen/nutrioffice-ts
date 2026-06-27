@@ -1,3 +1,5 @@
+import { query } from "firebase/firestore";
+
 import { IAnamnesis } from "@/domain/entities";
 
 import { createCollectionRef, DatabaseService } from "./DatabaseService";
@@ -16,7 +18,7 @@ export const AnamnesisService = (uid: string, customerId: string) => {
 
   const anamnesisService = new DatabaseService<IAnamnesis>(collection);
 
-  anamnesisService.query = collection;
+  anamnesisService.query = query(collection);
 
   return anamnesisService;
 };

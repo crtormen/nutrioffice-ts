@@ -70,7 +70,7 @@ export function TokenDisplay({ token, type }: TokenDisplayProps) {
         </div>
         <p className="text-xs text-muted-foreground">
           Compartilhe este link com pacientes que farão consultas{" "}
-          {type === "online" ? "online (remotas)" : "presenciais"}
+          {type === "online" ? "online (remotas)" : type === "reavaliacao" ? "de reavaliação" : type === "consultoria" ? "de consultoria" : type === "hibrido" ? "híbridas" : "presenciais"}
         </p>
       </div>
 

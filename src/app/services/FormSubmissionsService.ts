@@ -65,8 +65,10 @@ export const FormSubmissionsService = (uid: string | undefined) => {
           customerData,
           anamnesisData: data.anamnesisData,
           evaluationData: data.evaluationData,
-          submittedAt: dateInString(data.submittedAt),
-          processedAt: data.processedAt ? dateInString(data.processedAt) : undefined,
+          feedingHistory: (data as any).feedingHistory,
+          attachments: (data as any).attachments,
+          submittedAt: data.submittedAt?.toDate?.().toISOString() ?? "",
+          processedAt: data.processedAt?.toDate?.().toISOString(),
           processedBy: data.processedBy,
           createdCustomerId: data.createdCustomerId,
           createdConsultaId: data.createdConsultaId,
@@ -173,6 +175,29 @@ export const FormSubmissionsService = (uid: string | undefined) => {
     }
   };
 
+  const reprocess = async (submissionId: string) => {
+    try {
+      const token = await getAuthToken();
+      const response = await fetch(
+        `${API_BASE_URL}/users/${uid}/form-submissions/${submissionId}/reprocess`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Falha ao reprocessar submissão");
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error("Error reprocessing submission:", error);
+      throw error;
+    }
+  };
+
   return {
     getAll: submissionService.getAll.bind(submissionService),
     getAllOnce: submissionService.getAllOnce.bind(submissionService),
@@ -184,5 +209,6 @@ export const FormSubmissionsService = (uid: string | undefined) => {
     approve,
     reject,
     update,
+    reprocess,
   };
 };

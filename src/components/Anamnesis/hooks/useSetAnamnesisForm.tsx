@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { z } from "zod";
 
@@ -16,7 +16,8 @@ export const useSetAnamnesisForm = () => {
   const { customerId } = useParams();
   const { dbUid } = useAuth();
   const { refetch } = useFetchSettingsQuery(dbUid);
-  const anamnesisFields = useAppSelector(selectAnamnesisSettings(dbUid));
+  const selectSettings = useMemo(() => selectAnamnesisSettings(dbUid), [dbUid]);
+  const anamnesisFields = useAppSelector(selectSettings);
   const customer = useGetCustomerData(customerId);
 
   useEffect(() => {

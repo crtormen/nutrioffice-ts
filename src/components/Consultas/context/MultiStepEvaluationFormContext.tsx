@@ -67,10 +67,6 @@ export const MultiStepEvaluationFormProvider = ({
     setSteps(steps);
   }, []);
 
-  const changePeso = useCallback((peso: number) => {
-    setPeso(peso);
-  }, []);
-
   const changeMeasures = useCallback((measures: IMeasures) => {
     setMeasures(measures);
   }, []);
@@ -99,155 +95,109 @@ export const MultiStepEvaluationFormProvider = ({
     setCurrentStepIndex(index);
   }, []);
 
-  const calculateResults = useCallback(() => {
-    const dobras =
-      (folds.triceps || 0) +
-      (folds.peitoral || 0) +
-      (folds.axilar || 0) +
-      (folds.abdominal || 0) +
-      (folds.supra || 0) +
-      (folds.subescapular || 0) +
-      (folds.coxa || 0);
+  const calculateResults = useCallback(
+    (currentFolds: IFolds, currentPeso: number, currentStructure: IStructure, currentIdade: number): IResults => {
+      const dobras =
+        (currentFolds.triceps || 0) +
+        (currentFolds.peitoral || 0) +
+        (currentFolds.axilar || 0) +
+        (currentFolds.abdominal || 0) +
+        (currentFolds.supra || 0) +
+        (currentFolds.subescapular || 0) +
+        (currentFolds.coxa || 0);
 
-    const densidade =
-      customer?.gender === "H"
-        ? 1.112 -
-          0.00043499 * dobras +
-          0.00000055 * dobras * dobras -
-          0.00028826 * idade // HOMEM
-        : 1.097 -
-          0.00046971 * dobras +
-          0.00000056 * dobras * dobras -
-          0.00012828 * idade; // MULHER
+      const densidade =
+        customer?.gender === "H"
+          ? 1.112 -
+            0.00043499 * dobras +
+            0.00000055 * dobras * dobras -
+            0.00028826 * currentIdade
+          : 1.097 -
+            0.00046971 * dobras +
+            0.00000056 * dobras * dobras -
+            0.00012828 * currentIdade;
 
-    let fat = (4.95 / densidade - 4.5) * 100;
-    fat = Number(fat.toFixed(2));
+      let fat = (4.95 / densidade - 4.5) * 100;
+      fat = Number(fat.toFixed(2));
 
-    let mg = peso * (fat / 100);
-    mg = Number(mg.toFixed(2));
+      let mg = currentPeso * (fat / 100);
+      mg = Number(mg.toFixed(2));
 
-    let mo =
-      3.02 *
-      Math.pow(
-        (((((((structure.altura / 100) * structure.altura) / 100) *
-          structure.punho) /
-          100) *
-          structure.joelho) /
-          100) *
-          400,
-        0.712,
-      );
-    mo = Number(mo.toFixed(2));
+      let mo =
+        3.02 *
+        Math.pow(
+          (((((((currentStructure.altura / 100) * currentStructure.altura) / 100) *
+            currentStructure.punho) /
+            100) *
+            currentStructure.joelho) /
+            100) *
+            400,
+          0.712,
+        );
+      mo = Number(mo.toFixed(2));
 
-    let mr =
-      customer?.gender === "H"
-        ? peso * 0.241 // HOMEM
-        : peso * 0.209; // MULHER
-    mr = Number(mr.toFixed(2));
+      let mr =
+        customer?.gender === "H"
+          ? currentPeso * 0.241
+          : currentPeso * 0.209;
+      mr = Number(mr.toFixed(2));
 
-    let mm = peso - mg - mr - mo;
-    mm = Number(mm.toFixed(2));
+      let mm = currentPeso - mg - mr - mo;
+      mm = Number(mm.toFixed(2));
 
-    return { dobras, fat, mg, mm, mo, mr };
-  }, [customer?.gender, folds, idade, peso, structure]);
-
-  useEffect(() => {
-    if (peso > 0) {
-      const results: IResults = calculateResults();
-      setResults(results);
-    }
-  }, [calculateResults, peso]);
-
-  const definePeso = useCallback(async (data: evaluationFormInputs) => {
-    const peso = parseFloat(data.peso.replace(",", "."));
-    setPeso(peso);
-  }, []);
-
-  const defineMeasures = useCallback(async (data: evaluationFormInputs) => {
-    const measures: IMeasures = {
-      circ_abdomen: data.circ_abdomen
-        ? parseFloat(data.circ_abdomen.replace(",", "."))
-        : undefined,
-      circ_braco_dir: data.circ_braco_dir
-        ? parseFloat(data.circ_braco_dir.replace(",", "."))
-        : undefined,
-      circ_braco_esq: data.circ_braco_esq
-        ? parseFloat(data.circ_braco_esq.replace(",", "."))
-        : undefined,
-      circ_cintura: data.circ_cintura
-        ? parseFloat(data.circ_cintura.replace(",", "."))
-        : undefined,
-      circ_coxa_dir: data.circ_coxa_dir
-        ? parseFloat(data.circ_coxa_dir.replace(",", "."))
-        : undefined,
-      circ_coxa_esq: data.circ_coxa_esq
-        ? parseFloat(data.circ_coxa_esq.replace(",", "."))
-        : undefined,
-      circ_gluteo: data.circ_gluteo
-        ? parseFloat(data.circ_gluteo.replace(",", "."))
-        : undefined,
-      circ_ombro: data.circ_ombro
-        ? parseFloat(data.circ_ombro.replace(",", "."))
-        : undefined,
-      circ_panturrilha_dir: data.circ_panturrilha_dir
-        ? parseFloat(data.circ_panturrilha_dir.replace(",", "."))
-        : undefined,
-      circ_panturrilha_esq: data.circ_panturrilha_esq
-        ? parseFloat(data.circ_panturrilha_esq.replace(",", "."))
-        : undefined,
-      circ_peito: data.circ_peito
-        ? parseFloat(data.circ_peito.replace(",", "."))
-        : undefined,
-    };
-
-    setMeasures(measures);
-  }, []);
-
-  const defineFolds = useCallback(async (data: evaluationFormInputs) => {
-    const folds: IFolds = {
-      triceps: parseFloat(data.triceps.replace(",", ".")),
-      peitoral: parseFloat(data.peitoral.replace(",", ".")),
-      axilar: parseFloat(data.axilar.replace(",", ".")),
-      subescapular: parseFloat(data.subescapular.replace(",", ".")),
-      abdominal: parseFloat(data.abdominal.replace(",", ".")),
-      supra: parseFloat(data.supra.replace(",", ".")),
-      coxa: parseFloat(data.coxa.replace(",", ".")),
-    };
-    setFolds(folds);
-  }, []);
-
-  const defineStructure = useCallback(
-    async (data: evaluationFormInputs) => {
-      const { altura, joelho, punho } = customer?.structure
-        ? customer.structure
-        : data;
-      const structure: IStructure = {
-        altura: typeof altura === "string" ? parseInt(altura) : altura!,
-        joelho:
-          typeof joelho === "string"
-            ? parseFloat(joelho.replace(",", "."))
-            : joelho!,
-        punho:
-          typeof punho === "string"
-            ? parseFloat(punho.replace(",", "."))
-            : punho!,
-      };
-
-      setStructure(structure);
+      return { dobras, fat, mg, mm, mo, mr };
     },
-    [customer?.structure],
+    [customer?.gender],
   );
 
   const calculate = useCallback(
     (data: evaluationFormInputs, online: boolean) => {
-      if (!online) {
-        defineFolds(data);
-      }
-      defineStructure(data);
-      defineMeasures(data);
-      definePeso(data);
+      const currentPeso = parseFloat(data.peso.replace(",", "."));
+
+      const { altura, joelho, punho } = customer?.structure ? customer.structure : data;
+      const currentStructure: IStructure = {
+        altura: typeof altura === "string" ? parseInt(altura) : altura!,
+        joelho: typeof joelho === "string" ? parseFloat(joelho.replace(",", ".")) : joelho!,
+        punho: typeof punho === "string" ? parseFloat(punho.replace(",", ".")) : punho!,
+      };
+
+      const currentFolds: IFolds = online
+        ? ({} as IFolds)
+        : {
+            triceps: parseFloat(data.triceps.replace(",", ".")),
+            peitoral: parseFloat(data.peitoral.replace(",", ".")),
+            axilar: parseFloat(data.axilar.replace(",", ".")),
+            subescapular: parseFloat(data.subescapular.replace(",", ".")),
+            abdominal: parseFloat(data.abdominal.replace(",", ".")),
+            supra: parseFloat(data.supra.replace(",", ".")),
+            coxa: parseFloat(data.coxa.replace(",", ".")),
+          };
+
+      const currentMeasures: IMeasures = {
+        circ_abdomen: data.circ_abdomen ? parseFloat(data.circ_abdomen.replace(",", ".")) : undefined,
+        circ_braco_dir: data.circ_braco_dir ? parseFloat(data.circ_braco_dir.replace(",", ".")) : undefined,
+        circ_braco_esq: data.circ_braco_esq ? parseFloat(data.circ_braco_esq.replace(",", ".")) : undefined,
+        circ_cintura: data.circ_cintura ? parseFloat(data.circ_cintura.replace(",", ".")) : undefined,
+        circ_coxa_dir: data.circ_coxa_dir ? parseFloat(data.circ_coxa_dir.replace(",", ".")) : undefined,
+        circ_coxa_esq: data.circ_coxa_esq ? parseFloat(data.circ_coxa_esq.replace(",", ".")) : undefined,
+        circ_gluteo: data.circ_gluteo ? parseFloat(data.circ_gluteo.replace(",", ".")) : undefined,
+        circ_ombro: data.circ_ombro ? parseFloat(data.circ_ombro.replace(",", ".")) : undefined,
+        circ_panturrilha_dir: data.circ_panturrilha_dir ? parseFloat(data.circ_panturrilha_dir.replace(",", ".")) : undefined,
+        circ_panturrilha_esq: data.circ_panturrilha_esq ? parseFloat(data.circ_panturrilha_esq.replace(",", ".")) : undefined,
+        circ_peito: data.circ_peito ? parseFloat(data.circ_peito.replace(",", ".")) : undefined,
+      };
+
+      const currentResults = online
+        ? ({} as IResults)
+        : calculateResults(currentFolds, currentPeso, currentStructure, idade);
+
+      setPeso(currentPeso);
+      setFolds(currentFolds);
+      setStructure(currentStructure);
+      setMeasures(currentMeasures);
+      setResults(currentResults);
     },
-    [defineFolds, defineMeasures, definePeso, defineStructure],
+    [calculateResults, customer?.structure, idade],
   );
 
   const handleSave = useCallback(
@@ -284,7 +234,6 @@ export const MultiStepEvaluationFormProvider = ({
       changeMeasures,
       changeStructure,
       changeFolds,
-      changePeso,
       calculate,
       handleSave,
     }),
@@ -305,7 +254,6 @@ export const MultiStepEvaluationFormProvider = ({
       changeMeasures,
       changeStructure,
       changeFolds,
-      changePeso,
       calculate,
       handleSave,
     ],

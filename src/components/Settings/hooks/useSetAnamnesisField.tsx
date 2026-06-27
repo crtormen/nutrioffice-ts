@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
 import { useAppSelector } from "@/app/state";
@@ -15,9 +15,8 @@ export const useSetAnamnesisField = (
   setDialogOpen: (isOpen: boolean) => void,
 ) => {
   const { user } = useAuth();
-  const anamnesisFields = useAppSelector(
-    selectCustomAnamnesisSettings(user?.uid),
-  );
+  const selectCustom = useMemo(() => selectCustomAnamnesisSettings(user?.uid), [user?.uid]);
+  const anamnesisFields = useAppSelector(selectCustom);
   const [updateCustomSettings] = useSetSettingsMutation();
 
   const handleSubmitAnamnesisField = useCallback(

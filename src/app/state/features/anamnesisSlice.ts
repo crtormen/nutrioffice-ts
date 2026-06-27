@@ -1,4 +1,5 @@
 import { createSelector } from "@reduxjs/toolkit";
+import { serverTimestamp } from "firebase/firestore";
 
 import { AnamnesisService } from "@/app/services/AnamnesisService";
 import { IAnamnesis } from "@/domain/entities";
@@ -49,7 +50,7 @@ export const anamnesisSlice = firestoreApi
             const anamnesis: IAnamnesis[] = [];
 
             querySnapshot?.forEach((doc) => {
-              anamnesis.push(doc.data());
+              anamnesis.push({ id: doc.id, ...doc.data() });
             });
 
             return {
@@ -67,7 +68,7 @@ export const anamnesisSlice = firestoreApi
             return { error: "Args not provided" };
 
           try {
-            await AnamnesisService(uid, customerId)?.addOne(newAnamnesis);
+            await AnamnesisService(uid, customerId)?.addOne({ ...newAnamnesis, createdAt: serverTimestamp() } as any);
             return { data: newAnamnesis };
           } catch (err: unknown) {
             return { error: err };
@@ -119,4 +120,18 @@ export const selectAnamnesis = (uid?: string, customerId?: string) =>
   createSelector(
     anamnesisSlice.endpoints.fetchAnamnesis.select({ uid, customerId }),
     ({ data: anamnesis }) => (anamnesis ? anamnesis[0] : undefined),
+  );
+
+const toMs = (v: unknown): number => {
+  if (!v) return 0;
+  if (typeof v === "string") return new Date(v).getTime() || 0;
+  if (typeof v === "object" && "toDate" in (v as any)) return (v as any).toDate().getTime();
+  return 0;
+};
+
+export const selectAllAnamnesis = (uid?: string, customerId?: string) =>
+  createSelector(
+    anamnesisSlice.endpoints.fetchAnamnesis.select({ uid, customerId }),
+    ({ data: anamnesis }) =>
+      [...(anamnesis ?? [])].sort((a, b) => toMs(b.createdAt) - toMs(a.createdAt)),
   );

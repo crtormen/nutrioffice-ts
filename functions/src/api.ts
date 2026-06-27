@@ -153,6 +153,7 @@ app.post("/users/:userId/customer-anamnesis-consulta", async (req, res) => {
         .collection("consultas")
         .add({
           ...consultaData,
+          anamnesis_id: anamnesisRef.id,
           createdAt: FieldValue.serverTimestamp(),
         });
       consultaId = consultaRef.id;
@@ -798,6 +799,12 @@ app.get("/public/anamnesis-form/:token", async (req, res) => {
       const reavaliacaoTokenDoc = await db
         .doc(`users/${userDoc.id}/anamnesisFormTokens/reavaliacao`)
         .get();
+      const consultoriaTokenDoc = await db
+        .doc(`users/${userDoc.id}/anamnesisFormTokens/consultoria`)
+        .get();
+      const hibridoTokenDoc = await db
+        .doc(`users/${userDoc.id}/anamnesisFormTokens/hibrido`)
+        .get();
 
       if (onlineTokenDoc.exists && onlineTokenDoc.data()?.token === token) {
         tokenData = onlineTokenDoc.data();
@@ -817,6 +824,20 @@ app.get("/public/anamnesis-form/:token", async (req, res) => {
         tokenData = reavaliacaoTokenDoc.data();
         professionalId = userDoc.id;
         appointmentType = "reavaliacao";
+        break;
+      }
+
+      if (consultoriaTokenDoc.exists && consultoriaTokenDoc.data()?.token === token) {
+        tokenData = consultoriaTokenDoc.data();
+        professionalId = userDoc.id;
+        appointmentType = "consultoria";
+        break;
+      }
+
+      if (hibridoTokenDoc.exists && hibridoTokenDoc.data()?.token === token) {
+        tokenData = hibridoTokenDoc.data();
+        professionalId = userDoc.id;
+        appointmentType = "hibrido";
         break;
       }
     }
@@ -869,6 +890,8 @@ app.get("/public/anamnesis-form/:token", async (req, res) => {
       enabledFields, // Get from token, not from publicForms settings
       anamnesisFields: { ...defaultSettings?.anamnesis, ...customSettings?.anamnesis },
       enabledEvaluationFields, // Get from token
+      enableFeedingHistory: tokenData.enableFeedingHistory ?? false,
+      enableAttachments: tokenData.enableAttachments ?? false,
       tokenValid: true,
     });
   } catch (error: any) {
@@ -884,7 +907,7 @@ app.get("/public/anamnesis-form/:token", async (req, res) => {
 app.post("/public/anamnesis-form/:token/submit", async (req, res) => {
   try {
     const { token } = req.params;
-    const { customerData, anamnesisData, evaluationData } = req.body;
+    const { customerData, anamnesisData, evaluationData, feedingHistory, attachments } = req.body;
 
     if (!customerData || !anamnesisData) {
       return res.status(400).json({ error: "Dados incompletos" });
@@ -907,6 +930,12 @@ app.post("/public/anamnesis-form/:token/submit", async (req, res) => {
       const reavaliacaoTokenDoc = await db
         .doc(`users/${userDoc.id}/anamnesisFormTokens/reavaliacao`)
         .get();
+      const consultoriaTokenDoc = await db
+        .doc(`users/${userDoc.id}/anamnesisFormTokens/consultoria`)
+        .get();
+      const hibridoTokenDoc = await db
+        .doc(`users/${userDoc.id}/anamnesisFormTokens/hibrido`)
+        .get();
 
       if (onlineTokenDoc.exists && onlineTokenDoc.data()?.token === token) {
         tokenData = onlineTokenDoc.data();
@@ -926,6 +955,20 @@ app.post("/public/anamnesis-form/:token/submit", async (req, res) => {
         tokenData = reavaliacaoTokenDoc.data();
         professionalId = userDoc.id;
         appointmentType = "reavaliacao";
+        break;
+      }
+
+      if (consultoriaTokenDoc.exists && consultoriaTokenDoc.data()?.token === token) {
+        tokenData = consultoriaTokenDoc.data();
+        professionalId = userDoc.id;
+        appointmentType = "consultoria";
+        break;
+      }
+
+      if (hibridoTokenDoc.exists && hibridoTokenDoc.data()?.token === token) {
+        tokenData = hibridoTokenDoc.data();
+        professionalId = userDoc.id;
+        appointmentType = "hibrido";
         break;
       }
     }
@@ -962,6 +1005,16 @@ app.post("/public/anamnesis-form/:token/submit", async (req, res) => {
     // Add evaluation data if provided
     if (evaluationData) {
       submissionData.evaluationData = evaluationData;
+    }
+
+    // Add feeding history if provided
+    if (feedingHistory && Array.isArray(feedingHistory) && feedingHistory.length > 0) {
+      submissionData.feedingHistory = feedingHistory;
+    }
+
+    // Add attachments if provided
+    if (attachments && Array.isArray(attachments) && attachments.length > 0) {
+      submissionData.attachments = attachments;
     }
 
     // Only add optional fields if they have values
@@ -1003,8 +1056,8 @@ app.post("/users/:userId/anamnesis-tokens/generate", async (req, res) => {
     const { userId } = req.params;
     const { type } = req.body;
 
-    if (!type || (type !== "online" && type !== "presencial" && type !== "reavaliacao")) {
-      return res.status(400).json({ error: "Tipo inválido. Use 'online', 'presencial' ou 'reavaliacao'" });
+    if (!type || (type !== "online" && type !== "presencial" && type !== "reavaliacao" && type !== "consultoria" && type !== "hibrido")) {
+      return res.status(400).json({ error: "Tipo inválido. Use 'online', 'presencial', 'reavaliacao', 'consultoria' ou 'hibrido'" });
     }
 
     const token = uuidv4();
@@ -1037,7 +1090,7 @@ app.post("/users/:userId/anamnesis-tokens/generate", async (req, res) => {
         const evaluationSettingsDoc = await db.doc(`users/${userId}/settings/evaluation`).get();
         const evaluationConfig = evaluationSettingsDoc.data();
 
-        const evalConfigKey = type === "reavaliacao" ? "online" : type;
+        const evalConfigKey = (type === "reavaliacao" || type === "consultoria" || type === "hibrido") ? "online" : type;
         if (evaluationConfig && evaluationConfig[evalConfigKey]) {
           const config = evaluationConfig[evalConfigKey];
 
@@ -1106,6 +1159,8 @@ app.get("/users/:userId/anamnesis-tokens", async (req, res) => {
     const onlineTokenDoc = await db.doc(`users/${userId}/anamnesisFormTokens/online`).get();
     const presencialTokenDoc = await db.doc(`users/${userId}/anamnesisFormTokens/presencial`).get();
     const reavaliacaoTokenDoc = await db.doc(`users/${userId}/anamnesisFormTokens/reavaliacao`).get();
+    const consultoriaTokenDoc = await db.doc(`users/${userId}/anamnesisFormTokens/consultoria`).get();
+    const hibridoTokenDoc = await db.doc(`users/${userId}/anamnesisFormTokens/hibrido`).get();
 
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
@@ -1121,6 +1176,8 @@ app.get("/users/:userId/anamnesis-tokens", async (req, res) => {
         submissionsCount: data?.submissionsCount || 0,
         enabledFields: data?.enabledFields || [],
         enabledEvaluationFields: data?.enabledEvaluationFields || null,
+        enableFeedingHistory: data?.enableFeedingHistory ?? false,
+        enableAttachments: data?.enableAttachments ?? false,
         createdAt: data?.createdAt?.toDate().toISOString(),
         regeneratedAt: data?.regeneratedAt?.toDate().toISOString(),
         lastSubmissionAt: data?.lastSubmissionAt?.toDate().toISOString(),
@@ -1131,6 +1188,8 @@ app.get("/users/:userId/anamnesis-tokens", async (req, res) => {
       online: formatTokenData(onlineTokenDoc, "online"),
       presencial: formatTokenData(presencialTokenDoc, "presencial"),
       reavaliacao: formatTokenData(reavaliacaoTokenDoc, "reavaliacao"),
+      consultoria: formatTokenData(consultoriaTokenDoc, "consultoria"),
+      hibrido: formatTokenData(hibridoTokenDoc, "hibrido"),
     });
   } catch (error: any) {
     console.error("Error fetching tokens:", error);
@@ -1147,8 +1206,8 @@ app.put("/users/:userId/anamnesis-tokens/:type/fields", async (req, res) => {
     const { userId, type } = req.params;
     const { enabledFields } = req.body;
 
-    if (type !== "online" && type !== "presencial" && type !== "reavaliacao") {
-      return res.status(400).json({ error: "Tipo inválido. Use 'online', 'presencial' ou 'reavaliacao'" });
+    if (type !== "online" && type !== "presencial" && type !== "reavaliacao" && type !== "consultoria" && type !== "hibrido") {
+      return res.status(400).json({ error: "Tipo inválido. Use 'online', 'presencial', 'reavaliacao', 'consultoria' ou 'hibrido'" });
     }
 
     if (!Array.isArray(enabledFields)) {
@@ -1180,8 +1239,8 @@ app.put("/users/:userId/anamnesis-tokens/:type/evaluation-fields", async (req, r
     const { userId, type } = req.params;
     const { enabledEvaluationFields } = req.body;
 
-    if (type !== "online" && type !== "presencial" && type !== "reavaliacao") {
-      return res.status(400).json({ error: "Tipo inválido. Use 'online', 'presencial' ou 'reavaliacao'" });
+    if (type !== "online" && type !== "presencial" && type !== "reavaliacao" && type !== "consultoria" && type !== "hibrido") {
+      return res.status(400).json({ error: "Tipo inválido. Use 'online', 'presencial', 'reavaliacao', 'consultoria' ou 'hibrido'" });
     }
 
     if (!enabledEvaluationFields || typeof enabledEvaluationFields !== "object") {
@@ -1205,37 +1264,124 @@ app.put("/users/:userId/anamnesis-tokens/:type/evaluation-fields", async (req, r
 });
 
 /**
- * POST /users/:userId/form-submissions/:submissionId/approve
- * Approve form submission and create customer + anamnesis + consulta (if evaluation data exists)
+ * PUT /users/:userId/anamnesis-tokens/:type/feeding-history
+ * Toggle the feeding history section for a specific form type
  */
-app.post("/users/:userId/form-submissions/:submissionId/approve", async (req, res) => {
+app.put("/users/:userId/anamnesis-tokens/:type/feeding-history", async (req, res) => {
   try {
-    const { userId, submissionId } = req.params;
-    const { customerData, anamnesisData, evaluationData } = req.body;
+    const { userId, type } = req.params;
+    const { enableFeedingHistory } = req.body;
 
-    // Get submission
-    const submissionRef = db.doc(`users/${userId}/formSubmissions/${submissionId}`);
-    const submissionDoc = await submissionRef.get();
-
-    if (!submissionDoc.exists) {
-      return res.status(404).json({ error: "Submissão não encontrada" });
+    if (type !== "online" && type !== "presencial" && type !== "reavaliacao" && type !== "consultoria" && type !== "hibrido") {
+      return res.status(400).json({ error: "Tipo inválido. Use 'online', 'presencial', 'reavaliacao', 'consultoria' ou 'hibrido'" });
     }
 
-    const submission = submissionDoc.data();
-
-    if (submission?.status !== "pending") {
-      return res.status(400).json({ error: "Submissão já foi processada" });
+    if (typeof enableFeedingHistory !== "boolean") {
+      return res.status(400).json({ error: "enableFeedingHistory deve ser um booleano" });
     }
 
-    // Check subscription limits (same logic as customer creation)
+    const tokenRef = db.doc(`users/${userId}/anamnesisFormTokens/${type}`);
+    await tokenRef.set(
+      {
+        enableFeedingHistory,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    return res.status(200).json({ success: true });
+  } catch (error: any) {
+    console.error("Error updating feeding history setting:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+/**
+ * PUT /users/:userId/anamnesis-tokens/:type/attachments
+ * Toggle the extra file attachments section for a specific form type
+ */
+app.put("/users/:userId/anamnesis-tokens/:type/attachments", async (req, res) => {
+  try {
+    const { userId, type } = req.params;
+    const { enableAttachments } = req.body;
+
+    if (type !== "online" && type !== "presencial" && type !== "reavaliacao" && type !== "consultoria") {
+      return res.status(400).json({ error: "Tipo inválido." });
+    }
+    if (typeof enableAttachments !== "boolean") {
+      return res.status(400).json({ error: "enableAttachments deve ser um booleano" });
+    }
+
+    await db.doc(`users/${userId}/anamnesisFormTokens/${type}`).set(
+      { enableAttachments, updatedAt: FieldValue.serverTimestamp() },
+      { merge: true }
+    );
+
+    return res.status(200).json({ success: true });
+  } catch (error: any) {
+    console.error("Error updating attachments setting:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Shared processing logic for approve and reprocess endpoints
+async function processSubmission(
+  userId: string,
+  submissionId: string,
+  submission: FirebaseFirestore.DocumentData,
+  customerData: any,
+  anamnesisData: Record<string, any>,
+  processedBy: string,
+) {
+  const evaluationData = submission.evaluationData;
+  const feedingHistory = submission.feedingHistory;
+  const appointmentType: string = submission.appointmentType || "online";
+  const isReavaliacao = appointmentType === "reavaliacao";
+
+  const customersRef = db.collection(`users/${userId}/customers`);
+  let customerId: string;
+  let existingCustomer = false;
+  let birthdayTimestamp: Timestamp | null = null;
+
+  if (isReavaliacao) {
+    const phone = customerData?.phone;
+    if (!phone) {
+      return { status: 400, body: { error: "Telefone é obrigatório para identificar o paciente na reavaliação" } };
+    }
+
+    const normalizePhone = (p: string) => p.replace(/\D/g, "").replace(/^55(\d{10,11})$/, "$1");
+    const normalizedInput = normalizePhone(phone);
+    const withCountryCode = `55${normalizedInput}`;
+
+    const [exactSnap, countryCodeSnap] = await Promise.all([
+      customersRef.where("phone", "==", normalizedInput).limit(1).get(),
+      customersRef.where("phone", "==", withCountryCode).limit(1).get(),
+    ]);
+
+    const cheapMatch = exactSnap.docs[0] ?? countryCodeSnap.docs[0];
+    const matchDoc = cheapMatch ?? (await customersRef.get()).docs.find(
+      (doc) => normalizePhone(doc.data().phone ?? "") === normalizedInput,
+    );
+
+    if (!matchDoc) {
+      return {
+        status: 404,
+        body: {
+          error: "Paciente não encontrado",
+          message: `Nenhum paciente encontrado com o telefone ${phone}. Verifique se o número está correto.`,
+        },
+      };
+    }
+
+    customerId = matchDoc.id;
+    existingCustomer = true;
+  } else {
     const userDoc = await db.doc(`users/${userId}`).get();
     const userData = userDoc.data();
     const currentCount = userData?.currentCustomerCount || 0;
 
-    // Get customer limit based on plan
     const permanentFree = userData?.permanentFree === true;
-    let limit = 50; // default free tier
-
+    let limit = 50;
     if (permanentFree) {
       limit = 999999;
     } else if (userData?.subscription?.planTier) {
@@ -1243,157 +1389,451 @@ app.post("/users/:userId/form-submissions/:submissionId/approve", async (req, re
       limit = planTier === "free" ? 50 :
               planTier === "starter" ? 200 :
               planTier === "professional" ? 500 :
-              999999; // enterprise
+              999999;
     }
 
     if (currentCount >= limit && !permanentFree) {
-      return res.status(400).json({
-        error: "Limite de clientes atingido",
-        message: "Você atingiu o limite de clientes do seu plano. Faça upgrade para adicionar mais clientes.",
-      });
-    }
-
-    // Prepare consulta data if evaluation data was submitted
-    let consultaData = null;
-    let consultaId = null;
-
-    if (evaluationData && Object.keys(evaluationData).length > 0) {
-      consultaData = {
-        date: FieldValue.serverTimestamp(),
-        weight: evaluationData.weight,
-        height: evaluationData.height,
-        measures: evaluationData.measures || {},
-        imgs: evaluationData.photos || {},
-        evaluationProtocol: "patient_submitted", // Mark as patient-submitted
+      return {
+        status: 400,
+        body: {
+          error: "Limite de clientes atingido",
+          message: "Você atingiu o limite de clientes do seu plano. Faça upgrade para adicionar mais clientes.",
+        },
       };
     }
 
-    // Create customer, anamnesis, and optionally consulta
-    const customersRef = db.collection(`users/${userId}/customers`);
+    const existing = customerData?.cpf
+      ? await customersRef.where("cpf", "==", customerData.cpf).limit(1).get()
+      : null;
 
-    // Find or create customer by CPF
-    const existing = await customersRef.where("cpf", "==", customerData.cpf).limit(1).get();
-    let customerId;
+    let existingCustomerId: string | null = null;
 
-    if (!existing.empty) {
-      customerId = existing.docs[0].id;
+    if (existing && !existing.empty) {
+      existingCustomerId = existing.docs[0].id;
+    } else if (customerData?.email) {
+      const emailSnap = await customersRef.where("email", "==", customerData.email).limit(1).get();
+      if (!emailSnap.empty) existingCustomerId = emailSnap.docs[0].id;
+    }
+
+    if (!existingCustomerId && customerData?.phone) {
+      const normalizePhone = (p: string) => p.replace(/\D/g, "").replace(/^55(\d{10,11})$/, "$1");
+      const normalizedPhone = normalizePhone(customerData.phone);
+      const withCountryCode = `55${normalizedPhone}`;
+      const [phoneSnap, phoneCountrySnap] = await Promise.all([
+        customersRef.where("phone", "==", normalizedPhone).limit(1).get(),
+        customersRef.where("phone", "==", withCountryCode).limit(1).get(),
+      ]);
+      const phoneMatch = phoneSnap.docs[0] ?? phoneCountrySnap.docs[0];
+      if (phoneMatch) existingCustomerId = phoneMatch.id;
+    }
+
+    // Normalize birthday to Timestamp — frontend sends "dd/MM/yyyy" after converter roundtrip
+    const normalizeBirthday = (raw: any): Timestamp | null => {
+      if (!raw) return null;
+      if (raw instanceof Timestamp) return raw;
+      if (typeof raw === "string") {
+        const ddmmyyyy = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(raw);
+        if (ddmmyyyy) return Timestamp.fromDate(new Date(`${ddmmyyyy[3]}-${ddmmyyyy[2]}-${ddmmyyyy[1]}`));
+        const d = new Date(raw);
+        if (!isNaN(d.getTime())) return Timestamp.fromDate(d);
+      }
+      return null;
+    };
+
+    const { id: _id, createdAt: _createdAt, name: _name, ...updatableFields } = customerData as any;
+    birthdayTimestamp = normalizeBirthday(updatableFields.birthday);
+    const normalizedCustomerFields = {
+      ...updatableFields,
+      ...(birthdayTimestamp !== null ? { birthday: birthdayTimestamp } : {}),
+    };
+
+    if (existingCustomerId) {
+      customerId = existingCustomerId;
+      existingCustomer = true;
+      // Update with fields from the form — only overwrite non-empty values so we don't blank out existing data
+      const updates: Record<string, any> = {};
+      for (const [key, value] of Object.entries(normalizedCustomerFields)) {
+        if (value !== undefined && value !== null && value !== "") {
+          updates[key] = value;
+        }
+      }
+      if (Object.keys(updates).length > 0) {
+        await customersRef.doc(existingCustomerId).update(updates);
+      }
     } else {
+      const finalName = (appointmentType === "consultoria" || appointmentType === "hibrido") && _name
+        ? `${_name} (${appointmentType === "hibrido" ? "Híbrido" : "Consultoria"})`
+        : _name;
       const newCustomerRef = await customersRef.add({
-        ...customerData,
+        ...normalizedCustomerFields,
+        name: finalName,
+        ...(birthdayTimestamp === null ? { birthday: null } : {}),
         createdAt: FieldValue.serverTimestamp(),
       });
       customerId = newCustomerRef.id;
     }
+  }
 
-    // Create anamnesis
-    const anamnesisRef = await customersRef
+  let consultaData = null;
+  let consultaId = null;
+
+  const hasFeedingHistory = feedingHistory && Array.isArray(feedingHistory) && feedingHistory.length > 0;
+  const hasEvaluationData = evaluationData && Object.keys(evaluationData).length > 0;
+
+  const isOnlineConsulta = appointmentType === "online" || appointmentType === "reavaliacao" || appointmentType === "consultoria";
+
+  const customerAge = birthdayTimestamp
+    ? Math.floor((Date.now() - birthdayTimestamp.toDate().getTime()) / (1000 * 60 * 60 * 24 * 365.25))
+    : undefined;
+
+  if (hasEvaluationData || hasFeedingHistory) {
+    consultaData = {
+      date: FieldValue.serverTimestamp(),
+      ...(isOnlineConsulta && { online: true }),
+      ...(customerAge != null && { idade: customerAge }),
+      ...(evaluationData?.weight != null && { peso: String(evaluationData.weight) }),
+      ...(evaluationData?.height != null && { structure: { altura: Number(evaluationData.height) } }),
+      ...(evaluationData?.measures && Object.keys(evaluationData.measures).length > 0 && {
+        medidas: Object.fromEntries(
+          Object.entries(evaluationData.measures).map(([k, v]) => [
+            k.startsWith("circ_") ? k : `circ_${k}`,
+            v,
+          ])
+        ),
+      }),
+      ...(hasFeedingHistory && { meals: feedingHistory }),
+      evaluationProtocol: "patient_submitted",
+    };
+  }
+
+  const anamnesisRef = await customersRef
+    .doc(customerId)
+    .collection("anamnesis")
+    .add({ ...anamnesisData, createdAt: FieldValue.serverTimestamp() });
+
+  let evaluationDataUpdate: { photos: Record<string, string> } | null = null;
+
+  if (consultaData) {
+    const consultaRef = await customersRef
       .doc(customerId)
-      .collection("anamnesis")
-      .add({
-        ...anamnesisData,
-        createdAt: FieldValue.serverTimestamp(),
-      });
+      .collection("consultas")
+      .add({ ...consultaData, anamnesis_id: anamnesisRef.id });
+    consultaId = consultaRef.id;
 
-    // Create consulta if evaluation data exists
-    if (consultaData) {
-      const consultaRef = await customersRef
-        .doc(customerId)
-        .collection("consultas")
-        .add(consultaData);
-      consultaId = consultaRef.id;
+    if (evaluationData?.photos) {
+      const bucket = storage.bucket();
+      const migratedImages: any = {};
+      const positionMap: Record<string, string> = {
+        front: "img_frente",
+        back: "img_costas",
+        side: "img_lado",
+      };
 
-      // Migrate photos from temp storage if they exist
-      if (evaluationData?.photos) {
-        const bucket = storage.bucket();
-        const migratedImages: any = {};
+      for (const [position, tempUrl] of Object.entries(evaluationData.photos)) {
+        if (!tempUrl || typeof tempUrl !== "string") continue;
+        const consultaPosition = positionMap[position];
+        try {
+          const tempPath = decodeURIComponent(tempUrl.split("/o/")[1].split("?")[0]);
+          const fileId = uuidv4();
+          const newPath = `images/${userId}/${customerId}/${fileId}-${position}`;
 
-        // Map position names: front → img_frente, back → img_costas, side → img_lado
-        const positionMap: Record<string, string> = {
-          front: "img_frente",
-          back: "img_costas",
-          side: "img_lado",
-        };
-
-        for (const [position, tempUrl] of Object.entries(evaluationData.photos)) {
-          if (!tempUrl || typeof tempUrl !== "string") continue;
-
-          const consultaPosition = positionMap[position];
-
-          try {
-            // Extract temp file path from URL
-            const tempPath = decodeURIComponent(tempUrl.split("/o/")[1].split("?")[0]);
-
-            // Generate new filename with nanoid
-            const { nanoid } = await import("nanoid");
-            const fileId = nanoid();
-            const newPath = `images/${userId}/${customerId}/${fileId}-${position}`;
-
-            // Copy file to permanent location
-            await bucket.file(tempPath).copy(bucket.file(newPath));
-
-            // Get download URL
-            const [newUrl] = await bucket.file(newPath).getSignedUrl({
-              action: "read",
-              expires: "03-01-2500",
-            });
-
-            // Store in consulta images
-            migratedImages[consultaPosition] = {
-              path: newPath,
-              url: newUrl,
-            };
-
-            // Delete temp file
-            await bucket.file(tempPath).delete().catch((err) => {
-              console.warn(`Failed to delete temp file ${tempPath}:`, err);
-            });
-
-            console.log(`Migrated photo ${position} from ${tempPath} to ${newPath}`);
-          } catch (error) {
-            console.error(`Error migrating photo ${position}:`, error);
-            // Continue with other photos even if one fails
-          }
-        }
-
-        // Update consulta with migrated images if any were successfully migrated
-        if (Object.keys(migratedImages).length > 0) {
-          await consultaRef.update({ images: migratedImages });
-          console.log(`Updated consulta ${consultaId} with ${Object.keys(migratedImages).length} images`);
+          await bucket.file(tempPath).copy(bucket.file(newPath));
+          const [newUrl] = await bucket.file(newPath).getSignedUrl({ action: "read", expires: "03-01-2500" });
+          migratedImages[consultaPosition] = { path: newPath, url: newUrl };
+          await bucket.file(tempPath).delete().catch((err) => {
+            console.warn(`Failed to delete temp file ${tempPath}:`, err);
+          });
+        } catch (error) {
+          console.error(`Error migrating photo ${position}:`, error);
         }
       }
+
+      if (Object.keys(migratedImages).length > 0) {
+        await consultaRef.update({ images: migratedImages });
+      }
+
+      // Build position-keyed map of migrated URLs to update submission photos
+      const reversePositionMap: Record<string, string> = {
+        img_frente: "front",
+        img_costas: "back",
+        img_lado: "side",
+      };
+      const migratedPhotos: Record<string, string> = {};
+      for (const [consultaKey, attachment] of Object.entries(migratedImages)) {
+        const pos = reversePositionMap[consultaKey];
+        if (pos) migratedPhotos[pos] = (attachment as any).url;
+      }
+      if (Object.keys(migratedPhotos).length > 0) {
+        evaluationDataUpdate = { photos: migratedPhotos };
+      }
+    }
+  }
+
+  const submissionRef = db.doc(`users/${userId}/formSubmissions/${submissionId}`);
+  const updateData: any = {
+    status: "approved",
+    processedAt: FieldValue.serverTimestamp(),
+    processedBy,
+    createdCustomerId: customerId,
+  };
+  if (consultaId) updateData.createdConsultaId = consultaId;
+  if (evaluationDataUpdate) updateData["evaluationData.photos"] = evaluationDataUpdate.photos;
+  await submissionRef.update(updateData);
+
+  const responseMessage = existingCustomer
+    ? consultaId
+      ? "Submissão aprovada: anamnese e consulta adicionadas ao cliente existente"
+      : "Submissão aprovada: anamnese adicionada ao cliente existente"
+    : consultaId
+      ? "Submissão aprovada: cliente, anamnese e consulta criados com sucesso"
+      : "Submissão aprovada: cliente e anamnese criados com sucesso";
+
+  return {
+    status: 200,
+    body: { message: responseMessage, customerId, anamnesisId: anamnesisRef.id, ...(consultaId && { consultaId }) },
+  };
+}
+
+/**
+ * POST /users/:userId/form-submissions/:submissionId/approve
+ * Approve form submission and create customer + anamnesis + consulta (if evaluation data exists)
+ */
+app.post("/users/:userId/form-submissions/:submissionId/approve", async (req, res) => {
+  try {
+    const { userId, submissionId } = req.params;
+    const { customerData, anamnesisData } = req.body;
+
+    const submissionRef = db.doc(`users/${userId}/formSubmissions/${submissionId}`);
+    const submissionDoc = await submissionRef.get();
+
+    if (!submissionDoc.exists) {
+      return res.status(404).json({ error: "Submissão não encontrada" });
     }
 
-    // Update submission status
-    const updateData: any = {
-      status: "approved",
-      processedAt: FieldValue.serverTimestamp(),
-      processedBy: (req as any).user?.uid,
-      createdCustomerId: customerId,
-    };
+    const submission = submissionDoc.data()!;
 
-    if (consultaId) {
-      updateData.createdConsultaId = consultaId;
+    if (submission.status !== "pending") {
+      return res.status(400).json({ error: "Submissão já foi processada" });
     }
 
-    await submissionRef.update(updateData);
-
-    // Decrement pending count
+    // Decrement pending count before processing
     await db.doc(`users/${userId}`).update({
       pendingSubmissionsCount: FieldValue.increment(-1),
     });
 
-    const responseMessage = consultaId
-      ? "Submissão aprovada: cliente, anamnese e consulta criados com sucesso"
-      : "Submissão aprovada: cliente e anamnese criados com sucesso";
-
-    return res.status(200).json({
-      message: responseMessage,
-      customerId,
-      anamnesisId: anamnesisRef.id,
-      ...(consultaId && { consultaId }),
-    });
+    const result = await processSubmission(
+      userId, submissionId, submission,
+      customerData, anamnesisData,
+      (req as any).user?.uid,
+    );
+    return res.status(result.status).json(result.body);
   } catch (error: any) {
     console.error("Error approving submission:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+/**
+ * POST /users/:userId/form-submissions/:submissionId/reprocess
+ * Re-run the approval processing for an already-approved submission.
+ * Use when the original approval succeeded but consulta/anamnesis creation failed.
+ */
+app.post("/users/:userId/form-submissions/:submissionId/reprocess", async (req, res) => {
+  try {
+    const { userId, submissionId } = req.params;
+
+    const submissionDoc = await db.doc(`users/${userId}/formSubmissions/${submissionId}`).get();
+
+    if (!submissionDoc.exists) {
+      return res.status(404).json({ error: "Submissão não encontrada" });
+    }
+
+    const submission = submissionDoc.data()!;
+
+    if (submission.status !== "approved") {
+      return res.status(400).json({ error: "Apenas submissões já aprovadas podem ser reprocessadas" });
+    }
+
+    const result = await processSubmission(
+      userId, submissionId, submission,
+      submission.customerData, submission.anamnesisData,
+      (req as any).user?.uid,
+    );
+    return res.status(result.status).json(result.body);
+  } catch (error: any) {
+    console.error("Error reprocessing submission:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+/**
+ * POST /users/:userId/form-submissions/:submissionId/fix-medidas
+ * Remaps bare measure keys (abdomen, cintura…) to circ_* in the linked consulta's medidas.
+ * Safe to call multiple times — keys already prefixed are left untouched.
+ */
+app.post("/users/:userId/form-submissions/:submissionId/fix-medidas", async (req, res) => {
+  try {
+    const { userId, submissionId } = req.params;
+
+    const submissionDoc = await db.doc(`users/${userId}/formSubmissions/${submissionId}`).get();
+    if (!submissionDoc.exists) {
+      return res.status(404).json({ error: "Submissão não encontrada" });
+    }
+
+    const submission = submissionDoc.data()!;
+    const { createdCustomerId, createdConsultaId } = submission;
+
+    if (!createdCustomerId || !createdConsultaId) {
+      return res.status(400).json({ error: "Submissão não possui consulta vinculada" });
+    }
+
+    const consultaRef = db.doc(`users/${userId}/customers/${createdCustomerId}/consultas/${createdConsultaId}`);
+    const consultaDoc = await consultaRef.get();
+    if (!consultaDoc.exists) {
+      return res.status(404).json({ error: "Consulta vinculada não encontrada" });
+    }
+
+    const medidas: Record<string, any> = consultaDoc.data()?.medidas || {};
+    const needsRemap = Object.keys(medidas).some((k) => !k.startsWith("circ_"));
+
+    if (!needsRemap) {
+      return res.status(200).json({ message: "Medidas já estão no formato correto, nenhuma alteração feita" });
+    }
+
+    const remapped: Record<string, any> = {};
+    for (const [k, v] of Object.entries(medidas)) {
+      remapped[k.startsWith("circ_") ? k : `circ_${k}`] = v;
+    }
+
+    await consultaRef.update({ medidas: remapped });
+
+    return res.status(200).json({
+      message: "Medidas corrigidas com sucesso",
+      before: Object.keys(medidas),
+      after: Object.keys(remapped),
+    });
+  } catch (error: any) {
+    console.error("Error fixing medidas:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+/**
+ * POST /users/:userId/fix-all-medidas
+ * Bulk version: scans all approved form submissions for this user and fixes bare measure keys.
+ * Returns a summary of what was changed.
+ */
+app.post("/users/:userId/fix-all-medidas", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const submissionsSnap = await db
+      .collection(`users/${userId}/formSubmissions`)
+      .where("status", "==", "approved")
+      .get();
+
+    const results = { fixed: 0, alreadyOk: 0, skipped: 0, errors: [] as string[] };
+
+    for (const submissionDoc of submissionsSnap.docs) {
+      const submission = submissionDoc.data();
+      const { createdCustomerId, createdConsultaId } = submission;
+
+      if (!createdCustomerId || !createdConsultaId) {
+        results.skipped++;
+        continue;
+      }
+
+      try {
+        const consultaRef = db.doc(`users/${userId}/customers/${createdCustomerId}/consultas/${createdConsultaId}`);
+        const consultaDoc = await consultaRef.get();
+
+        if (!consultaDoc.exists) {
+          results.skipped++;
+          continue;
+        }
+
+        const medidas: Record<string, any> = consultaDoc.data()?.medidas || {};
+        const needsRemap = Object.keys(medidas).some((k) => !k.startsWith("circ_"));
+
+        if (!needsRemap) {
+          results.alreadyOk++;
+          continue;
+        }
+
+        const remapped: Record<string, any> = {};
+        for (const [k, v] of Object.entries(medidas)) {
+          remapped[k.startsWith("circ_") ? k : `circ_${k}`] = v;
+        }
+
+        await consultaRef.update({ medidas: remapped });
+        results.fixed++;
+      } catch (err: any) {
+        results.errors.push(`${submissionDoc.id}: ${err.message}`);
+      }
+    }
+
+    return res.status(200).json(results);
+  } catch (error: any) {
+    console.error("Error in bulk fix-all-medidas:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+/**
+ * POST /users/:userId/fix-all-online-flag
+ * Sets online = true on consultas linked to approved submissions of type online, reavaliacao, or consultoria.
+ * Safe to run multiple times — skips consultas that already have online === true.
+ */
+app.post("/users/:userId/fix-all-online-flag", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const onlineTypes = ["online", "reavaliacao", "consultoria"];
+
+    const submissionsSnap = await db
+      .collection(`users/${userId}/formSubmissions`)
+      .where("status", "==", "approved")
+      .get();
+
+    const results = { fixed: 0, alreadyOk: 0, skipped: 0, errors: [] as string[] };
+
+    for (const submissionDoc of submissionsSnap.docs) {
+      const submission = submissionDoc.data();
+      const { createdCustomerId, createdConsultaId, appointmentType } = submission;
+
+      if (!onlineTypes.includes(appointmentType)) {
+        results.skipped++;
+        continue;
+      }
+
+      if (!createdCustomerId || !createdConsultaId) {
+        results.skipped++;
+        continue;
+      }
+
+      try {
+        const consultaRef = db.doc(`users/${userId}/customers/${createdCustomerId}/consultas/${createdConsultaId}`);
+        const consultaDoc = await consultaRef.get();
+
+        if (!consultaDoc.exists) {
+          results.skipped++;
+          continue;
+        }
+
+        if (consultaDoc.data()?.online === true) {
+          results.alreadyOk++;
+          continue;
+        }
+
+        await consultaRef.update({ online: true });
+        results.fixed++;
+      } catch (err: any) {
+        results.errors.push(`${submissionDoc.id}: ${err.message}`);
+      }
+    }
+
+    return res.status(200).json(results);
+  } catch (error: any) {
+    console.error("Error in fix-all-online-flag:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 });
@@ -1616,7 +2056,7 @@ app.put("/users/:userId/evaluation-config/:type", async (req, res) => {
  */
 app.post("/users/:userId/calculate-body-composition", async (req, res) => {
   try {
-    const { gender, age, weight, height, folds, protocol, densityEquation } = req.body;
+    const { gender, age, weight, height, wrist, knee, folds, protocol, densityEquation } = req.body;
 
     // Validate required fields
     if (!gender || !age || !weight || !folds || !protocol) {
@@ -1626,8 +2066,8 @@ app.post("/users/:userId/calculate-body-composition", async (req, res) => {
     }
 
     // Validate gender
-    if (gender !== "M" && gender !== "F") {
-      return res.status(400).json({ error: "Gender must be 'M' or 'F'" });
+    if (gender !== "H" && gender !== "M") {
+      return res.status(400).json({ error: "Gender must be 'H' or 'M'" });
     }
 
     // Validate protocol
@@ -1641,6 +2081,8 @@ app.post("/users/:userId/calculate-body-composition", async (req, res) => {
       age: Number(age),
       weight: Number(weight),
       height: Number(height),
+      wrist: wrist ? Number(wrist) : undefined,
+      knee: knee ? Number(knee) : undefined,
       folds,
       protocol,
       densityEquation: densityEquation || "siri",

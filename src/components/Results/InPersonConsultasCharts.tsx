@@ -1,4 +1,5 @@
 import { format, parse } from "date-fns";
+import { useState } from "react";
 
 import { useFetchCustomerConsultasQuery } from "@/app/state/features/customerConsultasSlice";
 import { useFetchGoalsQuery } from "@/app/state/features/goalsSlice";
@@ -13,7 +14,7 @@ import { ICustomerConsulta } from "@/domain/entities";
 import { FOLDS, MEASURES, RESULTS } from "@/domain/entities/consulta";
 import { useAuth } from "@/infra/firebase/hooks/useAuth";
 
-import { BodyCompositionBarChart, CompositionChart, ResultsChart } from "./charts";
+import { CompositionChart, ResultsChart } from "./charts";
 import { GoalsList } from "./GoalsList";
 
 interface InPersonConsultasChartsProps {
@@ -22,26 +23,28 @@ interface InPersonConsultasChartsProps {
   currentConsulta?: ICustomerConsulta;
 }
 
+const COUNT_OPTIONS = [6, 8, 10, 12];
+
 export const InPersonConsultasCharts = ({
   consultas,
   customerId,
   currentConsulta,
 }: InPersonConsultasChartsProps) => {
   const { dbUid } = useAuth();
+  const [limit, setLimit] = useState(6);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
-  // Fetch all consultas for comparison tables (will be filtered by caller if needed)
   const { data: allConsultas } = useFetchCustomerConsultasQuery({
     uid: dbUid || "",
     customerId: customerId || "",
   });
 
-  // Fetch goals
   const { data: goals } = useFetchGoalsQuery({
     uid: dbUid || "",
     customerId: customerId || "",
   });
 
-  // Find active goal
   const activeGoal = goals?.find((g) => {
     const now = new Date();
     const endDate = g.endDate
@@ -58,20 +61,40 @@ export const InPersonConsultasCharts = ({
     );
   }
 
-  // Use the most recent consulta or the provided current consulta
-  const displayConsulta = currentConsulta || consultas[0];
-
-  // Sort consultas by date for tables
-  const sortedConsultas = allConsultas
+  // Sort oldest → newest
+  const allSorted = allConsultas
     ? [...allConsultas]
-        .filter((c) => !c.online) // Only in-person for this view
+        .filter((c) => !c.online)
         .sort(
           (a, b) =>
-            new Date(b.date || "").getTime() - new Date(a.date || "").getTime(),
+            new Date(a.date ? a.date.split("/").reverse().join("-") : "").getTime() -
+            new Date(b.date ? b.date.split("/").reverse().join("-") : "").getTime(),
         )
     : [];
 
-  const formatedDate = sortedConsultas.slice(0, 6).map((c) => {
+  const displayConsulta = currentConsulta || allSorted[allSorted.length - 1] || consultas[0];
+
+  const hasMore = allSorted.length > 6;
+
+  // Apply date range filter first
+  const parseDateStr = (d: string) =>
+    d ? parse(d, "dd/MM/yyyy", new Date()) : null;
+
+  const filtered = allSorted.filter((c) => {
+    if (!fromDate && !toDate) return true;
+    const cDate = parseDateStr(c.date || "");
+    if (!cDate || isNaN(cDate.getTime())) return true;
+    const from = fromDate ? new Date(fromDate) : null;
+    const to = toDate ? new Date(toDate) : null;
+    if (from && cDate < from) return false;
+    if (to && cDate > to) return false;
+    return true;
+  });
+
+  // Take the last N from filtered (the most recent ones within range)
+  const tableConsultas = filtered.slice(-limit);
+
+  const formatedDate = tableConsultas.map((c) => {
     let date;
     if (c.date) {
       try {
@@ -101,12 +124,10 @@ export const InPersonConsultasCharts = ({
           <CardContent>
             {displayConsulta.results ? (
               <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-2">
-                {/* Pie Chart */}
                 <div className="flex justify-center" data-chart-type="composition">
                   <CompositionChart consulta={displayConsulta} />
                 </div>
 
-                {/* Data Table */}
                 <div className="space-y-0">
                   <div className="flex justify-between border-b border-dotted border-border/50 py-1.5">
                     <span className="text-sm uppercase tracking-wide text-muted-foreground">
@@ -172,32 +193,64 @@ export const InPersonConsultasCharts = ({
         </Card>
       </div>
 
-      {/* Body Composition Bar Chart Over Time */}
-      {/* {customerId && dbUid && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              Composição Corporal ao Longo do Tempo
-            </CardTitle>
-            <CardDescription>
-              Evolução das massas (gorda, magra, residual, óssea)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <BodyCompositionBarChart
-              customerId={customerId}
-              userId={dbUid}
-              limit={6}
-            />
-          </CardContent>
-        </Card>
-      )} */}
-
       {/* Data Tables Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Histórico de Resultados</CardTitle>
-          <CardDescription>Comparação entre consultas</CardDescription>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="text-base">Histórico de Resultados</CardTitle>
+              <CardDescription>Comparação entre consultas</CardDescription>
+            </div>
+
+            {hasMore && (
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                {/* Date range */}
+                <div className="flex items-center gap-1.5">
+                  <label className="text-muted-foreground whitespace-nowrap">De</label>
+                  <input
+                    type="date"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    className="rounded-md border border-input bg-background px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <label className="text-muted-foreground whitespace-nowrap">Até</label>
+                  <input
+                    type="date"
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                    className="rounded-md border border-input bg-background px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                </div>
+
+                {/* Count selector */}
+                <div className="flex items-center gap-1.5">
+                  <label className="text-muted-foreground whitespace-nowrap">Mostrar</label>
+                  <select
+                    value={limit}
+                    onChange={(e) => setLimit(Number(e.target.value))}
+                    className="rounded-md border border-input bg-background px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    {COUNT_OPTIONS.map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {(fromDate || toDate) && (
+                  <button
+                    onClick={() => { setFromDate(""); setToDate(""); }}
+                    className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                  >
+                    Limpar filtros
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Results Table */}
@@ -217,7 +270,7 @@ export const InPersonConsultasCharts = ({
                       <td className="px-2 py-2 text-muted-foreground w-1/5">
                         {metric.label}
                       </td>
-                      {sortedConsultas.slice(0, 6).map((c) => (
+                      {tableConsultas.map((c) => (
                         <td
                           key={c.id}
                           className={"px-2 py-2 text-center font-medium ".concat(c.id === displayConsulta.id ? "bg-primary/20" : "")}
@@ -227,10 +280,9 @@ export const InPersonConsultasCharts = ({
                       ))}
                     </tr>
                   ))}
-                  {/* Add peso row */}
                   <tr className="border-b">
                     <td className="px-2 py-2 text-muted-foreground">Peso</td>
-                    {sortedConsultas.slice(0, 6).map((c) => (
+                    {tableConsultas.map((c) => (
                       <td
                         key={c.id}
                         className={"px-2 py-2 text-center font-medium ".concat(c.id === displayConsulta.id ? "bg-primary/20" : "")}
@@ -263,7 +315,7 @@ export const InPersonConsultasCharts = ({
                       <td className="px-2 py-2 capitalize text-muted-foreground w-1/5">
                         {fold.label}
                       </td>
-                      {sortedConsultas.slice(0, 6).map((c) => (
+                      {tableConsultas.map((c) => (
                         <td
                           key={c.id}
                           className={"px-2 py-2 text-center font-medium ".concat(c.id === displayConsulta.id ? "bg-primary/20" : "")}
@@ -299,7 +351,7 @@ export const InPersonConsultasCharts = ({
                       <td className="px-2 py-2 capitalize text-muted-foreground w-1/5">
                         {measure.label}
                       </td>
-                      {sortedConsultas.slice(0, 6).map((c) => (
+                      {tableConsultas.map((c) => (
                         <td
                           key={c.id}
                           className={"px-2 py-2 text-center font-medium ".concat(c.id === displayConsulta.id ? "bg-primary/20" : "")}

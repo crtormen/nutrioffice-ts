@@ -1,5 +1,5 @@
 import { Contact, Plus, Settings } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "@/app/state/hooks";
 
@@ -23,7 +23,8 @@ const CrmPage = () => {
   const [addLeadOpen, setAddLeadOpen] = useState(false);
 
   useFetchSettingsQuery(dbUid, { skip: !dbUid });
-  const crmSettings = useAppSelector(selectCrmSettings(dbUid));
+  const selectSettings = useMemo(() => selectCrmSettings(dbUid), [dbUid]);
+  const crmSettings = useAppSelector(selectSettings);
 
   const { data: leads = [] } = useFetchLeadsQuery(dbUid, { skip: !dbUid });
 

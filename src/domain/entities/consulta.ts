@@ -171,6 +171,7 @@ export interface IConsulta {
   idade?: number;
   name?: string;
   peso?: string;
+  anamnesis_id?: string;
   results?: IResults;
 }
 
@@ -185,5 +186,6 @@ export interface IConsultaFirebase {
   idade?: number;
   name?: string;
   peso?: number;
+  anamnesis_id?: string;
   results?: IResults;
 }

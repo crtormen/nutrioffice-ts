@@ -34,8 +34,8 @@ export const PlanSentCheck: React.FC<PlanSentCheckProps> = ({
 
   return (
     !consulta.planId ? (
-      <Button type="button" variant="outline" onClick={checkPlanSending}>
-        Marcar Dieta Enviada
+      <Button type="button" variant="outline" className="flex gap-1" onClick={checkPlanSending}>
+        Marcar Dieta Enviada 
         <Upload />
       </Button>
     ) : (

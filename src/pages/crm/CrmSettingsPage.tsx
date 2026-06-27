@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Settings, Trash2, Plus, GripVertical, CheckCircle, XCircle, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "@/app/state/hooks";
@@ -70,7 +70,8 @@ const CrmSettingsPage = () => {
   const [syncNameFilter, setSyncNameFilter] = useState("");
 
   useFetchSettingsQuery(dbUid, { skip: !dbUid });
-  const crmSettings = useAppSelector(selectCrmSettings(dbUid));
+  const selectSettings = useMemo(() => selectCrmSettings(dbUid), [dbUid]);
+  const crmSettings = useAppSelector(selectSettings);
   const [setSettings, { isLoading: isSaving }] = useSetSettingsMutation();
 
   // ── Chatwoot form ──────────────────────────────────────────────────────────

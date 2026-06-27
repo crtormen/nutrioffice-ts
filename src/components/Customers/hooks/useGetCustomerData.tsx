@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+
 import { useAppSelector } from "@/app/state";
 import {
   selectCustomerById,
@@ -12,7 +14,7 @@ export const useGetCustomerData = (customerId: string | undefined) => {
   useFetchCustomersQuery(dbUid || "", {
     skip: !dbUid,
   });
-  const selector = selectCustomerById(dbUid, customerId);
+  const selector = useMemo(() => selectCustomerById(dbUid, customerId), [dbUid, customerId]);
   const customerData: ICustomer | undefined = useAppSelector(selector);
 
   return customerData;

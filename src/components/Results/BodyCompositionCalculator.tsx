@@ -27,10 +27,12 @@ const API_BASE_URL =
 
 interface BodyCompositionCalculatorProps {
   customerId: string;
-  customerGender: "M" | "F";
+  customerGender: "H" | "M";
   customerAge: number;
   weight: number;
   height?: number;
+  wrist?: number;
+  knee?: number;
   folds: IFolds;
   onResultsCalculated?: (results: any) => void;
 }
@@ -52,6 +54,8 @@ export function BodyCompositionCalculator({
   customerAge,
   weight,
   height,
+  wrist,
+  knee,
   folds,
   onResultsCalculated,
 }: BodyCompositionCalculatorProps) {
@@ -92,6 +96,8 @@ export function BodyCompositionCalculator({
             age: customerAge,
             weight,
             height,
+            wrist,
+            knee,
             folds,
             protocol,
             densityEquation,

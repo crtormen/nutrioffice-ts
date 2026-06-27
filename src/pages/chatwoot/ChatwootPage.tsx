@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { ROUTES } from "@/app/router/routes";
@@ -26,9 +26,8 @@ export const ChatwootPage = () => {
 
   useFetchCustomersQuery(dbUid);
 
-  const matchedCustomer = useAppSelector(
-    selectCustomerByPhone(dbUid, incomingPhone),
-  );
+  const selectByPhone = useMemo(() => selectCustomerByPhone(dbUid, incomingPhone), [dbUid, incomingPhone]);
+  const matchedCustomer = useAppSelector(selectByPhone);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {

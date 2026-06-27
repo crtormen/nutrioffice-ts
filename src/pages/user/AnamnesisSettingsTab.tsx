@@ -1,5 +1,5 @@
 import { GripVertical, MoreHorizontal, Plus } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { useAppSelector } from "@/app/state";
@@ -89,12 +89,10 @@ const AnamnesisSettingsTab = () => {
     field: undefined,
     type: "",
   });
-  const customAnamnesisFields = useAppSelector(
-    selectCustomAnamnesisSettings(user?.uid),
-  );
-  const defaultAnamnesisFields = useAppSelector(
-    selectDefaultAnamnesisSettings(user?.uid),
-  );
+  const selectCustom = useMemo(() => selectCustomAnamnesisSettings(user?.uid), [user?.uid]);
+  const customAnamnesisFields = useAppSelector(selectCustom);
+  const selectDefault = useMemo(() => selectDefaultAnamnesisSettings(user?.uid), [user?.uid]);
+  const defaultAnamnesisFields = useAppSelector(selectDefault);
 
   const onClickDelete = (value: FieldValuesSetting, type: settingType | "") => {
     setFieldToEdit({ field: value, type });

@@ -53,7 +53,10 @@ export const columns = ({
       const type = row.original.appointmentType;
       return (
         <Badge variant={type === "online" ? "default" : "secondary"}>
-          {type === "online" ? "Online" : "Presencial"}
+          {type === "online" ? "Online" :
+           type === "reavaliacao" ? "Reavaliação" :
+           type === "consultoria" ? "Consultoria" :
+           type === "hibrido" ? "Híbrido" : "Presencial"}
         </Badge>
       );
     },

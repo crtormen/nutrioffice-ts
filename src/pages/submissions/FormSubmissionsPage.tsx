@@ -1,5 +1,5 @@
 import { FileCheck, Home, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -8,6 +8,7 @@ import {
   useApproveFormSubmissionMutation,
   useFetchFormSubmissionsQuery,
   useRejectFormSubmissionMutation,
+  useReprocessFormSubmissionMutation,
 } from "@/app/state/features/formSubmissionsSlice";
 import { selectAnamnesisSettings, useFetchSettingsQuery } from "@/app/state/features/settingsSlice";
 import { useAppSelector } from "@/app/state/hooks";
@@ -46,7 +47,8 @@ export default function FormSubmissionsPage() {
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
   useFetchSettingsQuery(dbUid || "", { skip: !dbUid });
-  const anamnesisFields = useAppSelector(selectAnamnesisSettings(dbUid));
+  const selectSettings = useMemo(() => selectAnamnesisSettings(dbUid), [dbUid]);
+  const anamnesisFields = useAppSelector(selectSettings);
 
   // Fetch submissions with real-time updates
   const {
@@ -61,6 +63,8 @@ export default function FormSubmissionsPage() {
     useApproveFormSubmissionMutation();
   const [rejectSubmission, { isLoading: isRejecting }] =
     useRejectFormSubmissionMutation();
+  const [reprocessSubmission, { isLoading: isReprocessing }] =
+    useReprocessFormSubmissionMutation();
 
   // Filter submissions by status
   const filteredSubmissions = submissions.filter(
@@ -99,6 +103,21 @@ export default function FormSubmissionsPage() {
         error && typeof error === "object" && "data" in error
           ? String(error.data)
           : "Erro ao aprovar submissão";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleReprocess = async (submission: IFormSubmission) => {
+    if (!dbUid) return;
+    try {
+      await reprocessSubmission({ uid: dbUid, submissionId: submission.id }).unwrap();
+      toast.success("Submissão reprocessada com sucesso!");
+      setDetailsDialogOpen(false);
+    } catch (error: unknown) {
+      const errorMessage =
+        error && typeof error === "object" && "data" in error
+          ? String(error.data)
+          : "Erro ao reprocessar submissão";
       toast.error(errorMessage);
     }
   };
@@ -318,8 +337,10 @@ export default function FormSubmissionsPage() {
           anamnesisFields={anamnesisFields}
           onApprove={() => handleApprove(selectedSubmission)}
           onReject={() => handleReject(selectedSubmission)}
+          onReprocess={() => handleReprocess(selectedSubmission)}
           isApproving={isApproving}
           isRejecting={isRejecting}
+          isReprocessing={isReprocessing}
         />
       )}
     </div>

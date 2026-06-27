@@ -11,7 +11,7 @@ export type FormSubmissionStatus = "pending" | "approved" | "rejected";
 /**
  * Appointment type for form submissions
  */
-export type AppointmentType = "online" | "presencial" | "reavaliacao";
+export type AppointmentType = "online" | "presencial" | "reavaliacao" | "consultoria" | "hibrido";
 
 /**
  * Form submission entity (Firebase format with Timestamp)
@@ -23,13 +23,15 @@ export interface IFormSubmissionFirebase {
 
   customerData: ICustomerFirebase;
   anamnesisData: IAnamnesis;
-  evaluationData?: IEvaluationData; // NEW: Optional evaluation data
+  evaluationData?: IEvaluationData;
+  feedingHistory?: Array<{ time: string; meal: string }>;
+  attachments?: Array<{ filename: string; originalName: string; url: string; size: number }>;
 
   submittedAt: Timestamp;
   processedAt?: Timestamp;
   processedBy?: string;
   createdCustomerId?: string;
-  createdConsultaId?: string; // NEW: ID of created consulta (if evaluation data was submitted)
+  createdConsultaId?: string;
   ipAddress?: string;
   userAgent?: string;
 }
@@ -44,13 +46,15 @@ export interface IFormSubmission {
 
   customerData: ICustomer;
   anamnesisData: IAnamnesis;
-  evaluationData?: IEvaluationData; // NEW: Optional evaluation data
+  evaluationData?: IEvaluationData;
+  feedingHistory?: Array<{ time: string; meal: string }>;
+  attachments?: Array<{ filename: string; originalName: string; url: string; size: number }>;
 
   submittedAt: string;
   processedAt?: string;
   processedBy?: string;
   createdCustomerId?: string;
-  createdConsultaId?: string; // NEW: ID of created consulta (if evaluation data was submitted)
+  createdConsultaId?: string;
   ipAddress?: string;
   userAgent?: string;
 }
@@ -124,6 +128,8 @@ export interface IPublicFormConfiguration {
   enabledFields: string[]; // Anamnesis fields
   anamnesisFields: Record<string, any>;
   enabledEvaluationFields?: IEnabledEvaluationFields; // NEW: Evaluation fields configuration
+  enableFeedingHistory?: boolean;
+  enableAttachments?: boolean;
   tokenValid: boolean;
 }
 
@@ -143,7 +149,9 @@ export interface IFormSubmissionData {
     cameBy?: string;
   };
   anamnesisData: Record<string, string | string[]>;
-  evaluationData?: IEvaluationData; // NEW: Optional evaluation data
+  evaluationData?: IEvaluationData;
+  feedingHistory?: Array<{ time: string; meal: string }>;
+  attachments?: Array<{ filename: string; originalName: string; url: string; size: number }>;
 }
 
 /**

@@ -9,12 +9,28 @@ interface TokensResponse {
   onlineToken: string | null;
   presencialToken: string | null;
   reavaliacaoToken: string | null;
+  consultoriaToken: string | null;
+  hibridoToken: string | null;
   onlineEnabledFields: string[];
   presencialEnabledFields: string[];
   reavaliacaoEnabledFields: string[];
+  consultoriaEnabledFields: string[];
+  hibridoEnabledFields: string[];
   onlineEnabledEvaluationFields?: IEnabledEvaluationFields | null;
   presencialEnabledEvaluationFields?: IEnabledEvaluationFields | null;
   reavaliacaoEnabledEvaluationFields?: IEnabledEvaluationFields | null;
+  consultoriaEnabledEvaluationFields?: IEnabledEvaluationFields | null;
+  hibridoEnabledEvaluationFields?: IEnabledEvaluationFields | null;
+  onlineEnableFeedingHistory?: boolean;
+  presencialEnableFeedingHistory?: boolean;
+  reavaliacaoEnableFeedingHistory?: boolean;
+  consultoriaEnableFeedingHistory?: boolean;
+  hibridoEnableFeedingHistory?: boolean;
+  onlineEnableAttachments?: boolean;
+  presencialEnableAttachments?: boolean;
+  reavaliacaoEnableAttachments?: boolean;
+  consultoriaEnableAttachments?: boolean;
+  hibridoEnableAttachments?: boolean;
 }
 
 interface GenerateTokenRequest {
@@ -72,12 +88,28 @@ export const anamnesisTokensSlice = firestoreApi.injectEndpoints({
             onlineToken: rawData.online?.token || null,
             presencialToken: rawData.presencial?.token || null,
             reavaliacaoToken: rawData.reavaliacao?.token || null,
+            consultoriaToken: rawData.consultoria?.token || null,
+            hibridoToken: rawData.hibrido?.token || null,
             onlineEnabledFields: rawData.online?.enabledFields || [],
             presencialEnabledFields: rawData.presencial?.enabledFields || [],
             reavaliacaoEnabledFields: rawData.reavaliacao?.enabledFields || [],
+            consultoriaEnabledFields: rawData.consultoria?.enabledFields || [],
+            hibridoEnabledFields: rawData.hibrido?.enabledFields || [],
             onlineEnabledEvaluationFields: rawData.online?.enabledEvaluationFields || null,
             presencialEnabledEvaluationFields: rawData.presencial?.enabledEvaluationFields || null,
             reavaliacaoEnabledEvaluationFields: rawData.reavaliacao?.enabledEvaluationFields || null,
+            consultoriaEnabledEvaluationFields: rawData.consultoria?.enabledEvaluationFields || null,
+            hibridoEnabledEvaluationFields: rawData.hibrido?.enabledEvaluationFields || null,
+            onlineEnableFeedingHistory: rawData.online?.enableFeedingHistory ?? false,
+            presencialEnableFeedingHistory: rawData.presencial?.enableFeedingHistory ?? false,
+            reavaliacaoEnableFeedingHistory: rawData.reavaliacao?.enableFeedingHistory ?? false,
+            consultoriaEnableFeedingHistory: rawData.consultoria?.enableFeedingHistory ?? false,
+            hibridoEnableFeedingHistory: rawData.hibrido?.enableFeedingHistory ?? false,
+            onlineEnableAttachments: rawData.online?.enableAttachments ?? false,
+            presencialEnableAttachments: rawData.presencial?.enableAttachments ?? false,
+            reavaliacaoEnableAttachments: rawData.reavaliacao?.enableAttachments ?? false,
+            consultoriaEnableAttachments: rawData.consultoria?.enableAttachments ?? false,
+            hibridoEnableAttachments: rawData.hibrido?.enableAttachments ?? false,
           };
 
           return { data };
@@ -86,6 +118,68 @@ export const anamnesisTokensSlice = firestoreApi.injectEndpoints({
         }
       },
       providesTags: ["AnamnesisTokens"],
+    }),
+
+    /**
+     * Toggle feeding history section for a specific form type
+     */
+    updateFeedingHistoryToken: builder.mutation<void, { uid: string; type: AppointmentType; enableFeedingHistory: boolean }>({
+      queryFn: async ({ uid, type, enableFeedingHistory }) => {
+        try {
+          const token = await getAuthToken();
+          const response = await fetch(
+            `${API_BASE_URL}/users/${uid}/anamnesis-tokens/${type}/feeding-history`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ enableFeedingHistory }),
+            }
+          );
+
+          if (!response.ok) {
+            const error = await response.json();
+            return { error: { status: response.status, data: error.error } };
+          }
+
+          return { data: undefined };
+        } catch (error: any) {
+          return { error: { status: 500, data: error.message } };
+        }
+      },
+      invalidatesTags: ["AnamnesisTokens"],
+    }),
+
+    /**
+     * Toggle attachments section for a specific form type
+     */
+    updateAttachmentsToken: builder.mutation<void, { uid: string; type: AppointmentType; enableAttachments: boolean }>({
+      queryFn: async ({ uid, type, enableAttachments }) => {
+        try {
+          const token = await getAuthToken();
+          const response = await fetch(
+            `${API_BASE_URL}/users/${uid}/anamnesis-tokens/${type}/attachments`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ enableAttachments }),
+            }
+          );
+          if (!response.ok) {
+            const error = await response.json();
+            return { error: { status: response.status, data: error.error } };
+          }
+          return { data: undefined };
+        } catch (error: any) {
+          return { error: { status: 500, data: error.message } };
+        }
+      },
+      invalidatesTags: ["AnamnesisTokens"],
     }),
 
     /**
@@ -123,4 +217,6 @@ export const anamnesisTokensSlice = firestoreApi.injectEndpoints({
 export const {
   useFetchAnamnesisTokensQuery,
   useGenerateAnamnesisTokenMutation,
+  useUpdateFeedingHistoryTokenMutation,
+  useUpdateAttachmentsTokenMutation,
 } = anamnesisTokensSlice;

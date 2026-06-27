@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 
 import { useAppSelector } from "@/app/state";
@@ -12,9 +13,12 @@ export function useSetLastConsulta(): ICustomerConsulta | undefined {
   const { id: customerId } = useParams();
   const { user } = useAuth();
 
+  const selector = useMemo(
+    () => selectLastConsulta(user?.uid ?? "", customerId ?? ""),
+    [user?.uid, customerId],
+  );
+  const consulta = useAppSelector(selector);
+
   if (!user || !customerId) return undefined;
-
-  const consulta = useAppSelector(selectLastConsulta(user.uid, customerId));
-
   return consulta;
 }

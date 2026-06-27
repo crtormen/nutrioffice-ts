@@ -19,11 +19,18 @@
         "required": true
       }
     },
+    "outros_objetivos": {
+      "label": "Outros Objetivos",
+      "placeholder": "Algum outro objetivo não listado acima? Conte aqui.",
+      "type": "text",
+      "order": 2,
+      "rules": {}
+    },
     "atividades": {
       "label": "Atividades Físicas Que Pratica",
       "placeholder": "Tipos e frequencia. Ex: Musculação 3x por semana, Corrida 1x por semana",
       "type": "text",
-      "order": 2,
+      "order": 3,
       "rules": {
         "required": true
       }
@@ -32,7 +39,7 @@
       "label": "Consumo de água",
       "placeholder": "Quantos litros de água costuma ingerir por dia?",
       "type": "text",
-      "order": 3,
+      "order": 4,
       "rules": {
         "required": true
       }
@@ -40,7 +47,7 @@
     "horas_sono": {
       "label": "Horas de Sono",
       "type": "radio",
-      "order": 4,
+      "order": 5,
       "options": {
         "pouco": "De 2 a 3 horas",
         "regular": "De 4 a 6 horas",
@@ -53,7 +60,7 @@
       "placeholder": "Clique para selecionar",
       "label": "Qualidade do Sono",
       "type": "multiple",
-      "order": 5,
+      "order": 6,
       "options": {
         "ronca": "Ronca",
         "fraco": "Acorda várias vezes",
@@ -69,7 +76,7 @@
       "label": "Horários de maior fome",
       "placeholder": "Clique para selecionar",
       "type": "multiple",
-      "order": 6,
+      "order": 7,
       "options": {
         "manha": "Manhã (até 11h)",
         "almoco": "Almoço (entre 11h e 13h)",
@@ -82,7 +89,7 @@
     "intestino": {
       "label": "Como é seu hábito intestinal?",
       "type": "radio",
-      "order": 7,
+      "order": 8,
       "options": {
         "constipado": "Constipado (evacua menos de 4x/semana)",
         "normal": "Normal (até 2x por dia)",
@@ -95,13 +102,13 @@
       "label": "Alergias / Intolerâncias",
       "placeholder": "Possui alguma? A que alimento?",
       "type": "text",
-      "order": 8,
+      "order": 9,
       "rules": {}
     },
     "ja_fez_dieta": {
       "label": "Já fez algum acompanhamento nutricional?",
       "type": "radio",
-      "order": 9,
+      "order": 10,
       "options": {
         "yes": "Sim",
         "no": "Não"
@@ -111,7 +118,7 @@
     "usa_suplemento": {
       "label": "Utiliza suplementos?",
       "type": "radio",
-      "order": 10,
+      "order": 11,
       "options": {
         "yes": "Sim",
         "no": "Não"
@@ -121,7 +128,7 @@
     "suplementos": {
       "label": "Se sim, quais suplementos utiliza?",
       "type": "text",
-      "order": 11,
+      "order": 12,
       "condition": {
         "field": "usa_suplemento",
         "value": "yes"
@@ -131,19 +138,19 @@
     "patologias": {
       "label": "Possui alguma doença ou patologia? Descreva",
       "type": "text",
-      "order": 12,
+      "order": 13,
       "rules": {}
     },
     "medicamentos": {
       "label": "Medicamentos que utiliza regularmente",
       "type": "text",
-      "order": 13,
+      "order": 14,
       "rules": {}
     },
     "infancia": {
       "label": "Infância",
       "type": "radio",
-      "order": 14,
+      "order": 15,
       "options": {
         "magro": "Magro(a)",
         "gordinho": "Gordinho(a)",
@@ -154,7 +161,7 @@
     "fumante": {
       "label": "Fumante",
       "type": "radio",
-      "order": 15,
+      "order": 16,
       "options": {
         "yes": "Sim",
         "no": "Não"
@@ -164,7 +171,7 @@
     "bebida": {
       "label": "Consumo de Álcool",
       "type": "radio",
-      "order": 16,
+      "order": 17,
       "options": {
         "nunca": "Não bebo",
         "raramente": "Sim, raramente",
@@ -177,7 +184,7 @@
     "estresse": {
       "label": "Nível de Estresse",
       "type": "radio",
-      "order": 17,
+      "order": 18,
       "options": {
         "pouco": "Pouco estresse",
         "normal": "Normal",
@@ -189,7 +196,7 @@
       "label": "Você sofre de algum destes fatores emocionais?",
       "placeholder": "Clique para selecionar",
       "type": "multiple",
-      "order": 18,
+      "order": 19,
       "options": {
         "ansiedade": "Ansiedade",
         "depressao": "Depressão",
@@ -204,7 +211,7 @@
       "label": "Como é sua libido?",
       "type": "radio",
       "gender": "H",
-      "order": 19,
+      "order": 20,
       "options": {
         "baixo": "Baixa",
         "medio": "Normal",
@@ -215,7 +222,7 @@
       "label": "Possui algum grau de calvície?",
       "type": "radio",
       "gender": "H",
-      "order": 20,
+      "order": 21,
       "options": {
         "yes": "Sim",
         "no": "Não"
@@ -225,7 +232,7 @@
       "label": "Já foi ou é gestante?",
       "type": "radio",
       "gender": "M",
-      "order": 21,
+      "order": 22,
       "options": {
         "yes": "Sim",
         "no": "Não"
@@ -235,7 +242,7 @@
       "label": "Usou ou usa anticoncepcional?",
       "type": "radio",
       "gender": "M",
-      "order": 22,
+      "order": 23,
       "options": {
         "yes": "Sim",
         "no": "Não"
@@ -250,13 +257,13 @@
       },
       "type": "text",
       "gender": "M",
-      "order": 23
+      "order": 24
     },
     "tpm": {
       "label": "Qual é o seu grau de TPM?",
       "type": "radio",
       "gender": "M",
-      "order": 24,
+      "order": 25,
       "options": {
         "baixo": "Baixo",
         "medio": "Normal",
@@ -267,7 +274,7 @@
       "label": "Tem Flacidez?",
       "type": "radio",
       "gender": "M",
-      "order": 25,
+      "order": 26,
       "options": {
         "yes": "Sim",
         "no": "Não"
@@ -277,7 +284,7 @@
       "label": "Tem Celulite?",
       "type": "radio",
       "gender": "M",
-      "order": 26,
+      "order": 27,
       "options": {
         "yes": "Sim",
         "no": "Não"
@@ -287,7 +294,7 @@
       "label": "Tem queda de cabelo?",
       "type": "radio",
       "gender": "M",
-      "order": 27,
+      "order": 28,
       "options": {
         "yes": "Sim",
         "no": "Não"
@@ -297,7 +304,7 @@
       "label": "Tem unhas fracas?",
       "type": "radio",
       "gender": "M",
-      "order": 28,
+      "order": 29,
       "options": {
         "yes": "Sim",
         "no": "Não"

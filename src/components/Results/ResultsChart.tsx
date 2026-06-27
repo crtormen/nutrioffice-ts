@@ -163,7 +163,11 @@ export const ResultsChart = ({ param, goal }: resultsChartProps) => {
         <YAxis
           dataKey={param}
           tickCount={10}
-          domain={["dataMin - 4", "dataMax + 4"]}
+          domain={([dataMin, dataMax]: [number, number]) => {
+            const allMin = goalValue !== undefined ? Math.min(dataMin, goalValue) : dataMin;
+            const allMax = goalValue !== undefined ? Math.max(dataMax, goalValue) : dataMax;
+            return [allMin - 4, allMax + 4];
+          }}
           tickFormatter={(value) => value.toFixed(1)}
         />
         <ChartTooltip

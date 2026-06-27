@@ -46,9 +46,9 @@ export function useFilteredChartData(
       [param]:
         param === "weight" || param === "peso"
           ? consulta.peso
-          : consulta.results
-            ? consulta.results[param as keyof IResults]
-            : "",
+          : param.startsWith("circ_")
+            ? consulta.medidas?.[param as keyof typeof consulta.medidas]
+            : consulta.results?.[param as keyof IResults] ?? undefined,
     }))
     .reverse();
 

@@ -87,6 +87,34 @@ export const updateAnamnesisFormToken = async (
 };
 
 /**
+ * Toggle feeding history section for a specific form type (requires authentication)
+ */
+export const updateFeedingHistoryFormToken = async (
+  uid: string,
+  appointmentType: AppointmentType,
+  enableFeedingHistory: boolean
+): Promise<void> => {
+  const token = await auth.currentUser?.getIdToken(true);
+
+  const response = await fetch(
+    `${API_BASE_URL}/users/${uid}/anamnesis-tokens/${appointmentType}/feeding-history`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ enableFeedingHistory }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Falha ao atualizar recordatório alimentar");
+  }
+};
+
+/**
  * Update evaluation form token enabled fields (requires authentication)
  */
 export const updateEvaluationFormToken = async (

@@ -8,12 +8,14 @@ import {
   Target,
   TrendingUp,
 } from "lucide-react";
-import React from "react";
+import React, { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { ROUTES } from "@/app/router/routes";
 import { useFetchAnamnesisQuery } from "@/app/state/features/anamnesisSlice";
 import { useFetchCustomerConsultasQuery } from "@/app/state/features/customerConsultasSlice";
+import { useAppSelector } from "@/app/state";
+import { selectAnamnesisSettings } from "@/app/state/features/settingsSlice";
 import { useGetCustomerData } from "@/components/Customers/hooks";
 import { FinanceSummaryCard } from "@/components/Finances/FinanceSummaryCard";
 import { NewFinanceDialog } from "@/components/Finances/NewFinanceDialog";
@@ -34,6 +36,8 @@ const CustomerSummaryTab: React.FC = () => {
   const navigate = useNavigate();
   const { dbUid } = useAuth();
   const customer = useGetCustomerData(customerId!);
+  const selectSettings = useMemo(() => selectAnamnesisSettings(dbUid), [dbUid]);
+  const anamnesisFields = useAppSelector(selectSettings);
 
   // Fetch all consultas
   const { data: consultas } = useFetchCustomerConsultasQuery({
@@ -360,15 +364,26 @@ const CustomerSummaryTab: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {Object.entries(lastAnamnesis)
-                .filter(([key]) => key !== "createdAt" && key !== "id")
+              {Object.entries(anamnesisFields)
+                .map(([key, field]) => {
+                  const values = lastAnamnesis[key];
+                  if (!values) return null;
+                  const hasOptions = field.options && Object.keys(field.options).length > 0;
+                  const display = hasOptions
+                    ? typeof values === "string"
+                      ? (field.options![values] ?? values)
+                      : (values as string[]).map((v) => field.options?.[v] ?? v).join(", ")
+                    : Array.isArray(values)
+                      ? (values as string[]).join(", ")
+                      : String(values);
+                  return { key, label: field.label, display };
+                })
+                .filter((f): f is NonNullable<typeof f> => f !== null)
                 .slice(0, 5)
-                .map(([key, value]) => (
+                .map(({ key, label, display }) => (
                   <div key={key} className="flex justify-between text-sm">
-                    <span className="capitalize text-muted-foreground">
-                      {key.replace(/_/g, " ")}:
-                    </span>
-                    <span className="font-medium">{String(value)}</span>
+                    <span className="text-muted-foreground">{label}:</span>
+                    <span className="font-medium">{display}</span>
                   </div>
                 ))}
               {Object.keys(lastAnamnesis).length > 7 && (

@@ -70,21 +70,26 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
   const [user, setUser] = useState<User | null>(null);
   const [dbUid, setDbUid] = useState("");
 
-  const authChanged = useCallback(async (firebaseUser: User | null) => {
-    if (firebaseUser) {
-      setUser(firebaseUser);
-      const token = await firebaseUser.getIdTokenResult();
-      setDbUid((token.claims.contributesTo as string) || firebaseUser.uid);
-    } else {
-      setUser(null);
-    }
-    setLoading(false);
-  }, []);
-
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, authChanged);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const token = await firebaseUser.getIdTokenResult();
+          setDbUid((token.claims.contributesTo as string) || firebaseUser.uid);
+          setUser(firebaseUser);
+        } catch (error) {
+          console.error("Error getting token result:", error);
+          setUser(firebaseUser);
+          setDbUid(firebaseUser.uid);
+        }
+      } else {
+        setUser(null);
+        setDbUid("");
+      }
+      setLoading(false);
+    });
     return () => unsubscribe();
-  }, [authChanged]);
+  }, []);
 
   const signin = useCallback(
     async (

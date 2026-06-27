@@ -113,9 +113,9 @@ const ServicesSettingsTab = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
-              <TableHead>Categoria</TableHead>
               <TableHead>Preço</TableHead>
               <TableHead>Créditos</TableHead>
+              <TableHead>Categoria</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="w-[70px]">Ações</TableHead>
             </TableRow>
@@ -141,12 +141,6 @@ const ServicesSettingsTab = () => {
                         </p>
                       )}
                     </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {SERVICE_CATEGORIES[service.category]?.text ||
-                          service.category}
-                      </Badge>
-                    </TableCell>
                     <TableCell>{formatCurrency(service.price)}</TableCell>
                     <TableCell>
                       {service.credits ? (
@@ -157,6 +151,12 @@ const ServicesSettingsTab = () => {
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {SERVICE_CATEGORIES[service.category]?.text ||
+                          service.category}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       {service.active ? (

@@ -42,12 +42,22 @@ export const CustomerConsultasService = (uid: string, customerId: string) => {
         options: SnapshotOptions,
       ): ICustomerConsulta {
         const data = snapshot.data(options);
+
+        // Firestore may return anexos as a numeric-keyed map from old writes
+        const rawAnexos = (data as any).anexos;
+        const anexos = Array.isArray(rawAnexos)
+          ? rawAnexos
+          : rawAnexos && typeof rawAnexos === "object"
+            ? Object.values(rawAnexos)
+            : [];
+
         return {
           ...data,
           id: snapshot.id,
           date: dateInString(data.date),
           createdAt: dateInString(data.createdAt),
           peso: data.peso?.toString(),
+          anexos,
         };
       },
     }),

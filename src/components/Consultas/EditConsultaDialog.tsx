@@ -1,6 +1,8 @@
-import { Edit, Upload, X } from "lucide-react";
-import React, { useState } from "react";
+import { Edit, FileText, Loader2, Paperclip, Trash2, UploadCloud, X } from "lucide-react";
+import { BodyCompositionCalculator } from "@/components/Results/BodyCompositionCalculator";
+import React, { useCallback, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 import { useUpdateCustomerConsultaMutation } from "@/app/state/features/customerConsultasSlice";
 import { Button } from "@/components/ui/button";
@@ -20,8 +22,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
   FOLDS,
+  IAttachment,
   ICustomerConsulta,
   IFolds,
+  IImages,
+  ImageOptions,
   IMeal,
   IMeasures,
   IResults,
@@ -29,19 +34,47 @@ import {
   MEASURES,
   RESULTS,
 } from "@/domain/entities/consulta";
+import { useStorage } from "@/infra/firebase/hooks/useStorage";
 import { useAuth } from "@/infra/firebase/hooks/useAuth";
+import imageCompression from "browser-image-compression";
 
 interface EditConsultaDialogProps {
   consulta: ICustomerConsulta;
+  customerGender?: "H" | "M";
+}
+
+const PHOTO_SLOTS: { key: ImageOptions; label: string }[] = [
+  { key: "img_frente", label: "Frente" },
+  { key: "img_costas", label: "Costas" },
+  { key: "img_lado", label: "Lado" },
+];
+
+const FILE_ACCEPTED_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+const FILE_ACCEPTED_EXTENSIONS = ".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx";
+const MAX_FILE_MB = 10;
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
   consulta,
+  customerGender,
 }) => {
   const [open, setOpen] = useState(false);
   const { dbUid } = useAuth();
   const { customerId } = useParams<{ customerId: string }>();
   const [updateConsulta, { isLoading }] = useUpdateCustomerConsultaMutation();
+  const { storeFn, deleteFn } = useStorage();
 
   // Form state
   const [formData, setFormData] = useState<{
@@ -57,6 +90,8 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
     structure: IStructure;
     meals: IMeal[];
     online: boolean;
+    images: IImages;
+    anexos: IAttachment[];
   }>({
     peso: consulta.peso || "",
     idade: consulta.idade || "",
@@ -77,10 +112,20 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
     structure: consulta.structure || { altura: 0, joelho: 0, punho: 0 },
     meals: consulta.meals || [],
     online: consulta.online || false,
+    images: consulta.images || ({} as IImages),
+    anexos: consulta.anexos || [],
   });
 
   const [newNote, setNewNote] = useState("");
   const [newMeal, setNewMeal] = useState({ time: "", description: "" });
+
+  // Photo upload state: tracks upload progress per slot
+  const [photoProgress, setPhotoProgress] = useState<Partial<Record<ImageOptions, number>>>({});
+
+  // File upload state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fileUploading, setFileUploading] = useState<Record<string, number>>({});
+  const [fileDragOver, setFileDragOver] = useState(false);
 
   const handleSave = async () => {
     try {
@@ -101,6 +146,8 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
           structure: formData.structure,
           meals: formData.meals,
           online: formData.online,
+          images: formData.images,
+          anexos: formData.anexos,
         },
       }).unwrap();
       setOpen(false);
@@ -143,6 +190,166 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
     });
   };
 
+  // --- Photo handlers ---
+
+  const handlePhotoUpload = useCallback(
+    async (slot: ImageOptions, file: File) => {
+      // Compress before upload
+      let compressed = file;
+      try {
+        compressed = await imageCompression(file, {
+          maxSizeMB: 2,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+          fileType: "image/jpeg",
+        });
+      } catch {
+        // Use original if compression fails
+      }
+
+      setPhotoProgress((prev) => ({ ...prev, [slot]: 0 }));
+      const task = storeFn(compressed, "image");
+
+      task.on(
+        "state_changed",
+        (snap) => {
+          const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+          setPhotoProgress((prev) => ({ ...prev, [slot]: pct }));
+        },
+        (error) => {
+          console.error("Photo upload error:", error);
+          toast.error("Falha ao enviar foto.");
+          setPhotoProgress((prev) => {
+            const next = { ...prev };
+            delete next[slot];
+            return next;
+          });
+        },
+        async () => {
+          try {
+            const { getDownloadURL } = await import("firebase/storage");
+            const url = await getDownloadURL(task.snapshot.ref);
+            const attachment: IAttachment = { url, path: task.snapshot.metadata.fullPath };
+            setFormData((prev) => ({
+              ...prev,
+              images: { ...prev.images, [slot]: attachment },
+            }));
+            toast.success("Foto enviada com sucesso!");
+          } catch {
+            toast.error("Falha ao obter URL da foto.");
+          } finally {
+            setPhotoProgress((prev) => {
+              const next = { ...prev };
+              delete next[slot];
+              return next;
+            });
+          }
+        },
+      );
+    },
+    [storeFn],
+  );
+
+  const handlePhotoDelete = useCallback(
+    async (slot: ImageOptions) => {
+      const current = formData.images[slot];
+      if (current?.path) {
+        try {
+          const pathParts = current.path.split("/");
+          const filename = pathParts[pathParts.length - 1];
+          await deleteFn(filename, "image");
+        } catch {
+          // Ignore — may already be deleted
+        }
+      }
+      setFormData((prev) => {
+        const next = { ...prev.images };
+        delete (next as any)[slot];
+        return { ...prev, images: next as IImages };
+      });
+    },
+    [formData.images, deleteFn],
+  );
+
+  // --- File attachment handlers ---
+
+  const processFiles = useCallback(
+    async (files: File[]) => {
+      for (const file of files) {
+        if (!FILE_ACCEPTED_TYPES.includes(file.type)) {
+          toast.error(`Tipo não permitido: ${file.name}. Use PDF, imagem, DOC ou DOCX.`);
+          continue;
+        }
+        if (file.size > MAX_FILE_MB * 1024 * 1024) {
+          toast.error(`${file.name} excede ${MAX_FILE_MB} MB.`);
+          continue;
+        }
+
+        const tempKey = `${file.name}-${Date.now()}`;
+        setFileUploading((prev) => ({ ...prev, [tempKey]: 0 }));
+
+        const task = storeFn(file, "file");
+
+        task.on(
+          "state_changed",
+          (snap) => {
+            const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+            setFileUploading((prev) => ({ ...prev, [tempKey]: pct }));
+          },
+          (error) => {
+            console.error("File upload error:", error);
+            toast.error(`Erro ao enviar ${file.name}`);
+            setFileUploading((prev) => {
+              const next = { ...prev };
+              delete next[tempKey];
+              return next;
+            });
+          },
+          async () => {
+            try {
+              const { getDownloadURL } = await import("firebase/storage");
+              const url = await getDownloadURL(task.snapshot.ref);
+              const entry: IAttachment = { url, path: task.snapshot.metadata.fullPath };
+              setFormData((prev) => ({
+                ...prev,
+                anexos: [...(prev.anexos || []), entry],
+              }));
+              toast.success(`${file.name} enviado com sucesso!`);
+            } catch {
+              toast.error(`Erro ao finalizar envio de ${file.name}`);
+            } finally {
+              setFileUploading((prev) => {
+                const next = { ...prev };
+                delete next[tempKey];
+                return next;
+              });
+            }
+          },
+        );
+      }
+    },
+    [storeFn],
+  );
+
+  const handleFileRemove = useCallback(
+    async (attachment: IAttachment) => {
+      if (attachment.path) {
+        try {
+          const pathParts = attachment.path.split("/");
+          const filename = pathParts[pathParts.length - 1];
+          await deleteFn(filename, "file");
+        } catch {
+          // Ignore
+        }
+      }
+      setFormData((prev) => ({
+        ...prev,
+        anexos: (prev.anexos || []).filter((a) => a.path !== attachment.path),
+      }));
+    },
+    [deleteFn],
+  );
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -161,11 +368,12 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
         </DialogHeader>
 
         <Tabs defaultValue="evaluation" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="evaluation">Avaliação</TabsTrigger>
             <TabsTrigger value="notes">Notas</TabsTrigger>
             <TabsTrigger value="meals">Alimentação</TabsTrigger>
             <TabsTrigger value="photos">Fotos</TabsTrigger>
+            <TabsTrigger value="files">Arquivos</TabsTrigger>
           </TabsList>
 
           {/* Evaluation Tab */}
@@ -354,6 +562,33 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
               </div>
             </div>
 
+            {/* Body Composition Calculator */}
+            {customerGender && formData.idade && formData.peso && (
+              <BodyCompositionCalculator
+                customerId={customerId!}
+                customerGender={customerGender}
+                customerAge={Number(formData.idade)}
+                weight={Number(formData.peso)}
+                height={formData.structure?.altura || undefined}
+                wrist={formData.structure?.punho || undefined}
+                knee={formData.structure?.joelho || undefined}
+                folds={formData.dobras}
+                onResultsCalculated={(calc) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    results: {
+                      dobras: calc.sumOfFolds ?? prev.results.dobras,
+                      fat: calc.bodyFatPercentage ?? prev.results.fat,
+                      mg: calc.fatMass ?? prev.results.mg,
+                      mm: calc.muscleMass ?? prev.results.mm,
+                      mo: calc.boneMass ?? prev.results.mo,
+                      mr: calc.residualMass ?? prev.results.mr,
+                    },
+                  }));
+                }}
+              />
+            )}
+
             {/* Results */}
             <div className="space-y-4">
               <h4 className="text-sm font-medium">Resultados</h4>
@@ -479,15 +714,172 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
 
           {/* Photos Tab */}
           <TabsContent value="photos" className="mt-4 space-y-4">
-            <div className="rounded-lg border-2 border-dashed py-12 text-center">
-              <Upload className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-              <p className="mb-4 text-sm text-muted-foreground">
-                Upload de fotos e anexos em desenvolvimento
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Em breve você poderá fazer upload de novas fotos e documentos
-              </p>
+            <h4 className="text-sm font-medium">Fotos de Evolução</h4>
+            <p className="text-xs text-muted-foreground">
+              Faça upload das fotos Frente, Costas e Lado. As fotos existentes serão substituídas.
+            </p>
+            <div className="grid grid-cols-3 gap-4">
+              {PHOTO_SLOTS.map(({ key, label }) => {
+                const current = formData.images?.[key];
+                const progress = photoProgress[key];
+                const isUploading = progress !== undefined;
+
+                return (
+                  <div key={key} className="space-y-2">
+                    <Label className="text-xs font-medium">{label}</Label>
+
+                    {current?.url ? (
+                      <div className="group relative overflow-hidden rounded-lg border">
+                        <img
+                          src={current.url}
+                          alt={label}
+                          className="aspect-[3/4] w-full object-cover"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                          <label className="cursor-pointer rounded bg-white/90 px-2 py-1 text-xs font-medium text-black hover:bg-white">
+                            Substituir
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handlePhotoUpload(key, file);
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => handlePhotoDelete(key)}
+                            className="rounded bg-destructive/90 px-2 py-1 text-xs font-medium text-white hover:bg-destructive"
+                          >
+                            Remover
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <label
+                        className={`flex aspect-[3/4] cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed transition-colors ${
+                          isUploading
+                            ? "border-primary bg-primary/5"
+                            : "border-input hover:border-primary hover:bg-primary/5"
+                        }`}
+                      >
+                        {isUploading ? (
+                          <>
+                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                            <span className="text-xs text-muted-foreground">{progress}%</span>
+                          </>
+                        ) : (
+                          <>
+                            <UploadCloud className="h-6 w-6 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">Clique para enviar</span>
+                          </>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={isUploading}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handlePhotoUpload(key, file);
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                );
+              })}
             </div>
+          </TabsContent>
+
+          {/* Files Tab */}
+          <TabsContent value="files" className="mt-4 space-y-4">
+            <h4 className="text-sm font-medium">Arquivos Complementares</h4>
+            <p className="text-xs text-muted-foreground">
+              Exames, prescrições médicas e outros documentos. PDF, imagem, DOC ou DOCX — máx. {MAX_FILE_MB} MB.
+            </p>
+
+            {/* Drop zone */}
+            <div
+              onDragOver={(e) => { e.preventDefault(); setFileDragOver(true); }}
+              onDragLeave={() => setFileDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setFileDragOver(false);
+                if (e.dataTransfer.files) processFiles(Array.from(e.dataTransfer.files));
+              }}
+              onClick={() => fileInputRef.current?.click()}
+              className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 transition-colors ${
+                fileDragOver
+                  ? "border-primary bg-primary/5"
+                  : "border-input bg-transparent hover:border-primary hover:bg-primary/5"
+              }`}
+            >
+              <UploadCloud className="h-8 w-8 text-muted-foreground" />
+              <p className="text-sm font-medium">Clique ou arraste arquivos aqui</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept={FILE_ACCEPTED_EXTENSIONS}
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files) processFiles(Array.from(e.target.files));
+                  e.target.value = "";
+                }}
+              />
+            </div>
+
+            {/* Upload progress */}
+            {Object.entries(fileUploading).map(([key, pct]) => (
+              <div key={key} className="flex items-center gap-3 rounded-lg border bg-muted/30 p-3">
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
+                <div className="flex-1 space-y-1">
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                    <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+                  <p className="text-xs text-muted-foreground">{pct}%</p>
+                </div>
+              </div>
+            ))}
+
+            {/* Uploaded files */}
+            {(formData.anexos || []).map((attachment, i) => {
+              const filename = attachment.path?.split("/").pop() ?? `arquivo-${i + 1}`;
+              return (
+                <div key={attachment.path || i} className="flex items-center gap-3 rounded-lg border bg-background p-3">
+                  <FileText className="h-5 w-5 shrink-0 text-primary" />
+                  <div className="min-w-0 flex-1">
+                    <a
+                      href={attachment.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="truncate text-sm font-medium hover:underline"
+                    >
+                      {filename}
+                    </a>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleFileRemove(attachment)}
+                    className="text-destructive transition-colors hover:text-destructive/80"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              );
+            })}
+
+            {(formData.anexos || []).length === 0 && Object.keys(fileUploading).length === 0 && (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Paperclip size={12} />
+                Nenhum arquivo enviado ainda
+              </p>
+            )}
           </TabsContent>
         </Tabs>
 

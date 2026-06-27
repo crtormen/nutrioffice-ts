@@ -8,7 +8,7 @@ import {
   Phone,
   UserCheck,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppSelector } from "@/app/state/hooks";
 
@@ -55,8 +55,10 @@ const LeadDetailsPage = () => {
   useFetchLeadsQuery(dbUid, { skip: !dbUid });
   useFetchSettingsQuery(dbUid, { skip: !dbUid });
 
-  const lead = useAppSelector(selectLeadById(dbUid, leadId));
-  const crmSettings = useAppSelector(selectCrmSettings(dbUid));
+  const selectLead = useMemo(() => selectLeadById(dbUid, leadId), [dbUid, leadId]);
+  const lead = useAppSelector(selectLead);
+  const selectSettings = useMemo(() => selectCrmSettings(dbUid), [dbUid]);
+  const crmSettings = useAppSelector(selectSettings);
   const [updateLead] = useUpdateLeadMutation();
 
   const defaultFunnelId = crmSettings?.defaultFunnelId ?? "default";

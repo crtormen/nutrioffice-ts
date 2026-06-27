@@ -23,16 +23,16 @@ const newCustomerValidationSchema = zod.object({
   email: zod.string().email({ message: "Endereço de email inválido" }),
   phone: zod
     .string()
-    .min(15, { message: "Estão faltando números no Celular" })
+    .min(10, { message: "Estão faltando números no Celular" })
     .max(15, { message: "Estão sobrando números no Celular" }),
   cpf: zod
     .string()
-    .min(14, { message: "Estão faltando números no CPF" })
+    .min(11, { message: "Estão faltando números no CPF" })
     .max(14, { message: "Estão sobrando números no CPF" }),
   street: zod.string(),
   cep: zod
     .string()
-    .min(9, { message: "Estão faltando números no CEP" })
+    .min(8, { message: "Estão faltando números no CEP" })
     .max(9, { message: "Estão sobrando números no CEP" }),
   district: zod.string(),
   city: zod.string(),

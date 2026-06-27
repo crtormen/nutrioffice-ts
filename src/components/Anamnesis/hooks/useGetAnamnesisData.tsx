@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+
 import { useAppSelector } from "@/app/state";
 import {
   selectAnamnesis,
@@ -13,7 +15,7 @@ export const useGetAnamnesisData = (customerId: string | undefined) => {
     uid: dbUid,
     customerId,
   });
-  const selector = selectAnamnesis(dbUid, customerId);
+  const selector = useMemo(() => selectAnamnesis(dbUid, customerId), [dbUid, customerId]);
   const anamnesisData: IAnamnesis | undefined = useAppSelector(selector);
 
   return anamnesisData;

@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FileText } from "lucide-react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import * as zod from "zod";
 
@@ -10,12 +11,27 @@ import Form, { FormInput } from "@/components/form";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { AppointmentType } from "@/domain/entities/formSubmission";
+
+const APPOINTMENT_TYPE_OPTIONS: { value: AppointmentType; label: string }[] = [
+  { value: "presencial", label: "Presencial" },
+  { value: "online", label: "Online" },
+  { value: "reavaliacao", label: "Reavaliação" },
+  { value: "consultoria", label: "Consultoria" },
+];
 
 const NewAnamnesisPage = () => {
   const { customerId } = useParams();
-  const { customerName, anamnesisFieldArray, zodSchema } =
-    useSetAnamnesisForm();
+  const [appointmentType, setAppointmentType] = useState<AppointmentType>("presencial");
+  const { customerName, anamnesisFieldArray, zodSchema } = useSetAnamnesisForm();
   const { handleNewAnamnesis, isSaving } = useSaveAnamnesis();
 
   const breadcrumbs = [
@@ -51,10 +67,29 @@ const NewAnamnesisPage = () => {
           </p>
         </div>
 
+        <div className="w-full max-w-xs space-y-2">
+          <Label className="text-base font-medium">Tipo de Consulta</Label>
+          <Select
+            value={appointmentType}
+            onValueChange={(v) => setAppointmentType(v as AppointmentType)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione o tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              {APPOINTMENT_TYPE_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <Separator />
 
         <Form<Record<string, zod.ZodTypeAny>>
-          onSubmit={handleNewAnamnesis}
+          onSubmit={(data) => { handleNewAnamnesis(data, { appointmentType }); }}
           resolver={zodResolver(zodSchema)}
           className="space-y-10"
         >

@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { PublicFormService } from "@/app/services/PublicFormService";
+import { FileUploadSection } from "@/components/FormSubmissions/FileUploadSection";
 import { PhotoUploadSection } from "@/components/FormSubmissions/PhotoUploadSection";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -31,12 +32,31 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { IPublicFormConfiguration } from "@/domain/entities/formSubmission";
 
+const COUNTRY_CODES = [
+  { code: "BR", label: "Brasil (+55)", dialCode: "+55" },
+  { code: "US", label: "EUA (+1)", dialCode: "+1" },
+  { code: "PT", label: "Portugal (+351)", dialCode: "+351" },
+  { code: "AR", label: "Argentina (+54)", dialCode: "+54" },
+  { code: "UY", label: "Uruguai (+598)", dialCode: "+598" },
+  { code: "PY", label: "Paraguai (+595)", dialCode: "+595" },
+  { code: "CL", label: "Chile (+56)", dialCode: "+56" },
+  { code: "CO", label: "Colômbia (+57)", dialCode: "+57" },
+  { code: "MX", label: "México (+52)", dialCode: "+52" },
+  { code: "ES", label: "Espanha (+34)", dialCode: "+34" },
+  { code: "IT", label: "Itália (+39)", dialCode: "+39" },
+  { code: "DE", label: "Alemanha (+49)", dialCode: "+49" },
+  { code: "FR", label: "França (+33)", dialCode: "+33" },
+  { code: "GB", label: "Reino Unido (+44)", dialCode: "+44" },
+  { code: "OTHER", label: "Outro", dialCode: "" },
+];
+
 /**
  * Validation schema for customer data
  */
 const customerDataSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email("Email inválido"),
+  countryCode: z.string().default("BR"),
   phone: z.string().min(1, "Telefone é obrigatório"),
   cpf: z.string().min(11, "CPF inválido").max(14),
   gender: z.enum(["H", "M"], { required_error: "Gênero é obrigatório" }),
@@ -44,6 +64,10 @@ const customerDataSchema = z.object({
   occupation: z.string().optional(),
   instagram: z.string().optional(),
   cameBy: z.string().optional(),
+  street: z.string().optional(),
+  district: z.string().optional(),
+  city: z.string().optional(),
+  cep: z.string().optional(),
 });
 
 const reavaliacaoCustomerDataSchema = customerDataSchema.partial().extend({
@@ -76,6 +100,8 @@ export default function PublicAnamnesisFormPage() {
       side?: string;
     };
   }>({});
+  const [feedingHistory, setFeedingHistory] = useState<Array<{ time: string; meal: string }>>([]);
+  const [attachments, setAttachments] = useState<Array<{ filename: string; originalName: string; url: string; size: number }>>([]);
 
   const {
     register,
@@ -84,6 +110,7 @@ export default function PublicAnamnesisFormPage() {
     watch,
     formState: { errors },
   } = useForm<CustomerData>({
+    defaultValues: { countryCode: "BR" },
     resolver: (data, ctx, options) => {
       const isReavaliacao = formConfig?.appointmentType === "reavaliacao";
       const schema = isReavaliacao ? reavaliacaoCustomerDataSchema : customerDataSchema;
@@ -92,6 +119,7 @@ export default function PublicAnamnesisFormPage() {
   });
 
   const selectedGender = watch("gender");
+  const selectedCountryCode = watch("countryCode") ?? "BR";
 
   // Load form configuration
   useEffect(() => {
@@ -112,7 +140,24 @@ export default function PublicAnamnesisFormPage() {
       });
   }, [token]);
 
-  // Filter anamnesis fields based on gender and enabled fields
+  const hasAnamnesisSection = (formConfig?.enabledFields?.length ?? 0) > 0;
+  const hasEvaluationSection = !!(
+    formConfig?.enabledEvaluationFields &&
+    (formConfig.enabledEvaluationFields.weight ||
+      formConfig.enabledEvaluationFields.height ||
+      (formConfig.enabledEvaluationFields.measures?.length ?? 0) > 0 ||
+      formConfig.enabledEvaluationFields.photos)
+  );
+  const hasFeedingHistorySection = formConfig?.enableFeedingHistory
+
+  const hasAttachmentsSection = formConfig?.enableAttachments;
+
+  const anamnesisNum = 2;
+  const feedingHistoryNum = hasAnamnesisSection ? 3 : 2;
+  const evaluationNum = 2 + (hasAnamnesisSection ? 1 : 0) + (hasFeedingHistorySection ? 1 : 0);
+  const attachmentsNum = evaluationNum + (hasEvaluationSection ? 1 : 0);
+
+  // Filter and sort anamnesis fields based on gender, enabled fields, and order property
   const filteredAnamnesisFields = formConfig
     ? Object.entries(formConfig.anamnesisFields || {})
         .filter(([fieldId]) => formConfig.enabledFields.includes(fieldId))
@@ -121,10 +166,48 @@ export default function PublicAnamnesisFormPage() {
           if (field.gender === "B") return true;
           return field.gender === selectedGender;
         })
+        .sort(([, a], [, b]) => {
+          const orderA = (a as any).order ?? Number.MAX_SAFE_INTEGER;
+          const orderB = (b as any).order ?? Number.MAX_SAFE_INTEGER;
+          return orderA - orderB;
+        })
     : [];
 
   const onSubmit = async (customerData: CustomerData) => {
     if (!token || !formConfig) return;
+
+    // Prepend dial code to phone if country is not "OTHER" and code not already present
+    const country = COUNTRY_CODES.find((c) => c.code === (customerData.countryCode ?? "BR"));
+    if (country && country.dialCode && !customerData.phone.startsWith(country.dialCode)) {
+      customerData = { ...customerData, phone: `${country.dialCode}${customerData.phone}` };
+    }
+
+    // Validate evaluation fields when section is enabled — all are mandatory
+    const ef = formConfig.enabledEvaluationFields;
+    if (ef) {
+      if (ef.weight && !evaluationData.weight) {
+        toast.error("O campo Peso é obrigatório.");
+        return;
+      }
+      if (ef.height && !evaluationData.height) {
+        toast.error("O campo Altura é obrigatório.");
+        return;
+      }
+      if (ef.measures && ef.measures.length > 0) {
+        const missing = ef.measures.find((m) => !evaluationData.measures?.[m.id]);
+        if (missing) {
+          toast.error(`O campo "${missing.label}" é obrigatório.`);
+          return;
+        }
+      }
+      if (ef.photos) {
+        const uploadedCount = Object.keys(evaluationData.photos || {}).length;
+        if (uploadedCount < 3) {
+          toast.error("Envie as 3 fotos obrigatórias: Frente, Costas e Lado.");
+          return;
+        }
+      }
+    }
 
     setSubmitting(true);
     try {
@@ -140,6 +223,8 @@ export default function PublicAnamnesisFormPage() {
         customerData,
         anamnesisData,
         evaluationData: hasEvaluationData ? evaluationData : undefined,
+        feedingHistory: formConfig.enableFeedingHistory && feedingHistory.length > 0 ? feedingHistory : undefined,
+        attachments: formConfig.enableAttachments && attachments.length > 0 ? attachments : undefined,
       });
 
       setSubmitted(true);
@@ -399,18 +484,28 @@ export default function PublicAnamnesisFormPage() {
   if (submitted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-background to-muted/20 p-4">
-        <Card className="max-w-md">
+        <Card className="max-w-lg">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-              <CheckCircle2 className="h-10 w-10 text-green-600" />
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+              <CheckCircle2 className="h-12 w-12 text-green-600" />
             </div>
-            <CardTitle>Formulário Enviado!</CardTitle>
-            <CardDescription>{formConfig.successMessage}</CardDescription>
+            <CardTitle className="text-2xl">Tudo certo!</CardTitle>
+            <CardDescription className="text-base">
+              {formConfig.successMessage || "Suas respostas foram enviadas com sucesso!"}
+            </CardDescription>
           </CardHeader>
-          <CardContent className="text-center">
+          <CardContent className="space-y-4 text-center">
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Suas respostas foram recebidas e já estão sendo analisadas por{" "}
+              <span className="font-medium text-foreground">
+                {formConfig.professionalName}
+              </span>
+              . Em breve você receberá seu plano alimentar e todas as
+              orientações necessárias para dar início ao seu acompanhamento.
+            </p>
             <p className="text-sm text-muted-foreground">
-              {formConfig.professionalName} receberá suas informações e entrará
-              em contato em breve.
+              Fique de olho nas suas mensagens — o contato será feito em breve.
+              Obrigada pela confiança!
             </p>
           </CardContent>
         </Card>
@@ -419,9 +514,23 @@ export default function PublicAnamnesisFormPage() {
   }
 
   // Form state
-  const appointmentTypeLabel =
-    formConfig.appointmentType === "online" ? "Online" : 
-    formConfig.appointmentType === "reavaliacao" ? "Reavaliação" : "Presencial";
+  const appointmentTypeLabel = () => {
+    let label;
+    switch (formConfig.appointmentType) {
+      case "online": label = "Online";
+      break;
+      case "reavaliacao": label = "Reavaliação";
+      break;
+      case "presencial": label = "Presencial";
+      break;
+      case "consultoria": label = "Consultoria";
+      break;
+      case "hibrido": label = "Híbrido";
+      break;
+      default: label = "";
+    }
+    return label;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 py-8">
@@ -434,7 +543,7 @@ export default function PublicAnamnesisFormPage() {
               </CardTitle>
               <CardDescription className="mt-2 text-base">
                 {formConfig.customMessage ||
-                  `Formulário de Anamnese - Consulta ${appointmentTypeLabel}`}
+                  `Formulário de Anamnese - Consulta ${appointmentTypeLabel()}`}
               </CardDescription>
             </div>
             {/* Logo placeholder - Professional can customize via settings */}
@@ -499,17 +608,36 @@ export default function PublicAnamnesisFormPage() {
                     <Label htmlFor="phone">
                       Telefone/WhatsApp <span className="text-red-500">*</span>
                     </Label>
-                    <Input
-                      id="phone"
-                      {...register("phone")}
-                      placeholder="(00) 00000-0000"
-                    />
+                    <div className="flex gap-2">
+                      <Select
+                        value={selectedCountryCode}
+                        onValueChange={(value) => setValue("countryCode", value)}
+                      >
+                        <SelectTrigger className="w-44 shrink-0">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {COUNTRY_CODES.map((c) => (
+                            <SelectItem key={c.code} value={c.code}>
+                              {c.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        id="phone"
+                        {...register("phone")}
+                        placeholder="(00) 00000-0000"
+                        className="flex-1"
+                      />
+                    </div>
                     {errors.phone && (
                       <p className="text-sm text-red-500">{errors.phone.message}</p>
                     )}
                   </div>
                 </div>
               ) : (
+                <>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="name">
@@ -548,11 +676,29 @@ export default function PublicAnamnesisFormPage() {
                     <Label htmlFor="phone">
                       Telefone/WhatsApp <span className="text-red-500">*</span>
                     </Label>
-                    <Input
-                      id="phone"
-                      {...register("phone")}
-                      placeholder="(00) 00000-0000"
-                    />
+                    <div className="flex gap-2">
+                      <Select
+                        value={selectedCountryCode}
+                        onValueChange={(value) => setValue("countryCode", value)}
+                      >
+                        <SelectTrigger className="w-44 shrink-0">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {COUNTRY_CODES.map((c) => (
+                            <SelectItem key={c.code} value={c.code}>
+                              {c.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        id="phone"
+                        {...register("phone")}
+                        placeholder="(00) 00000-0000"
+                        className="flex-1"
+                      />
+                    </div>
                     {errors.phone && (
                       <p className="text-sm text-red-500">
                         {errors.phone.message}
@@ -580,7 +726,7 @@ export default function PublicAnamnesisFormPage() {
                     </Label>
                     <Select
                       onValueChange={(value: "H" | "M") =>
-                        setValue("gender", value)
+                        setTimeout(() => setValue("gender", value), 0)
                       }
                     >
                       <SelectTrigger>
@@ -637,6 +783,57 @@ export default function PublicAnamnesisFormPage() {
                     />
                   </div>
                 </div>
+
+                {/* Address section — Brazil only, not for reavaliacao */}
+                {selectedCountryCode === "BR" &&
+                  (formConfig?.appointmentType === "online" ||
+                    formConfig?.appointmentType === "presencial" ||
+                    formConfig?.appointmentType === "consultoria" ||
+                    formConfig?.appointmentType === "hibrido") && (
+                  <>
+                    <div className="mt-4 border-t pt-4">
+                      <h4 className="text-base font-semibold">Endereço</h4>
+                      <p className="mt-0.5 text-sm text-muted-foreground">
+                        Necessário para emissão de nota fiscal
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="street">Endereço</Label>
+                        <Input
+                          id="street"
+                          {...register("street")}
+                          placeholder="Rua, número - complemento"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="district">Bairro</Label>
+                        <Input
+                          id="district"
+                          {...register("district")}
+                          placeholder="Bairro"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="cep">CEP</Label>
+                        <Input
+                          id="cep"
+                          {...register("cep")}
+                          placeholder="Ex: 99040-150"
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="city">Cidade/Estado</Label>
+                        <Input
+                          id="city"
+                          {...register("city")}
+                          placeholder="Ex: Porto Alegre / RS"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+                </>
               )}
             </div>
 
@@ -647,7 +844,7 @@ export default function PublicAnamnesisFormPage() {
                 <div className="space-y-4 rounded-lg border bg-muted/30 p-6">
                   <div className="mb-4 flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
-                      2
+                      {anamnesisNum}
                     </div>
                     <div>
                       <h3 className="text-xl font-bold">Anamnese</h3>
@@ -673,8 +870,79 @@ export default function PublicAnamnesisFormPage() {
                   )}
                 </div>
               )}
+            
+            {/* Section 3: Feeding History (Recordatório Alimentar) */}
+            {formConfig?.enableFeedingHistory && (
+              <div className="space-y-4 rounded-lg border bg-muted/30 p-6">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+                    {feedingHistoryNum}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">Recordatório Alimentar</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {formConfig?.appointmentType === "reavaliacao" ?
+                      "Dentre as opções prescritas, descreva com detalhes quais você usou e os horários de cada refeição" :
+                      "Informe sua rotina alimentar atual" }
+                    </p>
+                  </div>
+                </div>
 
-            {/* Section 3: Evaluation */}
+                <div className="space-y-3">
+                  {feedingHistory.map((meal, i) => (
+                    <div key={i} className="flex items-start gap-3 rounded-lg border bg-background p-3">
+                      <div className="w-20 shrink-0">
+                        <label className="mb-1 block text-xs text-muted-foreground">Horário</label>
+                        <input
+                          type="time"
+                          value={meal.time}
+                          onChange={(e) =>
+                            setFeedingHistory((prev) =>
+                              prev.map((m, idx) => idx === i ? { ...m, time: e.target.value } : m)
+                            )
+                          }
+                          className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="mb-1 block text-xs text-muted-foreground">
+                          {`Refeição ${i + 1}`}
+                        </label>
+                        <textarea
+                          value={meal.meal}
+                          onChange={(e) =>
+                            setFeedingHistory((prev) =>
+                              prev.map((m, idx) => idx === i ? { ...m, meal: e.target.value } : m)
+                            )
+                          }
+                          placeholder="Descreva o que costuma comer nesta refeição..."
+                          rows={2}
+                          className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFeedingHistory((prev) => prev.filter((_, idx) => idx !== i))}
+                        className="mt-6 text-destructive hover:text-destructive/80 transition-colors"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setFeedingHistory((prev) => [...prev, { time: "", meal: "" }])}
+                  className="flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-input bg-transparent px-4 py-2 text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                >
+                  <Plus size={16} />
+                  Adicionar Refeição
+                </button>
+              </div>
+            )}
+
+            {/* Section 4: Evaluation */}
             {formConfig?.enabledEvaluationFields &&
               (formConfig.enabledEvaluationFields.weight ||
                 formConfig.enabledEvaluationFields.height ||
@@ -683,11 +951,7 @@ export default function PublicAnamnesisFormPage() {
                 <div className="space-y-4 rounded-lg border bg-muted/30 p-6">
                   <div className="mb-4 flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
-                      {formConfig &&
-                      formConfig.enabledFields &&
-                      formConfig.enabledFields.length > 0
-                        ? "3"
-                        : "2"}
+                      {evaluationNum}
                     </div>
                     <div>
                       <h3 className="text-xl font-bold">Dados de Avaliação</h3>
@@ -700,7 +964,7 @@ export default function PublicAnamnesisFormPage() {
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {formConfig.enabledEvaluationFields.weight && (
                       <div className="space-y-2">
-                        <Label htmlFor="eval-weight">Peso (kg)</Label>
+                        <Label htmlFor="eval-weight">Peso (kg) <span className="text-red-500">*</span></Label>
                         <Input
                           id="eval-weight"
                           type="number"
@@ -721,7 +985,7 @@ export default function PublicAnamnesisFormPage() {
 
                     {formConfig.enabledEvaluationFields.height && (
                       <div className="space-y-2">
-                        <Label htmlFor="eval-height">Altura (cm)</Label>
+                        <Label htmlFor="eval-height">Altura (cm) <span className="text-red-500">*</span></Label>
                         <Input
                           id="eval-height"
                           type="number"
@@ -753,7 +1017,7 @@ export default function PublicAnamnesisFormPage() {
                             (measurePoint) => (
                               <div key={measurePoint.id} className="space-y-2">
                                 <Label htmlFor={`measure-${measurePoint.id}`}>
-                                  {measurePoint.label}
+                                  {measurePoint.label} <span className="text-red-500">*</span>
                                 </Label>
                                 <Input
                                   id={`measure-${measurePoint.id}`}
@@ -800,11 +1064,10 @@ export default function PublicAnamnesisFormPage() {
                         </div>
                         <div className="md:col-span-2">
                           <h4 className="mb-2 text-sm font-medium text-muted-foreground">
-                            Fotos de Evolução (Opcional)
+                            Fotos de Evolução <span className="text-red-500">*</span>
                           </h4>
                           <p className="mb-4 text-xs text-muted-foreground">
-                            Envie fotos nas posições indicadas para melhor
-                            acompanhamento
+                            Envie as 3 fotos obrigatórias: Frente, Costas e Lado
                           </p>
                           <PhotoUploadSection
                             positions={["front", "back", "side"]}
@@ -817,6 +1080,27 @@ export default function PublicAnamnesisFormPage() {
                   </div>
                 </div>
               )}
+
+            {/* Section: Extra Files (Attachments) */}
+            {formConfig?.enableAttachments && (
+              <div className="space-y-4 rounded-lg border bg-muted/30 p-6">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+                    {attachmentsNum}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">Arquivos Complementares</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Envie exames, receitas médicas ou outros documentos relevantes (opcional)
+                    </p>
+                  </div>
+                </div>
+                <FileUploadSection
+                  token={token!}
+                  onFilesChange={setAttachments}
+                />
+              </div>
+            )}
 
             {/* Submit Button */}
             <div className="flex flex-col items-center gap-4 pt-6">

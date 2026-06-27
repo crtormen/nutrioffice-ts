@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { IServiceConfig } from "@/domain/entities/settings";
 import { useAuth } from "@/infra/firebase/hooks";
+import type { time } from "console";
 
 const serviceFormSchema = z.object({
   name: z.string().min(1, { message: "Nome é obrigatório" }),
@@ -28,7 +29,7 @@ const serviceFormSchema = z.object({
     .number()
     .positive({ message: "Preço deve ser maior que zero" }),
   credits: z.coerce.number().int().min(0).optional(),
-  category: z.enum(["consulta", "pacote", "protocolo", "produto", "outro"]),
+  category: z.enum(["consulta", "time"]),
   active: z.boolean().default(true),
 });
 
@@ -230,9 +231,7 @@ export const SetServiceDialog = ({
                 name="category"
                 options={{
                   consulta: "Consulta",
-                  pacote: "Pacote",
-                  produto: "Produto",
-                  outro: "Outro",
+                  time: "Tempo"
                 }}
                 register={register}
                 errors={errors}

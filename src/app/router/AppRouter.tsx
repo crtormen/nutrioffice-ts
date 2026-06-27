@@ -5,6 +5,7 @@ import NotAuthLayout from "@/pages/_layouts/NotAuthLayout";
 import RequireAuthLayout from "@/pages/_layouts/RequireAuthLayout";
 import { ChartsDemo } from "@/pages/demo/ChartsDemo";
 
+import { ChunkErrorBoundary } from "./ChunkErrorBoundary";
 import { ConsultaRoutes } from "./consultaRoutes";
 import { CrmRoutes } from "./crmRoutes";
 import { CustomerRoutes } from "./customerRoutes";
@@ -49,6 +50,7 @@ const ChatwootPage = lazyWithReload(
 
 function App(): JSX.Element {
   return (
+    <ChunkErrorBoundary>
     <Routes>
       <Route
         path="/*"
@@ -196,6 +198,7 @@ function App(): JSX.Element {
           cadastropaciente
         */}
     </Routes>
+    </ChunkErrorBoundary>
   );
 }
 

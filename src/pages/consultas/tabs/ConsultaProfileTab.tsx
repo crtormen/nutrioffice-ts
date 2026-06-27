@@ -325,10 +325,10 @@ const ConsultaProfileTab: React.FC = () => {
         <CardContent>
           {consulta.images &&
           !Object.values(consulta.images).every(
-            (img) => Object.keys(img).length === 0,
+            (img) => !img || Object.keys(img).length === 0,
           ) ? (
             <div className="grid gap-4 md:grid-cols-3">
-              {Object.keys(consulta.images.img_frente).length > 0 && (
+              {consulta.images.img_frente && Object.keys(consulta.images.img_frente).length > 0 && (
                 <div className="space-y-2">
                   <p className="text-center text-sm font-medium">Frente</p>
                   <img
@@ -338,7 +338,7 @@ const ConsultaProfileTab: React.FC = () => {
                   />
                 </div>
               )}
-              {Object.keys(consulta.images.img_lado).length > 0 && (
+              {consulta.images.img_lado && Object.keys(consulta.images.img_lado).length > 0 && (
                 <div className="space-y-2">
                   <p className="text-center text-sm font-medium">Lado</p>
                   <img
@@ -348,7 +348,7 @@ const ConsultaProfileTab: React.FC = () => {
                   />
                 </div>
               )}
-              {Object.keys(consulta.images.img_costas).length > 0 && (
+              {consulta.images.img_costas && Object.keys(consulta.images.img_costas).length > 0 && (
                 <div className="space-y-2">
                   <p className="text-center text-sm font-medium">Costas</p>
                   <img

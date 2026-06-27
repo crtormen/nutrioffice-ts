@@ -217,6 +217,11 @@ export const zodType = (value: FieldValuesSetting | undefined) => {
             })
         : z.array(z.object({ label: z.string(), value: z.string() })).nullish();
       break;
+    case "textarea":
+      type = value.rules?.required
+        ? z.string().min(1, { message: `${value.label} é obrigatório` })
+        : z.string().optional();
+      break;
     default:
       return z.any;
   }
@@ -332,6 +337,7 @@ export const FormInput = <TFormValues extends FieldValues>({
                 locale={ptBR}
                 value={field.value}
                 modal={modal}
+                yearRange={100}
                 onChange={field.onChange}
                 ref={field.ref}
                 displayFormat={{ hour24: "dd/MM/yyyy" }}
@@ -515,6 +521,16 @@ export const FormInput = <TFormValues extends FieldValues>({
               </div>
             );
           }}
+        />
+      );
+      break;
+    case "textarea":
+      input = (
+        <Textarea
+          name={name}
+          placeholder={props.placeholder}
+          {...(register && register(name, rules))}
+          rows={4}
         />
       );
       break;

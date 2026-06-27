@@ -4,6 +4,7 @@ import { ICustomerConsulta } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase/hooks/useAuth";
 import { classifyConsultas } from "@/lib/utils/consultaFilters";
 
+import { HybridConsultasCharts } from "./HybridConsultasCharts";
 import { InPersonConsultasCharts } from "./InPersonConsultasCharts";
 import { OnlineConsultasCharts } from "./OnlineConsultasCharts";
 
@@ -114,30 +115,13 @@ export const ConsultaTypeTabsContainer = ({
       </TabsContent>
 
       <TabsContent value="todos" className="mt-6">
-        <div className="space-y-8">
-          {/* Show both sections in combined view */}
-          {classification.inPerson.length > 0 && (
-            <div>
-              <h3 className="mb-4 text-lg font-semibold">Consultas Presenciais</h3>
-              <InPersonConsultasCharts
-                consultas={classification.inPerson}
-                customerId={customerId}
-                currentConsulta={currentConsulta}
-              />
-            </div>
-          )}
-
-          {classification.online.length > 0 && (
-            <div>
-              <h3 className="mb-4 text-lg font-semibold">Consultas Online</h3>
-              <OnlineConsultasCharts
-                consultas={classification.online}
-                customerId={customerId}
-                userId={dbUid || ""}
-              />
-            </div>
-          )}
-        </div>
+        <HybridConsultasCharts
+          allConsultas={classification.all}
+          inPersonConsultas={classification.inPerson}
+          customerId={customerId}
+          userId={dbUid || ""}
+          currentConsulta={currentConsulta}
+        />
       </TabsContent>
     </Tabs>
   );

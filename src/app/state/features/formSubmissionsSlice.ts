@@ -31,7 +31,9 @@ export const formSubmissionsSlice = firestoreApi.injectEndpoints({
 
           unsubscribe = service.getAll((snapshot: QuerySnapshot) => {
             const submissions = snapshot.docs.map((doc: any) => doc.data()) as IFormSubmission[];
-            updateCachedData(() => submissions);
+            updateCachedData((draft) => {
+              draft.splice(0, draft.length, ...submissions);
+            });
           });
         } catch (error) {
           console.error("Error in fetchFormSubmissions cache entry:", error);
@@ -70,7 +72,7 @@ export const formSubmissionsSlice = firestoreApi.injectEndpoints({
           return { error: { status: 500, data: error.message } };
         }
       },
-      invalidatesTags: ["FormSubmissions", "Customers"],
+      invalidatesTags: ["Customers"],
     }),
 
     /**
@@ -94,6 +96,23 @@ export const formSubmissionsSlice = firestoreApi.injectEndpoints({
         }
       },
       invalidatesTags: ["FormSubmissions"],
+    }),
+
+    /**
+     * Reprocess an already-approved submission (re-creates anamnesis + consulta)
+     */
+    reprocessFormSubmission: builder.mutation<any, { uid: string; submissionId: string }>({
+      queryFn: async ({ uid, submissionId }) => {
+        try {
+          const service = FormSubmissionsService(uid);
+          if (!service) return { error: { status: 400, data: "Invalid uid" } };
+          const result = await service.reprocess(submissionId);
+          return { data: result };
+        } catch (error: any) {
+          return { error: { status: 500, data: error.message } };
+        }
+      },
+      invalidatesTags: ["Customers"],
     }),
 
     /**
@@ -133,6 +152,7 @@ export const {
   useFetchFormSubmissionsQuery,
   useApproveFormSubmissionMutation,
   useRejectFormSubmissionMutation,
+  useReprocessFormSubmissionMutation,
   useUpdateFormSubmissionMutation,
 } = formSubmissionsSlice;
 

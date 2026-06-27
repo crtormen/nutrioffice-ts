@@ -9,10 +9,12 @@
  */
 
 export interface IBodyCompositionInput {
-  gender: "M" | "F";
+  gender: "H" | "M";
   age: number;
   weight: number; // kg
   height: number; // cm
+  wrist?: number; // cm (punho)
+  knee?: number; // cm (joelho)
   folds?: { [foldId: string]: number }; // mm
   protocol?: "jp3" | "jp7" | "dw4";
   densityEquation?: "siri" | "brozek"; // Default: siri
@@ -35,7 +37,7 @@ export class BodyCompositionService {
    * Main calculation entry point
    */
   static calculate(input: IBodyCompositionInput): IBodyCompositionResults {
-    const { protocol, gender, age, weight, height, folds, densityEquation = "siri" } = input;
+    const { protocol, gender, age, weight, height, wrist, knee, folds, densityEquation = "siri" } = input;
 
     if (!protocol || !folds) {
       throw new Error("Protocol and folds data are required for calculation");
@@ -71,14 +73,14 @@ export class BodyCompositionService {
     }
 
     // Convert body density to body fat percentage
-    const bodyFatPercentage = this.bodyDensityToFatPercentage(bodyDensity, densityEquation);
+    const bodyFatPercentage = Number(this.bodyDensityToFatPercentage(bodyDensity, densityEquation).toFixed(2));
 
     // Calculate component masses
     const fatMass = this.round((weight * bodyFatPercentage) / 100, 2);
     const leanMass = this.round(weight - fatMass, 2);
 
     // Calculate bone mass (Rocha formula)
-    const boneMass = height && this.calculateBoneMass(height, weight, gender);
+    const boneMass = height && wrist && knee ? this.calculateBoneMass(height, wrist, knee) : undefined;
 
     // Calculate residual mass (gender-specific percentages)
     const residualMass = this.calculateResidualMass(weight, gender);
@@ -106,7 +108,7 @@ export class BodyCompositionService {
    * Folds: Chest/Pectoral, Abdomen, Thigh
    */
   private static calculateJP3(
-    gender: "M" | "F",
+    gender: "H" | "M",
     age: number,
     folds: { [key: string]: number }
   ): { bodyDensity: number; sumOfFolds: number } {
@@ -118,7 +120,7 @@ export class BodyCompositionService {
 
     let bodyDensity: number;
 
-    if (gender === "M") {
+    if (gender === "H") {
       // Men formula
       bodyDensity =
         1.10938 - 0.0008267 * sumOfFolds + 0.0000016 * sumOfFolds * sumOfFolds - 0.0002574 * age;
@@ -136,7 +138,7 @@ export class BodyCompositionService {
    * Folds: Triceps, Chest, Subscapular, Axillary, Suprailiac, Abdomen, Thigh
    */
   private static calculateJP7(
-    gender: "M" | "F",
+    gender: "H" | "M",
     age: number,
     folds: { [key: string]: number }
   ): { bodyDensity: number; sumOfFolds: number } {
@@ -152,7 +154,7 @@ export class BodyCompositionService {
 
     let bodyDensity: number;
 
-    if (gender === "M") {
+    if (gender === "H") {
       // Men formula (matches existing system calculation)
       bodyDensity =
         1.112 - 0.00043499 * sumOfFolds + 0.00000055 * sumOfFolds * sumOfFolds - 0.00028826 * age;
@@ -170,7 +172,7 @@ export class BodyCompositionService {
    * Folds: Biceps, Triceps, Subscapular, Suprailiac
    */
   private static calculateDW4(
-    gender: "M" | "F",
+    gender: "H" | "M",
     age: number,
     folds: { [key: string]: number }
   ): { bodyDensity: number; sumOfFolds: number } {
@@ -185,7 +187,7 @@ export class BodyCompositionService {
     let bodyDensity: number;
 
     // Age and gender-specific equations
-    if (gender === "M") {
+    if (gender === "H") {
       if (age >= 17 && age <= 19) {
         bodyDensity = 1.1620 - 0.0630 * logSum;
       } else if (age >= 20 && age <= 29) {
@@ -226,32 +228,20 @@ export class BodyCompositionService {
   ): number {
     if (equation === "siri") {
       // Siri equation (1961) - most commonly used
-      return (495 / density - 450) * 100;
+      return (4.95 / density - 4.50) * 100;
     } else {
       // Brozek equation (1963)
-      return (457 / density - 414.2) * 100;
+      return (4.57 / density - 4.142) * 100;
     }
   }
 
   /**
    * Calculate bone mass using Rocha formula
-   * Based on height, wrist diameter, and knee diameter
+   * mo = 3.02 * ((height/100)² * (wrist/100) * (knee/100) * 400) ^ 0.712
    */
-  private static calculateBoneMass(height: number, weight: number, gender: "M" | "F"): number {
-    // Simplified estimation when wrist/knee not available
-    // Uses height-based approximation
-    // const heightInMeters = height / 100;
-
-    // Rocha simplified formula: 3.02 * (height² * estimated bone density)^0.712
-    // Using weight-based estimation for bone density
-    let boneMass: number;
-
-    if (gender === "M") {
-      boneMass = 0.0326 * weight + 0.0000267 * height - 0.0484;
-    } else {
-      boneMass = 0.0235 * weight + 0.0000267 * height - 0.0415;
-    }
-
+  private static calculateBoneMass(height: number, wrist: number, knee: number): number {
+    const h = height / 100;
+    const boneMass = 3.02 * Math.pow(h * h * (wrist / 100) * (knee / 100) * 400, 0.712);
     return this.round(boneMass, 2);
   }
 
@@ -259,8 +249,8 @@ export class BodyCompositionService {
    * Calculate residual mass
    * Gender-specific percentages of body weight
    */
-  private static calculateResidualMass(weight: number, gender: "M" | "F"): number {
-    const percentage = gender === "M" ? 0.241 : 0.209;
+  private static calculateResidualMass(weight: number, gender: "H" | "M"): number {
+    const percentage = gender === "H" ? 0.241 : 0.209;
     return this.round(weight * percentage, 2);
   }
 

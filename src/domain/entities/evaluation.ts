@@ -106,4 +106,5 @@ export interface IEvaluationData {
     back?: string;
     side?: string;
   };
+  feedingHistory?: Array<{ time: string; meal: string }>;
 }
