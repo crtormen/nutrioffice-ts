@@ -1,4 +1,4 @@
-import { GripVertical, MoreHorizontal, Plus } from "lucide-react";
+import { MoreHorizontal, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -27,12 +27,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
-import {
-  Sortable,
-  SortableContent,
-  SortableItem,
-  SortableItemHandle,
-} from "@/components/ui/sortable";
 import {
   FieldSetting,
   FieldValuesSetting,
@@ -122,7 +116,7 @@ const AnamnesisSettingsTab = () => {
       uid: user?.uid,
       type,
       setting: updatedSettings,
-      merge: false,
+      merge: true,
     })
       .then(() => {
         toast.success(`Campo "${fieldToDelete.label}" removido com sucesso.`);
@@ -134,163 +128,105 @@ const AnamnesisSettingsTab = () => {
     setFieldToEdit({ field: undefined, type: "" });
   }
 
-  const getSortedFieldEntries = (
-    fields: FieldSetting,
-    gender?: string,
-  ): [string, FieldValuesSetting][] => {
-    return Object.entries(fields)
-      .filter(([, value]) => value.gender === gender)
-      .sort(([, a], [, b]) => {
-        const orderA = a.order ?? Number.MAX_SAFE_INTEGER;
-        const orderB = b.order ?? Number.MAX_SAFE_INTEGER;
-        return orderA - orderB;
-      });
-  };
-
-  const SortableFieldsTable = ({
+  const FieldsTable = ({
     anamnesisFields,
     type,
   }: {
     anamnesisFields: FieldSetting;
     type: settingType;
   }) => {
-    const allSortedEntries = [
-      ...getSortedFieldEntries(anamnesisFields),
-      ...getSortedFieldEntries(anamnesisFields, "B"),
-      ...getSortedFieldEntries(anamnesisFields, "M"),
-      ...getSortedFieldEntries(anamnesisFields, "H"),
-    ];
-
-    const handleReorder = (newOrder: [string, FieldValuesSetting][]) => {
-      const updatedFields: FieldSetting = {};
-      newOrder.forEach(([key, value], index) => {
-        updatedFields[key] = { ...value, order: index };
-      });
-
-      updateSettings({
-        uid: user?.uid,
-        type,
-        setting: { anamnesis: updatedFields },
-        merge: false,
-      })
-        .then(() => {
-          toast.success("Ordem dos campos atualizada com sucesso.");
-          refetch();
-        })
-        .catch(() => {
-          toast.error("Ocorreu um erro ao atualizar a ordem. Tente novamente.");
-        });
-    };
+    const entries = Object.entries(anamnesisFields) as [string, FieldValuesSetting][];
 
     return (
-      <Sortable
-        value={allSortedEntries}
-        onValueChange={handleReorder}
-        getItemValue={(item) => item[0]}
-        orientation="vertical"
-      >
-        <SortableContent items={allSortedEntries.map(([key]) => key)}>
-          <div className="flex flex-col gap-2">
-            {allSortedEntries.map(([key, value]) => {
-              const genderClass =
-                value.gender === "M"
-                  ? "border-purple-200 bg-purple-50"
-                  : value.gender === "H"
-                    ? "border-blue-200 bg-blue-50"
-                    : "";
+      <div className="flex flex-col gap-2">
+        {entries.map(([key, value]) => {
+          const genderClass =
+            value.gender === "M"
+              ? "border-purple-200 bg-purple-50"
+              : value.gender === "H"
+                ? "border-blue-200 bg-blue-50"
+                : "";
 
-              return (
-                value && (
-                  <SortableItem key={key} value={key}>
-                    <Collapsible>
-                      <div
-                        className={cn(
-                          "rounded-lg border bg-card text-card-foreground shadow-sm",
-                          genderClass,
-                        )}
-                      >
-                        <CollapsibleTrigger asChild>
-                          <div className="flex cursor-pointer items-center gap-3 p-4 hover:bg-accent/50">
-                            <SortableItemHandle asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="shrink-0"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <GripVertical className="h-4 w-4" />
-                              </Button>
-                            </SortableItemHandle>
-                            <div className="grid flex-1 grid-cols-3 gap-4">
-                              <div>
-                                <div className="text-sm font-medium text-muted-foreground">
-                                  Label
-                                </div>
-                                <div className="font-semibold">
-                                  {value.label}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium text-muted-foreground">
-                                  Tipo
-                                </div>
-                                <div>{value.type}</div>
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium text-muted-foreground">
-                                  Gênero
-                                </div>
-                                <div>
-                                  {value.gender
-                                    ? GENDERS[value.gender].text
-                                    : "Geral"}
-                                </div>
-                              </div>
-                            </div>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  className="h-8 w-8 p-0"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <span className="sr-only">Abrir menu</span>
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    onClickEdit({ ...value, name: key }, type)
-                                  }
-                                >
-                                  Editar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    onClickDelete({ ...value, name: key }, type)
-                                  }
-                                >
-                                  Excluir
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <div className="border-t px-4 pb-4">
-                            <FieldDetails field={value} id={key} />
-                          </div>
-                        </CollapsibleContent>
+          return (
+            <Collapsible key={key}>
+              <div
+                className={cn(
+                  "rounded-lg border bg-card text-card-foreground shadow-sm",
+                  genderClass,
+                )}
+              >
+                <CollapsibleTrigger asChild>
+                  <div className="flex cursor-pointer items-center gap-3 p-4 hover:bg-accent/50">
+                    <div className="grid flex-1 grid-cols-4 gap-4">
+                      <div>
+                        <div className="text-sm font-medium text-muted-foreground">
+                          Label
+                        </div>
+                        <div className="font-semibold">{value.label}</div>
                       </div>
-                    </Collapsible>
-                  </SortableItem>
-                )
-              );
-            })}
-          </div>
-        </SortableContent>
-      </Sortable>
+                      <div>
+                        <div className="text-sm font-medium text-muted-foreground">
+                          Tipo
+                        </div>
+                        <div>{value.type}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-muted-foreground">
+                          Gênero
+                        </div>
+                        <div>
+                          {value.gender ? GENDERS[value.gender].text : "Geral"}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-muted-foreground">
+                          Obrigatório
+                        </div>
+                        <div>{value.rules?.required ? "Sim" : "Não"}</div>
+                      </div>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span className="sr-only">Abrir menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() =>
+                            onClickEdit({ ...value, name: key }, type)
+                          }
+                        >
+                          Editar
+                        </DropdownMenuItem>
+                        {type === "custom" && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              onClickDelete({ ...value, name: key }, type)
+                            }
+                          >
+                            Excluir
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="border-t px-4 pb-4">
+                    <FieldDetails field={value} id={key} />
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+          );
+        })}
+      </div>
     );
   };
 
@@ -357,7 +293,7 @@ const AnamnesisSettingsTab = () => {
                     Campos Personalizados
                   </h2>
                 </div>
-                <SortableFieldsTable
+                <FieldsTable
                   anamnesisFields={customAnamnesisFields}
                   type="custom"
                 />
@@ -371,7 +307,7 @@ const AnamnesisSettingsTab = () => {
             <div>
               <h2 className="text-md font-semibold">Campos Padrão</h2>
             </div>
-            <SortableFieldsTable
+            <FieldsTable
               anamnesisFields={defaultAnamnesisFields}
               type="default"
             />

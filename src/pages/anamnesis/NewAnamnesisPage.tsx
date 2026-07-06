@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FileText } from "lucide-react";
+import { FileText, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import * as zod from "zod";
@@ -31,7 +31,7 @@ const APPOINTMENT_TYPE_OPTIONS: { value: AppointmentType; label: string }[] = [
 const NewAnamnesisPage = () => {
   const { customerId } = useParams();
   const [appointmentType, setAppointmentType] = useState<AppointmentType>("presencial");
-  const { customerName, anamnesisFieldArray, zodSchema } = useSetAnamnesisForm();
+  const { customerName, anamnesisFieldArray, zodSchema, isLoadingForm } = useSetAnamnesisForm(appointmentType);
   const { handleNewAnamnesis, isSaving } = useSaveAnamnesis();
 
   const breadcrumbs = [
@@ -45,6 +45,13 @@ const NewAnamnesisPage = () => {
   ];
 
   if (!zodSchema || !anamnesisFieldArray) return null;
+
+  const formContent = isLoadingForm ? (
+    <div className="flex items-center gap-2 py-8 text-muted-foreground">
+      <Loader2 className="h-4 w-4 animate-spin" />
+      <span>Carregando campos...</span>
+    </div>
+  ) : null;
 
   return (
     <div className="space-y-6 p-6 md:p-10">
@@ -89,6 +96,7 @@ const NewAnamnesisPage = () => {
         <Separator />
 
         <Form<Record<string, zod.ZodTypeAny>>
+          key={appointmentType}
           onSubmit={(data) => { handleNewAnamnesis(data, { appointmentType }); }}
           resolver={zodResolver(zodSchema)}
           className="space-y-10"
@@ -96,8 +104,9 @@ const NewAnamnesisPage = () => {
           {({ register, control, formState: { errors, isSubmitting } }) => {
             return (
               <>
+                {formContent}
                 <div className="space-y-8">
-                  {anamnesisFieldArray.map(([name, field], i) => (
+                  {!isLoadingForm && anamnesisFieldArray.map(([name, field], i) => (
                     <div
                       className={`space-y-3 ${
                         field?.type === "text" ||
@@ -116,6 +125,9 @@ const NewAnamnesisPage = () => {
                     >
                       <Label htmlFor={name} className="text-base font-medium">
                         {field?.label}
+                        {field?.rules?.required && (
+                          <span className="ml-1 text-red-500">*</span>
+                        )}
                       </Label>
                       <FormInput
                         {...field}

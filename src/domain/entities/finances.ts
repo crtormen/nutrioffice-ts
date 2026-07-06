@@ -1,6 +1,8 @@
 import { EntityId } from "@reduxjs/toolkit";
 import { Timestamp } from "firebase/firestore";
 
+import { ServiceCategory } from "./settings";
+
 // Payment interfaces for the new flat collection structure
 export interface IPayment {
   id?: string;
@@ -69,6 +71,7 @@ export interface IFinanceItem {
   unitPrice: number;
   totalPrice: number;
   credits: number;
+  serviceCategory: ServiceCategory;
 }
 
 export interface IFinance {
@@ -81,7 +84,9 @@ export interface IFinance {
   total: number; // Subtotal - discount
   pago: number; // Amount paid
   saldo: number; // Remaining balance (total - pago)
-  creditsGranted: number; // Total credits from this sale
+  creditsGranted: number; // Total credits from this sale (kept for backward compat)
+  appointmentCreditsGranted?: number;
+  timeCreditsGranted?: number;
   obs?: string;
   payments?: IPayment[];
   status: "pending" | "partial" | "paid"; // Payment status
@@ -98,6 +103,8 @@ export interface IFinanceFirebase {
   pago: number;
   saldo: number;
   creditsGranted: number;
+  appointmentCreditsGranted?: number;
+  timeCreditsGranted?: number;
   obs?: string;
   payments?: IPaymentFirebase[];
   status: "pending" | "partial" | "paid";

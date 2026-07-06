@@ -1,5 +1,5 @@
 import { getDownloadURL, UploadTaskSnapshot } from "firebase/storage";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import type { IImages, ImageOptions } from "@/domain/entities";
@@ -15,22 +15,12 @@ export const useSaveImages = () => {
   });
   const { consulta, handleSetImages } = useConsultaContext();
   const [progress, setProgress] = useState<Record<string, number> | null>(null);
-  const [images, setImages] = useState<IImages>(
-    consulta.images || ({} as IImages),
-  );
   const { storeFn } = useStorage();
-
-  useEffect(() => {
-    handleSetImages(images);
-  }, [handleSetImages, images]);
 
   const handleSaveImages = useCallback(() => {
     files &&
       Object.entries(files).forEach(([key, file]) => {
         if (file.length === 0) {
-          setImages((prevImages) => {
-            return { ...prevImages, [key]: {} };
-          });
           return;
         }
         setProgress({ ...progress, [key]: 0 });
@@ -50,24 +40,21 @@ export const useSaveImages = () => {
             toast.error(`Falha ao enviar arquivo.`);
             console.log(error);
             throw new Error("Error on upload", error);
-            // reject(error);
           },
           () => {
-            // COMPLETED
+            // COMPLETED — call handleSetImages directly so we never push stale local state
             getDownloadURL(uploadTask.snapshot.ref).then((url) => {
               const image = {
                 url,
                 path: uploadTask.snapshot.metadata.fullPath,
               };
-              setImages((prevImages) => {
-                return { ...prevImages, [key]: image };
-              });
+              handleSetImages({ ...consulta.images, [key]: image } as IImages);
             });
             toast.success(`Arquivo enviado com sucesso!`);
           },
         );
       });
-  }, [files, progress, storeFn]);
+  }, [files, progress, storeFn, consulta.images, handleSetImages]);
 
   const values = useMemo(
     () => ({

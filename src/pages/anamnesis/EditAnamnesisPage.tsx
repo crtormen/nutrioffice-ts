@@ -21,9 +21,21 @@ const EditAnamnesisPage = () => {
   const { toast } = useToast();
   const { customerName, anamnesisFieldArray, zodSchema } =
     useSetAnamnesisForm();
-  const anamnesisData = useGetAnamnesisData(customerId);
+  const rawAnamnesisData = useGetAnamnesisData(customerId);
   const [updateAnamnesis, { isLoading: isSaving }] =
     useUpdateAnamnesisMutation();
+
+  const anamnesisData = rawAnamnesisData && anamnesisFieldArray
+    ? Object.fromEntries(
+        Object.entries(rawAnamnesisData).map(([key, value]) => {
+          const field = anamnesisFieldArray.find(([name]) => name === key)?.[1];
+          if (field?.type === "multiple" && Array.isArray(value)) {
+            return [key, value.map((v) => ({ value: v, label: field.options?.[v] ?? v }))];
+          }
+          return [key, value];
+        }),
+      )
+    : rawAnamnesisData;
 
   const breadcrumbs = [
     { label: "Dashboard", href: ROUTES.DASHBOARD },
@@ -44,13 +56,22 @@ const EditAnamnesisPage = () => {
   const handleUpdateAnamnesis = async (data: Record<string, unknown>) => {
     if (!dbUid || !customerId || !anamnesisId) return;
 
+    const normalized: Record<string, unknown> = {};
+    for (const field in data) {
+      if (!data[field]) continue;
+      normalized[field] =
+        typeof data[field] === "object" && Array.isArray(data[field])
+          ? (data[field] as Array<{ value: string }>).map((item) => item.value)
+          : data[field];
+    }
+
     try {
       await updateAnamnesis({
         uid: dbUid,
         customerId,
         anamnesisId,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        updatedAnamnesis: data as any,
+        updatedAnamnesis: normalized as any,
       }).unwrap();
 
       toast({
@@ -119,6 +140,9 @@ const EditAnamnesisPage = () => {
                     <div className="w-full space-y-3" key={i}>
                       <Label htmlFor={name} className="text-base font-medium">
                         {field?.label}
+                        {field?.rules?.required && (
+                          <span className="ml-1 text-red-500">*</span>
+                        )}
                       </Label>
                       <FormInput
                         {...field}

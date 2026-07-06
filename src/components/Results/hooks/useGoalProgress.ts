@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { differenceInDays, parseISO, parse, isAfter, isBefore } from "date-fns";
+import { differenceInDays, parse, isAfter, isBefore } from "date-fns";
 import { IGoal } from "@/domain/entities";
 import { useFetchCustomerConsultasQuery } from "@/app/state/features/customerConsultasSlice";
 
@@ -47,15 +47,20 @@ export const useGoalProgress = (
     const daysElapsed = differenceInDays(today, startDate);
     const daysRemaining = differenceInDays(endDate, today);
 
-    // Filter consultations from goal start date
-    const filteredConsultas = consultas.filter((c) => {
-      if (!c.date) return false;
-      const consultaDate = parseISO(c.date);
-      return (
-        isAfter(consultaDate, startDate) ||
-        consultaDate.getTime() === startDate.getTime()
+    // Filter consultations from goal start date, sorted ascending
+    const filteredConsultas = consultas
+      .filter((c) => {
+        if (!c.date) return false;
+        const consultaDate = parse(c.date, "dd/MM/yyyy", new Date());
+        return (
+          isAfter(consultaDate, startDate) ||
+          consultaDate.getTime() === startDate.getTime()
+        );
+      })
+      .sort((a, b) =>
+        parse(a.date!, "dd/MM/yyyy", new Date()).getTime() -
+        parse(b.date!, "dd/MM/yyyy", new Date()).getTime()
       );
-    });
 
     // Get initial consultation (first one at or after goal creation)
     const initialConsulta = filteredConsultas[0];

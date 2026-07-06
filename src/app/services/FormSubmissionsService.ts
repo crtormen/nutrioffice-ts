@@ -51,11 +51,15 @@ export const FormSubmissionsService = (uid: string | undefined) => {
         const data = snapshot.data(options);
 
         // Convert customer data timestamps
+        const rawCustomer = data.customerData as any;
         const customerData: ICustomer = {
           id: "",
           ...data.customerData,
           birthday: dateInString(data.customerData.birthday),
           createdAt: "", // Will be set when approved
+          creditExpiresAt: rawCustomer.creditExpiresAt?.toDate
+            ? rawCustomer.creditExpiresAt.toDate().toISOString()
+            : undefined,
         };
 
         return {

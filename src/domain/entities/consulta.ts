@@ -3,6 +3,7 @@ import { Timestamp } from "firebase/firestore";
 export interface IAttachment {
   path: string;
   url: string;
+  name?: string;
 }
 
 export interface IImages {

@@ -2,8 +2,8 @@ import { ChevronDown, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { updateAnamnesisFormToken } from "@/app/services/PublicFormService";
 import { useFetchSettingsQuery } from "@/app/state/features/settingsSlice";
+import { useUpdateEnabledFieldsTokenMutation } from "@/app/state/features/anamnesisTokensSlice";
 import { AppointmentType } from "@/domain/entities/formSubmission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -33,8 +33,8 @@ export function PublicFormFieldSelector({
 }: PublicFormFieldSelectorProps) {
   const { dbUid } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [updateEnabledFields, { isLoading: isSaving }] = useUpdateEnabledFieldsTokenMutation();
 
   const { data: settings, isLoading } = useFetchSettingsQuery(dbUid || "", {
     skip: !dbUid,
@@ -114,18 +114,14 @@ export function PublicFormFieldSelector({
   const handleSave = async () => {
     if (!dbUid) return;
 
-    // Save only enabled fields in the current display order
     const enabledInOrder = orderedFields.filter((id) => enabledSet.has(id));
 
-    setIsSaving(true);
     try {
-      await updateAnamnesisFormToken(dbUid, appointmentType, enabledInOrder);
+      await updateEnabledFields({ uid: dbUid, type: appointmentType, enabledFields: enabledInOrder }).unwrap();
       toast.success("Campos atualizados com sucesso!");
       setHasChanges(false);
     } catch (error: any) {
       toast.error(error?.message || "Erro ao salvar configurações");
-    } finally {
-      setIsSaving(false);
     }
   };
 

@@ -137,6 +137,7 @@ export const NewFinanceDialog = ({
         unitPrice: service.price,
         totalPrice: service.price * quantity,
         credits: (service.credits || 0) * quantity,
+        serviceCategory: service.category,
       }),
     );
 
@@ -144,11 +145,17 @@ export const NewFinanceDialog = ({
     const discount = watch("discount") || 0;
     const total = Math.max(0, subtotal - discount);
     const creditsGranted = items.reduce((sum, item) => sum + item.credits, 0);
+    const appointmentCreditsGranted = items
+      .filter((i) => i.serviceCategory === "consulta")
+      .reduce((sum, i) => sum + i.credits, 0);
+    const timeCreditsGranted = items
+      .filter((i) => i.serviceCategory === "time")
+      .reduce((sum, i) => sum + i.credits, 0);
 
-    return { items, subtotal, discount, total, creditsGranted };
+    return { items, subtotal, discount, total, creditsGranted, appointmentCreditsGranted, timeCreditsGranted };
   };
 
-  const { items, subtotal, discount, total, creditsGranted } =
+  const { items, subtotal, discount, total, creditsGranted, appointmentCreditsGranted, timeCreditsGranted } =
     calculateTotals();
 
   // Add service to sale
@@ -268,6 +275,8 @@ export const NewFinanceDialog = ({
           pago: 0, // Will be calculated by mutation
           saldo: 0, // Will be calculated by mutation
           creditsGranted,
+          appointmentCreditsGranted,
+          timeCreditsGranted,
           status: "pending", // Will be calculated by mutation
           obs: data.obs,
           createdAt: new Date().toISOString(),

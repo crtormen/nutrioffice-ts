@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, Loader2, Plus, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -20,14 +20,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { MaskedInput } from "@/components/ui/masked-input";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { IPublicFormConfiguration } from "@/domain/entities/formSubmission";
@@ -58,16 +51,16 @@ const customerDataSchema = z.object({
   email: z.string().email("Email inválido"),
   countryCode: z.string().default("BR"),
   phone: z.string().min(1, "Telefone é obrigatório"),
-  cpf: z.string().min(11, "CPF inválido").max(14),
+  cpf: z.string().min(14, "CPF inválido").max(14, "CPF inválido"),
   gender: z.enum(["H", "M"], { required_error: "Gênero é obrigatório" }),
   birthday: z.string().min(1, "Data de nascimento é obrigatória"),
   occupation: z.string().optional(),
   instagram: z.string().optional(),
   cameBy: z.string().optional(),
-  street: z.string().optional(),
-  district: z.string().optional(),
-  city: z.string().optional(),
-  cep: z.string().optional(),
+  street: z.string().min(1, "Endereço é obrigatório"),
+  district: z.string().min(1, "Bairro é obrigatório"),
+  city: z.string().min(1, "Cidade/Estado é obrigatório"),
+  cep: z.string().min(9, "CEP inválido").max(9, "CEP inválido"),
 });
 
 const reavaliacaoCustomerDataSchema = customerDataSchema.partial().extend({
@@ -102,12 +95,15 @@ export default function PublicAnamnesisFormPage() {
   }>({});
   const [feedingHistory, setFeedingHistory] = useState<Array<{ time: string; meal: string }>>([]);
   const [attachments, setAttachments] = useState<Array<{ filename: string; originalName: string; url: string; size: number }>>([]);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const errorSummaryRef = useRef<HTMLDivElement>(null);
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
+    control,
     formState: { errors },
   } = useForm<CustomerData>({
     defaultValues: { countryCode: "BR" },
@@ -166,10 +162,8 @@ export default function PublicAnamnesisFormPage() {
           if (field.gender === "B") return true;
           return field.gender === selectedGender;
         })
-        .sort(([, a], [, b]) => {
-          const orderA = (a as any).order ?? Number.MAX_SAFE_INTEGER;
-          const orderB = (b as any).order ?? Number.MAX_SAFE_INTEGER;
-          return orderA - orderB;
+        .sort(([idA], [idB]) => {
+          return formConfig.enabledFields.indexOf(idA) - formConfig.enabledFields.indexOf(idB);
         })
     : [];
 
@@ -182,32 +176,43 @@ export default function PublicAnamnesisFormPage() {
       customerData = { ...customerData, phone: `${country.dialCode}${customerData.phone}` };
     }
 
+    // Collect all validation errors before showing feedback
+    const errors: string[] = [];
+
+    // Validate required anamnesis fields
+    for (const [fieldId, field] of filteredAnamnesisFields) {
+      const isFieldRequired = formConfig?.requireAllFields || !!(field as Record<string, unknown> & { rules?: { required?: boolean } })?.rules?.required;
+      if (isFieldRequired) {
+        const value = anamnesisData[fieldId];
+        const isEmpty = !value || (Array.isArray(value) ? value.length === 0 : String(value).trim() === "");
+        if (isEmpty) {
+          errors.push(String((field as Record<string, unknown>).label));
+        }
+      }
+    }
+
     // Validate evaluation fields when section is enabled — all are mandatory
     const ef = formConfig.enabledEvaluationFields;
     if (ef) {
-      if (ef.weight && !evaluationData.weight) {
-        toast.error("O campo Peso é obrigatório.");
-        return;
-      }
-      if (ef.height && !evaluationData.height) {
-        toast.error("O campo Altura é obrigatório.");
-        return;
-      }
+      if (ef.weight && !evaluationData.weight) errors.push("Peso");
+      if (ef.height && !evaluationData.height) errors.push("Altura");
       if (ef.measures && ef.measures.length > 0) {
-        const missing = ef.measures.find((m) => !evaluationData.measures?.[m.id]);
-        if (missing) {
-          toast.error(`O campo "${missing.label}" é obrigatório.`);
-          return;
+        for (const m of ef.measures) {
+          if (!evaluationData.measures?.[m.id]) errors.push(m.label);
         }
       }
       if (ef.photos) {
         const uploadedCount = Object.keys(evaluationData.photos || {}).length;
-        if (uploadedCount < 3) {
-          toast.error("Envie as 3 fotos obrigatórias: Frente, Costas e Lado.");
-          return;
-        }
+        if (uploadedCount < 3) errors.push("Fotos (Frente, Costas e Lado)");
       }
     }
+
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      setTimeout(() => errorSummaryRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
+      return;
+    }
+    setValidationErrors([]);
 
     setSubmitting(true);
     try {
@@ -268,6 +273,7 @@ export default function PublicAnamnesisFormPage() {
     const fieldType = String(field.type || "text");
     const fieldLabel = String(field.label || "");
     const fieldPlaceholder = String(field.placeholder || "");
+    const isRequired = formConfig?.requireAllFields || !!(field.rules as Record<string, unknown> | undefined)?.required;
 
     switch (fieldType) {
       case "text":
@@ -277,7 +283,7 @@ export default function PublicAnamnesisFormPage() {
           <div key={fieldId} className="space-y-2">
             <Label htmlFor={fieldId}>
               {fieldLabel}
-              {formConfig?.requireAllFields && (
+              {isRequired && (
                 <span className="ml-1 text-red-500">*</span>
               )}
             </Label>
@@ -289,7 +295,7 @@ export default function PublicAnamnesisFormPage() {
               onChange={(e) =>
                 handleAnamnesisFieldChange(fieldId, e.target.value)
               }
-              required={formConfig?.requireAllFields}
+              required={isRequired}
             />
           </div>
         );
@@ -299,7 +305,7 @@ export default function PublicAnamnesisFormPage() {
           <div key={fieldId} className="space-y-2">
             <Label htmlFor={fieldId}>
               {fieldLabel}
-              {formConfig?.requireAllFields && (
+              {isRequired && (
                 <span className="ml-1 text-red-500">*</span>
               )}
             </Label>
@@ -310,7 +316,7 @@ export default function PublicAnamnesisFormPage() {
               onChange={(e) =>
                 handleAnamnesisFieldChange(fieldId, e.target.value)
               }
-              required={formConfig?.requireAllFields}
+              required={isRequired}
               rows={4}
             />
           </div>
@@ -321,34 +327,26 @@ export default function PublicAnamnesisFormPage() {
           <div key={fieldId} className="space-y-2">
             <Label htmlFor={fieldId}>
               {fieldLabel}
-              {formConfig?.requireAllFields && (
+              {isRequired && (
                 <span className="ml-1 text-red-500">*</span>
               )}
             </Label>
-            <Select
+            <select
+              id={fieldId}
               value={fieldValue as string}
-              onValueChange={(value) =>
-                handleAnamnesisFieldChange(fieldId, value)
-              }
-              required={formConfig?.requireAllFields}
+              onChange={(e) => handleAnamnesisFieldChange(fieldId, e.target.value)}
+              required={isRequired}
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
-              <SelectTrigger>
-                <SelectValue placeholder={fieldPlaceholder || "Selecione..."} />
-              </SelectTrigger>
-              <SelectContent>
-                {
-                  (field.options &&
-                    typeof field.options === "object" &&
-                    Object.entries(field.options as Record<string, string>).map(
-                      ([key, label]) => (
-                        <SelectItem key={key} value={key}>
-                          {label}
-                        </SelectItem>
-                      ),
-                    )) as React.ReactNode
-                }
-              </SelectContent>
-            </Select>
+              <option value="" disabled>{fieldPlaceholder || "Selecione..."}</option>
+              {field.options && typeof field.options === "object"
+                ? Object.entries(field.options as Record<string, string>).map(
+                    ([key, label]) => (
+                      <option key={key} value={key}>{label}</option>
+                    ),
+                  )
+                : null}
+            </select>
           </div>
         );
 
@@ -357,35 +355,34 @@ export default function PublicAnamnesisFormPage() {
           <div key={fieldId} className="space-y-2">
             <Label>
               {fieldLabel}
-              {formConfig?.requireAllFields && (
+              {isRequired && (
                 <span className="ml-1 text-red-500">*</span>
               )}
             </Label>
-            <RadioGroup
-              value={fieldValue as string}
-              onValueChange={(value) =>
-                handleAnamnesisFieldChange(fieldId, value)
-              }
-              required={formConfig?.requireAllFields}
-            >
-              {
-                (field.options &&
-                  typeof field.options === "object" &&
-                  Object.entries(field.options as Record<string, string>).map(
+            <div className="grid gap-2">
+              {field.options && typeof field.options === "object"
+                ? Object.entries(field.options as Record<string, string>).map(
                     ([key, label]) => (
-                      <div key={key} className="flex items-center space-x-2">
-                        <RadioGroupItem value={key} id={`${fieldId}-${key}`} />
-                        <Label
-                          htmlFor={`${fieldId}-${key}`}
-                          className="font-normal"
-                        >
-                          {label}
-                        </Label>
-                      </div>
+                      <label
+                        key={key}
+                        htmlFor={`${fieldId}-${key}`}
+                        className="flex cursor-pointer items-center gap-3 rounded-md border border-input bg-background px-4 py-3 text-sm transition-colors hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+                      >
+                        <input
+                          type="radio"
+                          id={`${fieldId}-${key}`}
+                          name={fieldId}
+                          value={key}
+                          checked={(fieldValue as string) === key}
+                          onChange={() => handleAnamnesisFieldChange(fieldId, key)}
+                          className="h-4 w-4 accent-primary"
+                        />
+                        {label}
+                      </label>
                     ),
-                  )) as React.ReactNode
-              }
-            </RadioGroup>
+                  )
+                : null}
+            </div>
           </div>
         );
 
@@ -394,7 +391,7 @@ export default function PublicAnamnesisFormPage() {
           <div key={fieldId} className="space-y-2">
             <Label>
               {fieldLabel}
-              {formConfig?.requireAllFields && (
+              {isRequired && (
                 <span className="ml-1 text-red-500">*</span>
               )}
             </Label>
@@ -568,7 +565,16 @@ export default function PublicAnamnesisFormPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={handleSubmit(onSubmit, (fieldErrors) => {
+            const labels: Record<string, string> = {
+              name: "Nome", email: "Email", phone: "Telefone", cpf: "CPF",
+              gender: "Gênero", birthday: "Data de nascimento",
+              street: "Endereço", district: "Bairro", city: "Cidade/Estado", cep: "CEP",
+            };
+            const msgs = Object.keys(fieldErrors).map((k) => labels[k] ?? k);
+            setValidationErrors(msgs);
+            setTimeout(() => errorSummaryRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
+          })} className="space-y-8">
             {/* Section 1: Customer Data */}
             <div className="space-y-4 rounded-lg border bg-muted/30 p-6">
               <div className="mb-4 flex items-center gap-3">
@@ -609,27 +615,31 @@ export default function PublicAnamnesisFormPage() {
                       Telefone/WhatsApp <span className="text-red-500">*</span>
                     </Label>
                     <div className="flex gap-2">
-                      <Select
+                      <select
                         value={selectedCountryCode}
-                        onValueChange={(value) => setValue("countryCode", value)}
+                        onChange={(e) => setValue("countryCode", e.target.value)}
+                        className="h-9 w-44 shrink-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       >
-                        <SelectTrigger className="w-44 shrink-0">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {COUNTRY_CODES.map((c) => (
-                            <SelectItem key={c.code} value={c.code}>
-                              {c.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Input
-                        id="phone"
-                        {...register("phone")}
-                        placeholder="(00) 00000-0000"
-                        className="flex-1"
-                      />
+                        {COUNTRY_CODES.map((c) => (
+                          <option key={c.code} value={c.code}>{c.label}</option>
+                        ))}
+                      </select>
+                      {selectedCountryCode === "BR" ? (
+                        <MaskedInput
+                          id="phone"
+                          mask="phone"
+                          {...register("phone")}
+                          placeholder="(00) 00000-0000"
+                          className="flex-1"
+                        />
+                      ) : (
+                        <Input
+                          id="phone"
+                          {...register("phone")}
+                          placeholder="Número"
+                          className="flex-1"
+                        />
+                      )}
                     </div>
                     {errors.phone && (
                       <p className="text-sm text-red-500">{errors.phone.message}</p>
@@ -677,27 +687,31 @@ export default function PublicAnamnesisFormPage() {
                       Telefone/WhatsApp <span className="text-red-500">*</span>
                     </Label>
                     <div className="flex gap-2">
-                      <Select
+                      <select
                         value={selectedCountryCode}
-                        onValueChange={(value) => setValue("countryCode", value)}
+                        onChange={(e) => setValue("countryCode", e.target.value)}
+                        className="h-9 w-44 shrink-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       >
-                        <SelectTrigger className="w-44 shrink-0">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {COUNTRY_CODES.map((c) => (
-                            <SelectItem key={c.code} value={c.code}>
-                              {c.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Input
-                        id="phone"
-                        {...register("phone")}
-                        placeholder="(00) 00000-0000"
-                        className="flex-1"
-                      />
+                        {COUNTRY_CODES.map((c) => (
+                          <option key={c.code} value={c.code}>{c.label}</option>
+                        ))}
+                      </select>
+                      {selectedCountryCode === "BR" ? (
+                        <MaskedInput
+                          id="phone"
+                          mask="phone"
+                          {...register("phone")}
+                          placeholder="(00) 00000-0000"
+                          className="flex-1"
+                        />
+                      ) : (
+                        <Input
+                          id="phone"
+                          {...register("phone")}
+                          placeholder="Número"
+                          className="flex-1"
+                        />
+                      )}
                     </div>
                     {errors.phone && (
                       <p className="text-sm text-red-500">
@@ -710,8 +724,9 @@ export default function PublicAnamnesisFormPage() {
                     <Label htmlFor="cpf">
                       CPF <span className="text-red-500">*</span>
                     </Label>
-                    <Input
+                    <MaskedInput
                       id="cpf"
+                      mask="cpf"
                       {...register("cpf")}
                       placeholder="000.000.000-00"
                     />
@@ -724,19 +739,16 @@ export default function PublicAnamnesisFormPage() {
                     <Label htmlFor="gender">
                       Gênero <span className="text-red-500">*</span>
                     </Label>
-                    <Select
-                      onValueChange={(value: "H" | "M") =>
-                        setTimeout(() => setValue("gender", value), 0)
-                      }
+                    <select
+                      id="gender"
+                      onChange={(e) => setValue("gender", e.target.value as "H" | "M")}
+                      defaultValue=""
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="H">Masculino</SelectItem>
-                        <SelectItem value="M">Feminino</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <option value="" disabled>Selecione...</option>
+                      <option value="H">Masculino</option>
+                      <option value="M">Feminino</option>
+                    </select>
                     {errors.gender && (
                       <p className="text-sm text-red-500">
                         {errors.gender.message}
@@ -748,7 +760,27 @@ export default function PublicAnamnesisFormPage() {
                     <Label htmlFor="birthday">
                       Data de Nascimento <span className="text-red-500">*</span>
                     </Label>
-                    <Input id="birthday" type="date" {...register("birthday")} />
+                    <Controller
+                      name="birthday"
+                      control={control}
+                      render={({ field }) => (
+                        <MaskedInput
+                          id="birthday"
+                          mask="date"
+                          placeholder="DD/MM/AAAA"
+                          value={
+                            field.value && /^\d{4}-\d{2}-\d{2}$/.test(field.value)
+                              ? `${field.value.slice(8, 10)}/${field.value.slice(5, 7)}/${field.value.slice(0, 4)}`
+                              : field.value ?? ""
+                          }
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(raw);
+                            field.onChange(match ? `${match[3]}-${match[2]}-${match[1]}` : raw);
+                          }}
+                        />
+                      )}
+                    />
                     {errors.birthday && (
                       <p className="text-sm text-red-500">
                         {errors.birthday.message}
@@ -799,36 +831,57 @@ export default function PublicAnamnesisFormPage() {
                     </div>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="street">Endereço</Label>
+                        <Label htmlFor="street">
+                          Endereço <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                           id="street"
                           {...register("street")}
                           placeholder="Rua, número - complemento"
                         />
+                        {errors.street && (
+                          <p className="text-sm text-red-500">{errors.street.message}</p>
+                        )}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="district">Bairro</Label>
+                        <Label htmlFor="district">
+                          Bairro <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                           id="district"
                           {...register("district")}
                           placeholder="Bairro"
                         />
+                        {errors.district && (
+                          <p className="text-sm text-red-500">{errors.district.message}</p>
+                        )}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="cep">CEP</Label>
-                        <Input
+                        <Label htmlFor="cep">
+                          CEP <span className="text-red-500">*</span>
+                        </Label>
+                        <MaskedInput
                           id="cep"
+                          mask="cep"
                           {...register("cep")}
                           placeholder="Ex: 99040-150"
                         />
+                        {errors.cep && (
+                          <p className="text-sm text-red-500">{errors.cep.message}</p>
+                        )}
                       </div>
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="city">Cidade/Estado</Label>
+                        <Label htmlFor="city">
+                          Cidade/Estado <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                           id="city"
                           {...register("city")}
                           placeholder="Ex: Porto Alegre / RS"
                         />
+                        {errors.city && (
+                          <p className="text-sm text-red-500">{errors.city.message}</p>
+                        )}
                       </div>
                     </div>
                   </>
@@ -893,15 +946,15 @@ export default function PublicAnamnesisFormPage() {
                     <div key={i} className="flex items-start gap-3 rounded-lg border bg-background p-3">
                       <div className="w-20 shrink-0">
                         <label className="mb-1 block text-xs text-muted-foreground">Horário</label>
-                        <input
-                          type="time"
+                        <MaskedInput
+                          mask="time"
                           value={meal.time}
+                          placeholder="HH:MM"
                           onChange={(e) =>
                             setFeedingHistory((prev) =>
                               prev.map((m, idx) => idx === i ? { ...m, time: e.target.value } : m)
                             )
                           }
-                          className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         />
                       </div>
                       <div className="flex-1">
@@ -1119,6 +1172,19 @@ export default function PublicAnamnesisFormPage() {
                   "Enviar Formulário"
                 )}
               </Button>
+              {validationErrors.length > 0 && (
+                <div
+                  ref={errorSummaryRef}
+                  className="w-full rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+                >
+                  <p className="mb-2 font-semibold">Preencha os campos obrigatórios antes de enviar:</p>
+                  <ul className="list-inside list-disc space-y-1">
+                    {validationErrors.map((msg, i) => (
+                      <li key={i}>{msg}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <p className="text-center text-xs text-muted-foreground">
                 Ao enviar, {formConfig.professionalName} receberá suas
                 informações e entrará em contato em breve.

@@ -67,7 +67,7 @@ const ServicesSettingsTab = () => {
         setting: {
           services: remainingServices,
         } as Record<string, unknown>,
-        merge: false, // Replace entire custom services
+        merge: true,
       }).unwrap();
 
       toast({

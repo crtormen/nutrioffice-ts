@@ -7,7 +7,7 @@ import { ConsultaPDFReport } from "@/components/Consultas/ConsultaPDFReport";
 import { useGetCustomerConsultaData } from "@/components/Consultas/hooks/useGetCustomerConsultas";
 import { NewGoalDialog } from "@/components/Consultas/NewGoalDialog";
 import { useGetCustomerData } from "@/components/Customers/hooks";
-import { ConsultaTypeTabsContainer } from "@/components/Results/charts";
+import { ConsultaTypeTabsContainer } from "@/components/Results/ConsultaTypeTabsContainer";
 import { GoalProgressCard } from "@/components/Results/GoalProgressCard";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";

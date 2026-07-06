@@ -1,4 +1,5 @@
 import { FileCheck } from "lucide-react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 
 import { ROUTES } from "@/app/router/routes";
@@ -19,10 +20,8 @@ export function FormSubmissionsNotificationBadge() {
     skip: !dbUid,
   });
 
-  // Select pending count from the cache
-  const pendingCount = useAppSelector((state) =>
-    selectPendingSubmissionsCount(dbUid)(state),
-  );
+  const selectPending = useMemo(() => selectPendingSubmissionsCount(dbUid), [dbUid]);
+  const pendingCount = useAppSelector(selectPending);
 
   if (!dbUid || pendingCount === 0) {
     return null;

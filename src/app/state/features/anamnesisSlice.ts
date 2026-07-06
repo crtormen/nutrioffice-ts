@@ -71,7 +71,7 @@ export const anamnesisSlice = firestoreApi
             await AnamnesisService(uid, customerId)?.addOne({ ...newAnamnesis, createdAt: serverTimestamp() } as any);
             return { data: newAnamnesis };
           } catch (err: unknown) {
-            return { error: err };
+            return { error: { message: err instanceof Error ? err.message : String(err) } };
           }
         },
       }),
@@ -88,7 +88,7 @@ export const anamnesisSlice = firestoreApi
             );
             return { data: undefined };
           } catch (err: unknown) {
-            return { error: err };
+            return { error: { message: err instanceof Error ? err.message : String(err) } };
           }
         },
       }),
@@ -102,7 +102,7 @@ export const anamnesisSlice = firestoreApi
             await AnamnesisService(uid, customerId)?.deleteOne(anamnesisId);
             return { data: undefined };
           } catch (err: unknown) {
-            return { error: err };
+            return { error: { message: err instanceof Error ? err.message : String(err) } };
           }
         },
       }),

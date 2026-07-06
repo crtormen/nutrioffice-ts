@@ -21,6 +21,9 @@ export interface ICustomerFirebase {
   birthday?: Timestamp;
   createdAt?: Timestamp;
   credits?: number;
+  appointmentCredits?: number;
+  timeCredits?: number;
+  creditExpiresAt?: Timestamp;
   occupation?: string;
   phone?: string;
   address?: IAddress;
@@ -39,6 +42,9 @@ export interface ICustomer {
   birthday?: string;
   createdAt?: string;
   credits?: number;
+  appointmentCredits?: number;
+  timeCredits?: number;
+  creditExpiresAt?: string;
   occupation?: string;
   phone?: string;
   address?: IAddress;

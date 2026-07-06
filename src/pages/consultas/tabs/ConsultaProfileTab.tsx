@@ -390,17 +390,25 @@ const ConsultaProfileTab: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <Paperclip className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">
-                      {anexo.path.split("/").pop()}
+                      {anexo.name || anexo.path.split("/").pop()}
                     </span>
                   </div>
-                  <a
-                    href={anexo.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
                     className="text-sm text-primary hover:underline"
+                    onClick={async () => {
+                      const filename = anexo.name || anexo.path.split("/").pop() || "arquivo";
+                      const res = await fetch(anexo.url);
+                      const blob = await res.blob();
+                      const blobUrl = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = blobUrl;
+                      a.download = filename;
+                      a.click();
+                      URL.revokeObjectURL(blobUrl);
+                    }}
                   >
                     Download
-                  </a>
+                  </button>
                 </div>
               ))}
             </div>

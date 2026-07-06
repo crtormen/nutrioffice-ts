@@ -17,6 +17,7 @@ export const useSaveFiles = () => {
       files.forEach((file) => {
         if (!file) return;
         setProgress(0);
+        const originalName = file.name;
         const uploadTask = storeFn(file, "file");
         uploadTask.on(
           "state_changed",
@@ -35,12 +36,13 @@ export const useSaveFiles = () => {
           () => {
             // COMPLETED
             getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-              const file = {
+              const attachment = {
                 url,
                 path: uploadTask.snapshot.metadata.fullPath,
+                name: originalName,
               };
               const anexos = consulta.anexos;
-              if (anexos) handleSetAnexos([...anexos, file]);
+              if (anexos) handleSetAnexos([...anexos, attachment]);
             });
             toast.success(`Arquivo enviado com sucesso!`);
           },

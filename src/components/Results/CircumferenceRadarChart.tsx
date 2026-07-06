@@ -1,3 +1,4 @@
+import { parse } from "date-fns";
 import {
   PolarAngleAxis,
   PolarGrid,
@@ -15,11 +16,13 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { ICustomerConsulta } from "@/domain/entities/consulta";
 
 interface CircumferenceRadarChartProps {
   customerId: string;
   userId: string;
   compareConsultations?: boolean;
+  consultas?: ICustomerConsulta[];
 }
 
 const chartConfig = {
@@ -35,26 +38,32 @@ const chartConfig = {
 
 const measurementLabels: Record<string, string> = {
   circ_abdomen: "Abdômen",
-  circ_braco_dir: "Braço D",
+  circ_gluteo: "Glúteo",
   circ_cintura: "Cintura",
   circ_coxa_dir: "Coxa D",
-  circ_gluteo: "Glúteo",
-  circ_peito: "Peito",
+  circ_braco_dir: "Braço D",
 };
 
 export const CircumferenceRadarChart = ({
   customerId,
   userId,
   compareConsultations = true,
+  consultas: consultasProp,
 }: CircumferenceRadarChartProps) => {
-  const { data: consultas = [] } = useFetchCustomerConsultasQuery({
-    uid: userId,
-    customerId,
-  });
-
-  const consultasWithMeasures = consultas.filter(
-    (c) => c.medidas && Object.keys(c.medidas).length > 0,
+  const { data: fetchedConsultas = [] } = useFetchCustomerConsultasQuery(
+    { uid: userId, customerId },
+    { skip: !!consultasProp },
   );
+  const consultas = consultasProp ?? fetchedConsultas;
+
+  const consultasWithMeasures = consultas
+    .filter((c) => c.medidas && Object.keys(c.medidas).length > 0)
+    .sort((a, b) => {
+      try {
+        return parse(a.date!, "dd/MM/yyyy", new Date()).getTime() -
+               parse(b.date!, "dd/MM/yyyy", new Date()).getTime();
+      } catch { return 0; }
+    });
 
   if (consultasWithMeasures.length === 0) {
     return (
@@ -68,6 +77,7 @@ export const CircumferenceRadarChart = ({
     consultasWithMeasures[consultasWithMeasures.length - 1];
   const previousConsulta =
     consultasWithMeasures[consultasWithMeasures.length - 2];
+
 
   const chartData = Object.entries(measurementLabels)
     .map(([key, label]) => {
@@ -103,7 +113,7 @@ export const CircumferenceRadarChart = ({
       <RadarChart data={chartData}>
         <PolarGrid />
         <PolarAngleAxis dataKey="measurement" />
-        <PolarRadiusAxis angle={90} domain={[0, "auto"]} />
+        <PolarRadiusAxis angle={90} domain={["auto", "auto"]} />
         <ChartTooltip content={<ChartTooltipContent />} />
         {compareConsultations && previousConsulta && (
           <ChartLegend content={<ChartLegendContent />} />

@@ -872,7 +872,7 @@ app.get("/public/anamnesis-form/:token", async (req, res) => {
     const typeSettings = settings?.[appointmentType] || {
       customMessage: "",
       successMessage: "Formulário enviado com sucesso!",
-      requireAllFields: true,
+      requireAllFields: false,
     };
 
     // Get enabled fields from token (not from publicForms settings)
@@ -886,7 +886,7 @@ app.get("/public/anamnesis-form/:token", async (req, res) => {
       appointmentType,
       customMessage: typeSettings.customMessage,
       successMessage: typeSettings.successMessage,
-      requireAllFields: typeSettings.requireAllFields,
+      requireAllFields: false,
       enabledFields, // Get from token, not from publicForms settings
       anamnesisFields: { ...defaultSettings?.anamnesis, ...customSettings?.anamnesis },
       enabledEvaluationFields, // Get from token
@@ -1305,7 +1305,7 @@ app.put("/users/:userId/anamnesis-tokens/:type/attachments", async (req, res) =>
     const { userId, type } = req.params;
     const { enableAttachments } = req.body;
 
-    if (type !== "online" && type !== "presencial" && type !== "reavaliacao" && type !== "consultoria") {
+    if (type !== "online" && type !== "presencial" && type !== "reavaliacao" && type !== "consultoria" && type !== "hibrido") {
       return res.status(400).json({ error: "Tipo inválido." });
     }
     if (typeof enableAttachments !== "boolean") {

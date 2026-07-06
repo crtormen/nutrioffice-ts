@@ -249,6 +249,7 @@ export const EditCustomerDialog = ({
                 <Label htmlFor="phone">Telefone *</Label>
                 <FormInput
                   type="tel"
+                  mask="phone"
                   placeholder="(00) 00000-0000"
                   name="phone"
                   register={register}
@@ -262,6 +263,7 @@ export const EditCustomerDialog = ({
               <Label htmlFor="cpf">CPF *</Label>
               <FormInput
                 type="text"
+                mask="cpf"
                 placeholder="000.000.000-00"
                 name="cpf"
                 register={register}
@@ -286,6 +288,7 @@ export const EditCustomerDialog = ({
                 <Label htmlFor="cep">CEP</Label>
                 <FormInput
                   type="text"
+                  mask="cep"
                   placeholder="00000-000"
                   name="cep"
                   register={register}

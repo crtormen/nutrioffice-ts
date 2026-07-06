@@ -861,3 +861,71 @@ export const initializeAnalytics = onCall(
     }
   }
 );
+
+// ============================================================================
+// DAILY TIME CREDIT DEBIT
+// ============================================================================
+
+function addOneCalendarMonth(date: Date): Date {
+  const result = new Date(date);
+  const targetMonth = (result.getMonth() + 1) % 12;
+  result.setMonth(result.getMonth() + 1);
+  // If the day overflowed into the next month (e.g. Jan 31 → Mar 3), roll back
+  if (result.getMonth() !== targetMonth) {
+    result.setDate(0); // last day of the intended month
+  }
+  return result;
+}
+
+/**
+ * Runs daily at 5 AM São Paulo time.
+ * For every customer whose creditExpiresAt <= today, debits 1 timeCredit
+ * and advances creditExpiresAt by 1 calendar month (same day-of-month, capped at month-end).
+ */
+export const debitDailyTimeCredits = onSchedule(
+  { schedule: "0 5 * * *", timeZone: "America/Sao_Paulo" },
+  async () => {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    const usersSnapshot = await db.collection("users").get();
+
+    for (const userDoc of usersSnapshot.docs) {
+      const customersSnapshot = await db
+        .collection(`users/${userDoc.id}/customers`)
+        .where("timeCredits", ">", 0)
+        .get();
+
+      if (customersSnapshot.empty) continue;
+
+      const batch = db.batch();
+
+      for (const customerDoc of customersSnapshot.docs) {
+        const data = customerDoc.data();
+        const expiresAtTs = data.creditExpiresAt as Timestamp | undefined;
+        if (!expiresAtTs) continue;
+
+        const expiresAt = expiresAtTs.toDate();
+        if (expiresAt > today) continue;
+
+        const current: number = data.timeCredits ?? 0;
+        const newCredits = Math.max(0, current - 1);
+        const nextExpiry = addOneCalendarMonth(expiresAt);
+
+        if (newCredits > 0) {
+          batch.update(customerDoc.ref, {
+            timeCredits: newCredits,
+            creditExpiresAt: Timestamp.fromDate(nextExpiry),
+          });
+        } else {
+          batch.update(customerDoc.ref, {
+            timeCredits: 0,
+            creditExpiresAt: FieldValue.delete(),
+          });
+        }
+      }
+
+      await batch.commit();
+    }
+  }
+);

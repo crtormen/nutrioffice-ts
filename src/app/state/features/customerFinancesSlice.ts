@@ -1,4 +1,5 @@
 import { createSelector } from "@reduxjs/toolkit";
+import { addMonths, subMonths } from "date-fns";
 import { Timestamp } from "firebase/firestore";
 
 import { CustomerFinancesService } from "@/app/services/CustomerFinancesService";
@@ -149,10 +150,25 @@ export const customerFinancesSlice = firestoreApi
             // 3. Update customer credits if credits were granted
             if (finance.creditsGranted > 0) {
               const customerDoc = await CustomersService(uid)?.getOne(customerId);
-              const currentCredits = customerDoc?.credits || 0;
-              await CustomersService(uid)?.updateOne(customerId, {
-                credits: currentCredits + finance.creditsGranted,
-              });
+              const updates: Record<string, unknown> = {
+                credits: (customerDoc?.credits || 0) + finance.creditsGranted,
+              };
+              if ((finance.appointmentCreditsGranted ?? 0) > 0) {
+                updates.appointmentCredits =
+                  (customerDoc?.appointmentCredits ?? 0) + finance.appointmentCreditsGranted!;
+              }
+              if ((finance.timeCreditsGranted ?? 0) > 0) {
+                updates.timeCredits =
+                  (customerDoc?.timeCredits ?? 0) + finance.timeCreditsGranted!;
+                const rawExpiry = customerDoc?.creditExpiresAt as any;
+                const existingExpiry = rawExpiry
+                  ? rawExpiry.toDate ? rawExpiry.toDate() : new Date(rawExpiry)
+                  : null;
+                const base =
+                  existingExpiry && existingExpiry > new Date() ? existingExpiry : new Date();
+                updates.creditExpiresAt = addMonths(base, finance.timeCreditsGranted!).toISOString();
+              }
+              await CustomersService(uid)?.updateOne(customerId, updates);
             }
 
             return { data: undefined };
@@ -198,10 +214,30 @@ export const customerFinancesSlice = firestoreApi
             // 4. Remove credits from customer if they were granted
             if (financeDoc && financeDoc.creditsGranted > 0) {
               const customerDoc = await CustomersService(uid)?.getOne(customerId);
-              const currentCredits = customerDoc?.credits || 0;
-              await CustomersService(uid)?.updateOne(customerId, {
-                credits: Math.max(0, currentCredits - financeDoc.creditsGranted),
-              });
+              const updates: Record<string, unknown> = {
+                credits: Math.max(0, (customerDoc?.credits || 0) - financeDoc.creditsGranted),
+              };
+              if ((financeDoc.appointmentCreditsGranted ?? 0) > 0) {
+                updates.appointmentCredits = Math.max(
+                  0,
+                  (customerDoc?.appointmentCredits ?? 0) - financeDoc.appointmentCreditsGranted!,
+                );
+              }
+              if ((financeDoc.timeCreditsGranted ?? 0) > 0) {
+                const newTimeCredits = Math.max(
+                  0,
+                  (customerDoc?.timeCredits ?? 0) - financeDoc.timeCreditsGranted!,
+                );
+                updates.timeCredits = newTimeCredits;
+                if (newTimeCredits === 0) {
+                  updates.creditExpiresAt = null;
+                } else if (customerDoc?.creditExpiresAt) {
+                  const rawExpiry = customerDoc.creditExpiresAt as any;
+                  const expiryDate = rawExpiry.toDate ? rawExpiry.toDate() : new Date(rawExpiry);
+                  updates.creditExpiresAt = subMonths(expiryDate, financeDoc.timeCreditsGranted!).toISOString();
+                }
+              }
+              await CustomersService(uid)?.updateOne(customerId, updates);
             }
 
             // 5. Delete the finance record from CustomerFinances collection

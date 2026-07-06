@@ -15,7 +15,7 @@ import { ROUTE_PATHS, ROUTES } from "./routes";
 
 const Dashboard = lazyWithReload(() => import("@/pages/infra/DashboardPage"));
 const LoginPage = lazyWithReload(() => import("@/pages/infra/LoginPage"));
-const NotFoundPage = lazyWithReload(() => import("@/pages/infra/NotFoundPage"));
+import NotFoundPage from "@/pages/infra/NotFoundPage";
 const SignUpPage = lazyWithReload(() => import("@/pages/infra/SignUpPage"));
 
 const AcceptInvitationPage = lazyWithReload(

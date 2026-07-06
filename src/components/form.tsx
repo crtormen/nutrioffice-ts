@@ -70,9 +70,8 @@ const Form = <TFormValues extends FieldValues>({
 
   return (
     <form
-      onSubmit={methods.handleSubmit(onSubmit, (error: unknown) => {
+      onSubmit={methods.handleSubmit(onSubmit, () => {
         toast.error("O Formulário contém erros, corrija para salvar.");
-        throw new Error(error as string);
       })}
       className={className}
     >

@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 
-import { ConsultaTypeTabsContainer } from "@/components/Results/charts";
+import { ConsultaTypeTabsContainer } from "@/components/Results/ConsultaTypeTabsContainer";
 
 const CustomerResultsTab: React.FC = () => {
   const { customerId } = useParams<{ customerId: string }>();

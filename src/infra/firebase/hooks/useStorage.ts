@@ -27,7 +27,10 @@ export const useStorage = () => {
         uploadTask = uploadBytesResumable(fileRef, file, imageMetadata);
       } else {
         const fileRef = ref(rootFilesRef, `${customerId}/${id}`);
-        uploadTask = uploadBytesResumable(fileRef, file);
+        uploadTask = uploadBytesResumable(fileRef, file, {
+          contentType: file.type || "application/octet-stream",
+          contentDisposition: `attachment; filename="${file.name}"`,
+        });
       }
       return uploadTask;
     },

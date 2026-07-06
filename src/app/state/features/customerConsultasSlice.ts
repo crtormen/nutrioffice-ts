@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 
 import { CustomerConsultasService } from "@/app/services/CustomerConsultasService";
+import { CustomersService } from "@/app/services/CustomersService";
 import {
   ICustomerConsulta,
   ICustomerConsultaFirebase,
@@ -147,9 +148,15 @@ export const customerConsultasSlice = firestoreApi
           if (!uid || !customerId || !consultaId)
             return { error: "Args not provided" };
           try {
-            await CustomerConsultasService(uid, customerId)?.deleteOne(
-              consultaId,
-            );
+            const consultaDoc = await CustomerConsultasService(uid, customerId)?.getOne(consultaId);
+            await CustomerConsultasService(uid, customerId)?.deleteOne(consultaId);
+            // Restore appointment credit if this consultation debited one
+            if (consultaDoc?.updateCredits) {
+              const customerDoc = await CustomersService(uid)?.getOne(customerId);
+              await CustomersService(uid)?.updateOne(customerId, {
+                appointmentCredits: (customerDoc?.appointmentCredits ?? 0) + 1,
+              });
+            }
             return { data: undefined };
           } catch (err: unknown) {
             return { error: err };
@@ -214,6 +221,17 @@ export const customerConsultasSlice = firestoreApi
               uid,
               customerId,
             )?.addOne(consulta);
+
+            // Debit one appointment credit if updateCredits is enabled
+            if (updateCredits) {
+              const customerDoc = await CustomersService(uid)?.getOne(customerId);
+              const current = customerDoc?.appointmentCredits ?? 0;
+              if (current > 0) {
+                await CustomersService(uid)?.updateOne(customerId, {
+                  appointmentCredits: Math.max(0, current - 1),
+                });
+              }
+            }
             const data = response?.withConverter({
               toFirestore({
                 ...data

@@ -10,6 +10,7 @@ export const newAnamnesisFieldValidationSchema = z.object({
   type: z.enum(inputTypes),
   placeholder: z.string().optional(),
   gender: z.enum(genders),
+  required: z.boolean().default(false),
   options: z.array(
     z.object({
       option: z.string(),
@@ -45,6 +46,7 @@ const adjustFieldEdittingProps = (
     placeholder: fieldToEdit.placeholder,
     gender,
     type: fieldToEdit.type,
+    required: !!(fieldToEdit.rules?.required),
   };
 
   return fieldProps;
@@ -59,6 +61,7 @@ export const useAnamnesisFieldForm = (fieldToEdit?: FieldValuesSetting) => {
       placeholder: "",
       gender: "B",
       type: "text",
+      required: false,
       options: [{ option: "", optionId: "" }],
     },
     values: fieldProps
@@ -68,7 +71,7 @@ export const useAnamnesisFieldForm = (fieldToEdit?: FieldValuesSetting) => {
           options: fieldProps.options,
           gender: fieldProps.gender,
           type: fieldProps.type!,
-          // rules: fieldToEdit.rules,
+          required: fieldProps.required,
         }
       : undefined,
   });

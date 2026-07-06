@@ -43,6 +43,7 @@ export {
   aggregateMonthlyMetrics,
   triggerMonthlyAggregation,
   initializeAnalytics,
+  debitDailyTimeCredits,
 } from "./analytics.js";
 
 // Export subscription functions

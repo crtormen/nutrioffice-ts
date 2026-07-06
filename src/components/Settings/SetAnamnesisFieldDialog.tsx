@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useFieldArray, UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray, UseFormReturn } from "react-hook-form";
 
 import { FormInput, INPUTTYPES, Options } from "@/components/form";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { FieldValuesSetting, GENDERS } from "@/domain/entities";
 
 import {
@@ -127,7 +128,7 @@ const SetAnamnesisFieldDialog = ({
     watch,
     reset,
     handleSubmit,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors, isSubmitting },
   } = form;
 
   useEffect(() => {
@@ -137,9 +138,26 @@ const SetAnamnesisFieldDialog = ({
         placeholder: "",
         gender: "B",
         type: "text",
+        required: false,
+        options: [{ option: "", optionId: "" }],
+      });
+    } else if (fieldToEdit) {
+      const options =
+        fieldToEdit.options &&
+        Object.entries(fieldToEdit.options).map(([key, value]) => ({
+          option: value,
+          optionId: key,
+        }));
+      reset({
+        label: fieldToEdit.label,
+        placeholder: fieldToEdit.placeholder ?? "",
+        gender: (fieldToEdit.gender as "H" | "M" | "B") ?? "B",
+        type: fieldToEdit.type ?? "text",
+        required: !!(fieldToEdit.rules?.required),
+        options: options?.length ? options : [{ option: "", optionId: "" }],
       });
     }
-  }, [isOpen, isSubmitSuccessful, reset]);
+  }, [isOpen, fieldToEdit, reset]);
 
   const submit = (data: newAnamnesisFieldFormInputs) => {
     handleSubmitAnamnesisField(data, fieldToEdit, type);
@@ -210,6 +228,27 @@ const SetAnamnesisFieldDialog = ({
           {["radio", "checkbox", "multiple"].includes(watchFieldType) && (
             <OptionsSection form={form} />
           )}
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div className="space-y-0.5">
+              <Label htmlFor="required" className="text-sm font-medium">
+                Campo obrigatório
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                O preenchimento deste campo será exigido
+              </p>
+            </div>
+            <Controller
+              name="required"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="required"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
+          </div>
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="ghost" type="button">

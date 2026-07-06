@@ -11,11 +11,11 @@ interface TokensResponse {
   reavaliacaoToken: string | null;
   consultoriaToken: string | null;
   hibridoToken: string | null;
-  onlineEnabledFields: string[];
-  presencialEnabledFields: string[];
-  reavaliacaoEnabledFields: string[];
-  consultoriaEnabledFields: string[];
-  hibridoEnabledFields: string[];
+  onlineEnabledFields: string[] | null;
+  presencialEnabledFields: string[] | null;
+  reavaliacaoEnabledFields: string[] | null;
+  consultoriaEnabledFields: string[] | null;
+  hibridoEnabledFields: string[] | null;
   onlineEnabledEvaluationFields?: IEnabledEvaluationFields | null;
   presencialEnabledEvaluationFields?: IEnabledEvaluationFields | null;
   reavaliacaoEnabledEvaluationFields?: IEnabledEvaluationFields | null;
@@ -90,11 +90,11 @@ export const anamnesisTokensSlice = firestoreApi.injectEndpoints({
             reavaliacaoToken: rawData.reavaliacao?.token || null,
             consultoriaToken: rawData.consultoria?.token || null,
             hibridoToken: rawData.hibrido?.token || null,
-            onlineEnabledFields: rawData.online?.enabledFields || [],
-            presencialEnabledFields: rawData.presencial?.enabledFields || [],
-            reavaliacaoEnabledFields: rawData.reavaliacao?.enabledFields || [],
-            consultoriaEnabledFields: rawData.consultoria?.enabledFields || [],
-            hibridoEnabledFields: rawData.hibrido?.enabledFields || [],
+            onlineEnabledFields: rawData.online ? (rawData.online.enabledFields ?? []) : null,
+            presencialEnabledFields: rawData.presencial ? (rawData.presencial.enabledFields ?? []) : null,
+            reavaliacaoEnabledFields: rawData.reavaliacao ? (rawData.reavaliacao.enabledFields ?? []) : null,
+            consultoriaEnabledFields: rawData.consultoria ? (rawData.consultoria.enabledFields ?? []) : null,
+            hibridoEnabledFields: rawData.hibrido ? (rawData.hibrido.enabledFields ?? []) : null,
             onlineEnabledEvaluationFields: rawData.online?.enabledEvaluationFields || null,
             presencialEnabledEvaluationFields: rawData.presencial?.enabledEvaluationFields || null,
             reavaliacaoEnabledEvaluationFields: rawData.reavaliacao?.enabledEvaluationFields || null,
@@ -144,6 +144,36 @@ export const anamnesisTokensSlice = firestoreApi.injectEndpoints({
             return { error: { status: response.status, data: error.error } };
           }
 
+          return { data: undefined };
+        } catch (error: any) {
+          return { error: { status: 500, data: error.message } };
+        }
+      },
+      invalidatesTags: ["AnamnesisTokens"],
+    }),
+
+    /**
+     * Update enabled anamnesis fields for a specific form type
+     */
+    updateEnabledFieldsToken: builder.mutation<void, { uid: string; type: AppointmentType; enabledFields: string[] }>({
+      queryFn: async ({ uid, type, enabledFields }) => {
+        try {
+          const token = await getAuthToken();
+          const response = await fetch(
+            `${API_BASE_URL}/users/${uid}/anamnesis-tokens/${type}/fields`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ enabledFields }),
+            }
+          );
+          if (!response.ok) {
+            const error = await response.json();
+            return { error: { status: response.status, data: error.error } };
+          }
           return { data: undefined };
         } catch (error: any) {
           return { error: { status: 500, data: error.message } };
@@ -214,9 +244,16 @@ export const anamnesisTokensSlice = firestoreApi.injectEndpoints({
   }),
 });
 
+export const getEnabledFieldsForType = (data: TokensResponse | undefined, appointmentType: AppointmentType): string[] | null => {
+  if (!data) return null;
+  const key = `${appointmentType}EnabledFields` as keyof TokensResponse;
+  return (data[key] as string[] | undefined) ?? null;
+};
+
 export const {
   useFetchAnamnesisTokensQuery,
   useGenerateAnamnesisTokenMutation,
   useUpdateFeedingHistoryTokenMutation,
   useUpdateAttachmentsTokenMutation,
+  useUpdateEnabledFieldsTokenMutation,
 } = anamnesisTokensSlice;

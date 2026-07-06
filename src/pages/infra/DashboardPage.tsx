@@ -2,6 +2,7 @@ import { Calendar, DollarSign, TrendingUp, Users } from "lucide-react";
 import React from "react";
 
 import { useFetchAnalyticsCountersQuery } from "@/app/state/features/analyticsSlice";
+import { ExpiringCreditsCard } from "@/components/Dashboard/ExpiringCreditsCard";
 import { MetricCard } from "@/components/Dashboard/MetricCard";
 import { OverduePaymentsCard } from "@/components/Dashboard/OverduePaymentsCard";
 import { PendingSubmissionsCard } from "@/components/Dashboard/PendingSubmissionsCard";
@@ -81,12 +82,10 @@ const Dashboard = () => {
       )}
 
       {/* Cards Grid */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* Overdue Payments List */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <OverduePaymentsCard />
-
-        {/* Pending Submissions */}
         <PendingSubmissionsCard />
+        <ExpiringCreditsCard />
       </div>
 
       {/* Additional sections can be added here */}

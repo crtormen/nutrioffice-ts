@@ -1,7 +1,8 @@
-import { format, parse } from "date-fns";
+import { addDays, format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   Calendar,
+  CalendarClock,
   DollarSign,
   FileText,
   Plus,
@@ -27,6 +28,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { ICustomerConsulta } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase/hooks/useAuth";
@@ -211,20 +213,58 @@ const CustomerSummaryTab: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Credits/Finances */}
+        {/* Appointment Credits */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Créditos</CardTitle>
+            <CardTitle className="text-sm font-medium">Créditos de Consulta</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{customer.credits || 0}</div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Créditos disponíveis
-            </p>
+            <div className="text-2xl font-bold">{customer.appointmentCredits ?? 0}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Consultas disponíveis</p>
+          </CardContent>
+        </Card>
+
+        {/* Time Credits */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Créditos de Meses</CardTitle>
+            <CalendarClock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{customer.timeCredits ?? 0}</div>
+            {customer.creditExpiresAt ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Próxima renovação:{" "}
+                {format(new Date(customer.creditExpiresAt), "dd/MM/yyyy", { locale: ptBR })}
+              </p>
+            ) : (
+              <p className="mt-1 text-xs text-muted-foreground">Sem plano ativo</p>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Expiry alert */}
+      {customer.creditExpiresAt &&
+        (customer.timeCredits ?? 0) > 0 &&
+        new Date(customer.creditExpiresAt) <= addDays(new Date(), 7) && (
+          <Alert className="border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+            <CalendarClock className="h-4 w-4" />
+            <AlertDescription>
+              Plano expira em{" "}
+              {Math.max(
+                0,
+                Math.ceil(
+                  (new Date(customer.creditExpiresAt).getTime() - new Date().getTime()) /
+                    (1000 * 60 * 60 * 24),
+                ),
+              )}{" "}
+              dia(s) —{" "}
+              {format(new Date(customer.creditExpiresAt), "dd/MM/yyyy", { locale: ptBR })}
+            </AlertDescription>
+          </Alert>
+        )}
 
       {/* Finance Summary */}
       <FinanceSummaryCard customerId={customerId!} />

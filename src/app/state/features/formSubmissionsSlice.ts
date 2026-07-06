@@ -156,16 +156,18 @@ export const {
   useUpdateFormSubmissionMutation,
 } = formSubmissionsSlice;
 
+const EMPTY_SUBMISSIONS: IFormSubmission[] = [];
+
 /**
  * Selector to get all form submissions
  */
-export const selectFormSubmissions = (uid: string | undefined) => {
-  return (state: any) => {
-    if (!uid) return [];
-    const result = formSubmissionsSlice.endpoints.fetchFormSubmissions.select(uid)(state);
-    return result.data || [];
-  };
-};
+export const selectFormSubmissions = (uid: string | undefined) =>
+  createSelector(
+    (state: any) => uid
+      ? formSubmissionsSlice.endpoints.fetchFormSubmissions.select(uid)(state).data
+      : undefined,
+    (data) => data ?? EMPTY_SUBMISSIONS,
+  );
 
 /**
  * Selector to get pending submissions count

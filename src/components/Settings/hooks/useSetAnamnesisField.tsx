@@ -1,13 +1,15 @@
 import { useCallback, useMemo } from "react";
+import { deleteField, doc, updateDoc } from "firebase/firestore";
 import { toast } from "sonner";
 
-import { useAppSelector } from "@/app/state";
+import { useAppDispatch, useAppSelector } from "@/app/state";
+import { firestoreApi } from "@/app/state/firestoreApi";
 import {
   selectCustomAnamnesisSettings,
-  useSetSettingsMutation,
+  selectDefaultAnamnesisSettings,
 } from "@/app/state/features/settingsSlice";
-import { FieldValuesSetting, ISettings } from "@/domain/entities";
-import { useAuth } from "@/infra/firebase";
+import { FieldValuesSetting } from "@/domain/entities";
+import { db, useAuth } from "@/infra/firebase";
 
 import { newAnamnesisFieldFormInputs } from "./useAnamnesisFieldForm";
 
@@ -15,9 +17,11 @@ export const useSetAnamnesisField = (
   setDialogOpen: (isOpen: boolean) => void,
 ) => {
   const { user } = useAuth();
+  const dispatch = useAppDispatch();
   const selectCustom = useMemo(() => selectCustomAnamnesisSettings(user?.uid), [user?.uid]);
-  const anamnesisFields = useAppSelector(selectCustom);
-  const [updateCustomSettings] = useSetSettingsMutation();
+  const customAnamnesisFields = useAppSelector(selectCustom);
+  const selectDefault = useMemo(() => selectDefaultAnamnesisSettings(user?.uid), [user?.uid]);
+  const defaultAnamnesisFields = useAppSelector(selectDefault);
 
   const handleSubmitAnamnesisField = useCallback(
     (
@@ -36,32 +40,33 @@ export const useSetAnamnesisField = (
         };
       });
 
+      const targetType = fieldType || "custom";
+      const existingFields = targetType === "default" ? defaultAnamnesisFields : customAnamnesisFields;
+
       const fieldId = fieldToEdit
         ? fieldToEdit.name
-        : anamnesisFields
-          ? "custom" + Object.keys(anamnesisFields).length
+        : customAnamnesisFields
+          ? "custom" + Object.keys(customAnamnesisFields).length
           : "custom0";
 
-      const updatedSettingsData: Partial<ISettings> = {
-        anamnesis: {
-          ...anamnesisFields,
-          [fieldId]: {
-            label: data.label,
-            placeholder: data.placeholder,
-            type: data.type,
-            gender: data.gender,
-            options,
-            name: fieldId,
-          },
-        },
+      // Use dotted field paths with updateDoc so deleteField() works correctly at nested depth.
+      // setDoc with merge:true silently ignores deleteField() inside nested objects.
+      const docRef = doc(db, `users/${user.uid}/settings/${targetType}`);
+      const prefix = `anamnesis.${fieldId}`;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const updatePayload: Record<string, any> = {
+        [`${prefix}.label`]: data.label,
+        [`${prefix}.placeholder`]: data.placeholder ?? "",
+        [`${prefix}.type`]: data.type,
+        [`${prefix}.gender`]: data.gender,
+        [`${prefix}.options`]: options,
+        [`${prefix}.name`]: fieldId,
+        [`${prefix}.rules`]: data.required ? { required: true } : deleteField(),
       };
-      updateCustomSettings({
-        uid: user?.uid,
-        type: fieldType || "custom",
-        setting: updatedSettingsData,
-        merge: true,
-      })
+
+      updateDoc(docRef, updatePayload)
         .then(() => {
+          dispatch(firestoreApi.util.invalidateTags(["Settings"]));
           setDialogOpen(false);
           toast.success("Campo cadastrado com sucesso");
         })
@@ -72,7 +77,7 @@ export const useSetAnamnesisField = (
           );
         });
     },
-    [user, anamnesisFields, updateCustomSettings, setDialogOpen],
+    [user, customAnamnesisFields, defaultAnamnesisFields, dispatch, setDialogOpen],
   );
 
   return { handleSubmitAnamnesisField };

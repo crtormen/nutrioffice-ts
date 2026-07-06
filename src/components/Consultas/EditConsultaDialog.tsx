@@ -849,19 +849,27 @@ export const EditConsultaDialog: React.FC<EditConsultaDialogProps> = ({
 
             {/* Uploaded files */}
             {(formData.anexos || []).map((attachment, i) => {
-              const filename = attachment.path?.split("/").pop() ?? `arquivo-${i + 1}`;
+              const filename = attachment.name || attachment.path?.split("/").pop() || `arquivo-${i + 1}`;
               return (
                 <div key={attachment.path || i} className="flex items-center gap-3 rounded-lg border bg-background p-3">
                   <FileText className="h-5 w-5 shrink-0 text-primary" />
                   <div className="min-w-0 flex-1">
-                    <a
-                      href={attachment.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      type="button"
                       className="truncate text-sm font-medium hover:underline"
+                      onClick={async () => {
+                        const res = await fetch(attachment.url);
+                        const blob = await res.blob();
+                        const blobUrl = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = blobUrl;
+                        a.download = filename;
+                        a.click();
+                        URL.revokeObjectURL(blobUrl);
+                      }}
                     >
                       {filename}
-                    </a>
+                    </button>
                   </div>
                   <button
                     type="button"
