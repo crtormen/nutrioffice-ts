@@ -41,6 +41,7 @@ export const CustomersService = (uid: string | undefined) => {
           birthday: dateInString(data.birthday),
           createdAt: dateInString(data.createdAt),
           creditExpiresAt: data.creditExpiresAt ? data.creditExpiresAt.toDate().toISOString() : undefined,
+          lastConsultaDate: data.lastConsultaDate ? data.lastConsultaDate.toDate().toISOString() : undefined,
         };
       },
     }),

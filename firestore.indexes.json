@@ -47,6 +47,14 @@
         { "fieldPath": "dueDate", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "leads",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "chatwootContactId", "order": "ASCENDING" },
+        { "fieldPath": "funnelId", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

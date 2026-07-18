@@ -65,7 +65,11 @@ const customerDataSchema = z.object({
 
 const reavaliacaoCustomerDataSchema = customerDataSchema.partial().extend({
   name: z.string().min(1, "Nome é obrigatório"),
-  phone: z.string().min(1, "Telefone é obrigatório"),
+  cpf: z
+    .string()
+    .min(1, "CPF é obrigatório")
+    .transform((v) => v.replace(/\D/g, ""))
+    .pipe(z.string().length(11, "CPF inválido")),
 });
 
 type CustomerData = z.infer<typeof customerDataSchema>;
@@ -567,7 +571,7 @@ export default function PublicAnamnesisFormPage() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit, (fieldErrors) => {
             const labels: Record<string, string> = {
-              name: "Nome", email: "Email", phone: "Telefone", cpf: "CPF",
+              name: "Nome", email: "Email", phone: "Telefone", cpf: "CPF (obrigatório para identificação)",
               gender: "Gênero", birthday: "Data de nascimento",
               street: "Endereço", district: "Bairro", city: "Cidade/Estado", cep: "CEP",
             };
@@ -611,38 +615,17 @@ export default function PublicAnamnesisFormPage() {
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">
-                      Telefone/WhatsApp <span className="text-red-500">*</span>
+                    <Label htmlFor="cpf">
+                      CPF <span className="text-red-500">*</span>
                     </Label>
-                    <div className="flex gap-2">
-                      <select
-                        value={selectedCountryCode}
-                        onChange={(e) => setValue("countryCode", e.target.value)}
-                        className="h-9 w-44 shrink-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      >
-                        {COUNTRY_CODES.map((c) => (
-                          <option key={c.code} value={c.code}>{c.label}</option>
-                        ))}
-                      </select>
-                      {selectedCountryCode === "BR" ? (
-                        <MaskedInput
-                          id="phone"
-                          mask="phone"
-                          {...register("phone")}
-                          placeholder="(00) 00000-0000"
-                          className="flex-1"
-                        />
-                      ) : (
-                        <Input
-                          id="phone"
-                          {...register("phone")}
-                          placeholder="Número"
-                          className="flex-1"
-                        />
-                      )}
-                    </div>
-                    {errors.phone && (
-                      <p className="text-sm text-red-500">{errors.phone.message}</p>
+                    <MaskedInput
+                      id="cpf"
+                      mask="cpf"
+                      {...register("cpf")}
+                      placeholder="000.000.000-00"
+                    />
+                    {errors.cpf && (
+                      <p className="text-sm text-red-500">{errors.cpf.message}</p>
                     )}
                   </div>
                 </div>

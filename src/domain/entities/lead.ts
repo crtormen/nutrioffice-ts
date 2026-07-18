@@ -24,6 +24,7 @@ export interface ILeadFirebase {
   source: LeadSource;
   interest?: string;
   isConverted: boolean;
+  isArchived?: boolean;
   convertedAt?: Timestamp;
   convertedToCustomerId?: string;
   lastPurchaseDate?: Timestamp;
@@ -47,6 +48,7 @@ export interface ILead {
   source: LeadSource;
   interest?: string;
   isConverted: boolean;
+  isArchived?: boolean;
   convertedAt?: string;
   convertedToCustomerId?: string;
   lastPurchaseDate?: string;

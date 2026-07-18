@@ -60,6 +60,9 @@ export const FormSubmissionsService = (uid: string | undefined) => {
           creditExpiresAt: rawCustomer.creditExpiresAt?.toDate
             ? rawCustomer.creditExpiresAt.toDate().toISOString()
             : undefined,
+          lastConsultaDate: rawCustomer.lastConsultaDate?.toDate
+            ? rawCustomer.lastConsultaDate.toDate().toISOString()
+            : undefined,
         };
 
         return {

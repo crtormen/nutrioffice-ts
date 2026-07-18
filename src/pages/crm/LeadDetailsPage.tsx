@@ -1,11 +1,14 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
+  Archive,
+  ArchiveRestore,
   ArrowLeft,
   Contact,
   ExternalLink,
   Mail,
   Phone,
+  Trash2,
   UserCheck,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -13,7 +16,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useAppSelector } from "@/app/state/hooks";
 
 import { ROUTES } from "@/app/router/routes";
-import { useFetchLeadsQuery, selectLeadById, useUpdateLeadMutation } from "@/app/state/features/leadsSlice";
+import { useFetchLeadsQuery, selectLeadById, useUpdateLeadMutation, useArchiveLeadMutation, useDeleteLeadMutation } from "@/app/state/features/leadsSlice";
 import {
   selectCrmSettings,
   useFetchSettingsQuery,
@@ -60,10 +63,8 @@ const LeadDetailsPage = () => {
   const selectSettings = useMemo(() => selectCrmSettings(dbUid), [dbUid]);
   const crmSettings = useAppSelector(selectSettings);
   const [updateLead] = useUpdateLeadMutation();
-
-  const defaultFunnelId = crmSettings?.defaultFunnelId ?? "default";
-  const funnel = crmSettings?.funnels?.[defaultFunnelId] ?? DEFAULT_FUNNEL;
-  const sortedStages = [...funnel.stages].sort((a, b) => a.order - b.order);
+  const [archiveLead, { isLoading: isArchiving }] = useArchiveLeadMutation();
+  const [deleteLead, { isLoading: isDeleting }] = useDeleteLeadMutation();
 
   const breadcrumbs = [
     { label: "Dashboard", href: ROUTES.DASHBOARD },
@@ -82,11 +83,28 @@ const LeadDetailsPage = () => {
     );
   }
 
+  const leadFunnelId = lead.funnelId ?? crmSettings?.defaultFunnelId ?? "default";
+  const funnel = crmSettings?.funnels?.[leadFunnelId] ?? DEFAULT_FUNNEL;
+  const sortedStages = [...funnel.stages].sort((a, b) => a.order - b.order);
+
   const currentNotes = notesValue !== undefined ? notesValue : (lead.notes ?? "");
 
   async function handleStageChange(stage: string) {
     if (!dbUid || !leadId) return;
     await updateLead({ uid: dbUid, leadId, updates: { stage } });
+  }
+
+  async function handleArchive() {
+    if (!dbUid || !leadId) return;
+    await archiveLead({ uid: dbUid, leadId, isArchived: !lead!.isArchived });
+    if (!lead!.isArchived) navigate(ROUTES.CRM.BASE);
+  }
+
+  async function handleDelete() {
+    if (!dbUid || !leadId) return;
+    if (!window.confirm(`Excluir o lead "${lead!.name}" permanentemente?`)) return;
+    await deleteLead({ uid: dbUid, leadId });
+    navigate(ROUTES.CRM.BASE);
   }
 
   async function handleSaveNotes() {
@@ -112,7 +130,7 @@ const LeadDetailsPage = () => {
               <h2 className="text-2xl font-bold tracking-tight">{lead.name}</h2>
               <p className="text-sm text-muted-foreground">
                 {SOURCE_LABELS[lead.source] ?? lead.source}
-                {lead.createdAt &&
+                {lead.createdAt && !isNaN(new Date(lead.createdAt).getTime()) &&
                   ` · ${format(new Date(lead.createdAt), "dd/MM/yyyy", { locale: ptBR })}`}
               </p>
             </div>
@@ -141,6 +159,27 @@ const LeadDetailsPage = () => {
               Ver Cliente
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleArchive}
+            disabled={isArchiving}
+          >
+            {lead.isArchived
+              ? <><ArchiveRestore className="h-4 w-4 mr-1" />Restaurar</>
+              : <><Archive className="h-4 w-4 mr-1" />Arquivar</>
+            }
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-destructive hover:text-destructive"
+            onClick={handleDelete}
+            disabled={isDeleting}
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Excluir
+          </Button>
         </div>
       </div>
 
@@ -240,19 +279,19 @@ const LeadDetailsPage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-1 text-sm">
-                  {lead.convertedAt && (
+                  {lead.convertedAt && !isNaN(new Date(lead.convertedAt).getTime()) && (
                     <p>
                       <span className="text-muted-foreground">Data: </span>
                       {format(new Date(lead.convertedAt), "dd/MM/yyyy", { locale: ptBR })}
                     </p>
                   )}
-                  {lead.lastPurchaseDate && (
+                  {lead.lastPurchaseDate && !isNaN(new Date(lead.lastPurchaseDate).getTime()) && (
                     <p>
                       <span className="text-muted-foreground">Última compra: </span>
                       {format(new Date(lead.lastPurchaseDate), "dd/MM/yyyy", { locale: ptBR })}
                     </p>
                   )}
-                  {lead.lastAppointmentDate && (
+                  {lead.lastAppointmentDate && !isNaN(new Date(lead.lastAppointmentDate).getTime()) && (
                     <p>
                       <span className="text-muted-foreground">Última consulta: </span>
                       {format(new Date(lead.lastAppointmentDate), "dd/MM/yyyy", { locale: ptBR })}

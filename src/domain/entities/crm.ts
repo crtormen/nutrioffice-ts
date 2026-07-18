@@ -5,11 +5,26 @@ export interface IFunnelStage {
   order: number;
 }
 
+export interface IFunnelStageRule {
+  stageId: string;
+  targetFunnelId: string;
+}
+
 export interface IFunnel {
   id: string;
   name: string;
   stages: IFunnelStage[];
   isDefault?: boolean;
+  stageRules?: IFunnelStageRule[];
+  entryMode?: "webhook" | "stage_trigger";
+}
+
+export interface IInboxSetting {
+  tracked: boolean;
+  color: string;
+  label?: string;
+  channelType?: string;
+  funnelId?: string;
 }
 
 export interface ICrmSettings {
@@ -18,6 +33,7 @@ export interface ICrmSettings {
   chatwootApiToken?: string;
   chatwootAccountId?: number;
   defaultFunnelId?: string;
+  inboxSettings?: Record<number, IInboxSetting>;
 }
 
 export const DEFAULT_FUNNEL_STAGES: IFunnelStage[] = [

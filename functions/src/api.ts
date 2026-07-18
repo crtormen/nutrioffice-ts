@@ -1344,31 +1344,20 @@ async function processSubmission(
   let birthdayTimestamp: Timestamp | null = null;
 
   if (isReavaliacao) {
-    const phone = customerData?.phone;
-    if (!phone) {
-      return { status: 400, body: { error: "Telefone é obrigatório para identificar o paciente na reavaliação" } };
+    const cpf = customerData?.cpf ? customerData.cpf.replace(/\D/g, "") : null;
+    if (!cpf) {
+      return { status: 400, body: { error: "CPF é obrigatório para identificar o paciente na reavaliação" } };
     }
 
-    const normalizePhone = (p: string) => p.replace(/\D/g, "").replace(/^55(\d{10,11})$/, "$1");
-    const normalizedInput = normalizePhone(phone);
-    const withCountryCode = `55${normalizedInput}`;
-
-    const [exactSnap, countryCodeSnap] = await Promise.all([
-      customersRef.where("phone", "==", normalizedInput).limit(1).get(),
-      customersRef.where("phone", "==", withCountryCode).limit(1).get(),
-    ]);
-
-    const cheapMatch = exactSnap.docs[0] ?? countryCodeSnap.docs[0];
-    const matchDoc = cheapMatch ?? (await customersRef.get()).docs.find(
-      (doc) => normalizePhone(doc.data().phone ?? "") === normalizedInput,
-    );
+    const cpfSnap = await customersRef.where("cpf", "==", cpf).limit(1).get();
+    const matchDoc = cpfSnap.docs[0];
 
     if (!matchDoc) {
       return {
         status: 404,
         body: {
           error: "Paciente não encontrado",
-          message: `Nenhum paciente encontrado com o telefone ${phone}. Verifique se o número está correto.`,
+          message: `Nenhum paciente encontrado com o CPF informado. Verifique se o CPF está correto.`,
         },
       };
     }
@@ -2292,14 +2281,49 @@ app.post("/users/:userId/backfill-last-consulta-date", async (req, res) => {
 // ── CRM: Leads ──────────────────────────────────────────────────────────────
 
 // GET /users/:userId/leads
+// Optional query params:
+//   funnelId   — filter by funnel (e.g. ?funnelId=default)
+//   stage      — filter by stage (e.g. ?stage=convertido)
+//   isArchived — "true" | "false" (default: "false")
 app.get("/users/:userId/leads", async (req, res) => {
   try {
     const { userId } = req.params;
-    const snap = await db
+    const { funnelId, stage, isArchived } = req.query as Record<string, string | undefined>;
+
+    let query: FirebaseFirestore.Query = db
       .collection(`users/${userId}/leads`)
-      .orderBy("createdAt", "desc")
-      .get();
-    const leads = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      .orderBy("createdAt", "desc");
+
+    if (funnelId) query = query.where("funnelId", "==", funnelId);
+    if (stage) query = query.where("stage", "==", stage);
+    // Default: exclude archived leads unless caller explicitly requests them
+    if (isArchived === "true") {
+      query = query.where("isArchived", "==", true);
+    } else if (isArchived !== "all") {
+      query = query.where("isArchived", "in", [false, null]);
+    }
+
+    const snap = await query.get();
+
+    const tsToIso = (v: any): string | undefined => {
+      if (!v) return undefined;
+      if (typeof v.toDate === "function") return v.toDate().toISOString();
+      return v;
+    };
+
+    const leads = snap.docs.map((doc) => {
+      const d = doc.data();
+      return {
+        id: doc.id,
+        ...d,
+        createdAt: tsToIso(d.createdAt),
+        updatedAt: tsToIso(d.updatedAt),
+        convertedAt: tsToIso(d.convertedAt),
+        lastPurchaseDate: tsToIso(d.lastPurchaseDate),
+        lastAppointmentDate: tsToIso(d.lastAppointmentDate),
+      };
+    });
+
     return res.status(200).json(leads);
   } catch (error: any) {
     console.error("Error fetching leads:", error);
@@ -2343,6 +2367,8 @@ app.patch("/users/:userId/leads/:leadId", async (req, res) => {
 });
 
 // POST /users/:userId/leads/:leadId/convert
+// Links the lead to an existing customer by phone. Does NOT create a new customer.
+// If no customer is found by phone, returns 422 so the caller can register the customer first.
 app.post("/users/:userId/leads/:leadId/convert", async (req, res) => {
   try {
     const { userId, leadId } = req.params;
@@ -2353,38 +2379,57 @@ app.post("/users/:userId/leads/:leadId/convert", async (req, res) => {
     }
     const lead = leadDoc.data()!;
 
-    if (lead.isConverted) {
-      return res.status(400).json({ error: "Lead already converted" });
+    if (lead.convertedToCustomerId) {
+      return res.status(400).json({ error: "Lead already converted", customerId: lead.convertedToCustomerId });
+    }
+
+    // Find existing customer by phone
+    const phone: string | undefined = lead.phone;
+    let customerId: string | undefined;
+
+    if (phone) {
+      const customerSnap = await db
+        .collection(`users/${userId}/customers`)
+        .where("phone", "==", phone)
+        .limit(1)
+        .get();
+      if (!customerSnap.empty) {
+        customerId = customerSnap.docs[0].id;
+      }
+    }
+
+    if (!customerId) {
+      return res.status(422).json({
+        error: "No customer found with this phone number. Register the customer first.",
+      });
     }
 
     const now = FieldValue.serverTimestamp();
-    const batch = db.batch();
-
-    // Create customer
-    const customerRef = db.collection(`users/${userId}/customers`).doc();
-    batch.set(customerRef, {
-      name: lead.name ?? "",
-      phone: lead.phone ?? "",
-      email: lead.email ?? "",
-      cameBy: `CRM - ${lead.source ?? ""}`,
-      createdAt: now,
-    });
-
-    // Mark lead as converted
-    batch.update(db.doc(`users/${userId}/leads/${leadId}`), {
+    await db.doc(`users/${userId}/leads/${leadId}`).update({
       isConverted: true,
       convertedAt: now,
-      convertedToCustomerId: customerRef.id,
+      convertedToCustomerId: customerId,
       stage: "convertido",
       updatedAt: now,
     });
 
-    await batch.commit();
-
-    return res.status(200).json({ customerId: customerRef.id });
+    return res.status(200).json({ customerId });
   } catch (error: any) {
     console.error("Error converting lead:", error);
     return res.status(500).json({ error: "Failed to convert lead" });
+  }
+});
+
+// POST /users/:userId/customers/backfill-active-status
+app.post("/users/:userId/customers/backfill-active-status", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { applyConsultaActivityCheck } = await import("./analytics.js");
+    const result = await applyConsultaActivityCheck(userId);
+    return res.status(200).json({ ok: true, ...result });
+  } catch (error: any) {
+    console.error("Error running active status backfill:", error);
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -2409,6 +2454,41 @@ app.get("/users/:userId/chatwoot/verify", async (req, res) => {
   } catch (error: any) {
     console.error("Error verifying Chatwoot:", error);
     return res.status(200).json({ ok: false, reason: error.message });
+  }
+});
+
+// GET /users/:userId/chatwoot/inboxes
+app.get("/users/:userId/chatwoot/inboxes", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const snap = await db.doc(`users/${userId}/settings/crm`).get();
+    const settings = snap.data();
+
+    if (!settings?.chatwootApiUrl || !settings?.chatwootApiToken || !settings?.chatwootAccountId) {
+      return res.status(400).json({ error: "Chatwoot integration not configured" });
+    }
+
+    const baseUrl = `${settings.chatwootApiUrl.replace(/\/$/, "")}/api/v1/accounts/${settings.chatwootAccountId}`;
+    const response = await fetch(`${baseUrl}/inboxes`, {
+      headers: { api_access_token: settings.chatwootApiToken },
+    });
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: "Chatwoot API error" });
+    }
+
+    const data = await response.json() as { payload: any[] };
+    const inboxes = (data.payload ?? []).map((inbox: any) => ({
+      id: inbox.id,
+      name: inbox.name,
+      channelType: inbox.channel_type,
+      medium: inbox.medium,
+    }));
+
+    return res.status(200).json({ inboxes });
+  } catch (error: any) {
+    console.error("Error fetching Chatwoot inboxes:", error);
+    return res.status(500).json({ error: error.message });
   }
 });
 

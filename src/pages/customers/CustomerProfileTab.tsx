@@ -2,6 +2,7 @@ import { Edit } from "lucide-react";
 import React from "react";
 import { useParams } from "react-router-dom";
 
+import { useUpdateCustomerMutation } from "@/app/state/features/customersSlice";
 import { EditCustomerDialog } from "@/components/Customers/EditCustomerDialog";
 import { useGetCustomerData } from "@/components/Customers/hooks";
 import {
@@ -12,11 +13,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { Gender, GENDERS, ICustomer } from "@/domain/entities";
+import { useAuth } from "@/infra/firebase";
 
 const CustomerProfileTab: React.FC = () => {
   const { customerId } = useParams();
+  const { dbUid } = useAuth();
   const customer: ICustomer | undefined = useGetCustomerData(customerId);
+  const [updateCustomer] = useUpdateCustomerMutation();
+
+  async function handleToggleActive(checked: boolean) {
+    if (!dbUid || !customerId) return;
+    await updateCustomer({ uid: dbUid, customerId, customerData: { isActive: checked } });
+  }
 
   if (!customer) {
     return (
@@ -196,6 +206,20 @@ const CustomerProfileTab: React.FC = () => {
                 </dd>
               </div>
             )}
+            <div className="space-y-1">
+              <dt className="text-xs font-medium uppercase text-muted-foreground">
+                Status
+              </dt>
+              <dd className="flex items-center gap-2">
+                <Switch
+                  checked={customer.isActive !== false}
+                  onCheckedChange={handleToggleActive}
+                />
+                <span className="text-sm font-medium text-foreground">
+                  {customer.isActive !== false ? "Ativo" : "Inativo"}
+                </span>
+              </dd>
+            </div>
           </dl>
         </CardContent>
       </Card>

@@ -97,7 +97,7 @@ async function buildApp() {
       const leadDoc = await db.doc(`users/${userId}/leads/${leadId}`).get();
       if (!leadDoc.exists) return res.status(404).json({ error: "Lead not found" });
       const lead = leadDoc.data()!;
-      if (lead.isConverted) return res.status(400).json({ error: "Lead already converted" });
+      if (lead.convertedToCustomerId) return res.status(400).json({ error: "Lead already converted" });
 
       const now = FieldValue.serverTimestamp();
       const batch = db.batch();
@@ -152,7 +152,7 @@ describe("POST /users/:userId/leads/:leadId/convert", () => {
   });
 
   it("returns 400 when lead is already converted", async () => {
-    store["users/user1/leads/lead1"] = { name: "Test", isConverted: true };
+    store["users/user1/leads/lead1"] = { name: "Test", convertedToCustomerId: "cust123" };
     const res = await request.post("/users/user1/leads/lead1/convert");
     expect(res.status).toBe(400);
     expect(res.body.error).toBe("Lead already converted");
@@ -164,7 +164,6 @@ describe("POST /users/:userId/leads/:leadId/convert", () => {
       phone: "11912345678",
       email: "m@x.com",
       source: "whatsapp",
-      isConverted: false,
     };
 
     const res = await request.post("/users/user1/leads/lead1/convert");
@@ -178,7 +177,6 @@ describe("POST /users/:userId/leads/:leadId/convert", () => {
       phone: "21987654321",
       email: "c@x.com",
       source: "instagram",
-      isConverted: false,
     };
 
     await request.post("/users/user1/leads/lead2/convert");
@@ -192,7 +190,6 @@ describe("POST /users/:userId/leads/:leadId/convert", () => {
   it("batch marks the lead as converted with stage=convertido", async () => {
     store["users/user1/leads/lead3"] = {
       name: "Paula",
-      isConverted: false,
       source: "whatsapp",
     };
 

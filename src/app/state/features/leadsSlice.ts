@@ -22,10 +22,18 @@ export const leadsSlice = firestoreApi
           try {
             await cacheDataLoaded;
             unsubscribe = LeadsService(uid)?.getAll((snapshot) => {
-              const leads = snapshot!.docs?.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-              })) as ILead[];
+              const leads = snapshot!.docs?.map((doc) => {
+                const d = doc.data();
+                return {
+                  id: doc.id,
+                  ...d,
+                  createdAt: d.createdAt instanceof Timestamp ? d.createdAt.toDate().toISOString() : d.createdAt,
+                  updatedAt: d.updatedAt instanceof Timestamp ? d.updatedAt.toDate().toISOString() : d.updatedAt,
+                  convertedAt: d.convertedAt instanceof Timestamp ? d.convertedAt.toDate().toISOString() : d.convertedAt,
+                  lastPurchaseDate: d.lastPurchaseDate instanceof Timestamp ? d.lastPurchaseDate.toDate().toISOString() : d.lastPurchaseDate,
+                  lastAppointmentDate: d.lastAppointmentDate instanceof Timestamp ? d.lastAppointmentDate.toDate().toISOString() : d.lastAppointmentDate,
+                } as ILead;
+              });
               updateCachedData((draft) => {
                 draft.splice(0, draft.length, ...leads);
               });
@@ -43,8 +51,18 @@ export const leadsSlice = firestoreApi
         queryFn: async (uid) => {
           try {
             const snapshot = await LeadsService(uid)?.getAllOnce();
-            const leads =
-              (snapshot?.docs?.map((doc) => ({ id: doc.id, ...doc.data() })) ?? []) as ILead[];
+            const leads: ILead[] = (snapshot?.docs ?? []).map((doc) => {
+              const d = doc.data();
+              return {
+                id: doc.id,
+                ...d,
+                createdAt: d.createdAt instanceof Timestamp ? d.createdAt.toDate().toISOString() : d.createdAt,
+                updatedAt: d.updatedAt instanceof Timestamp ? d.updatedAt.toDate().toISOString() : d.updatedAt,
+                convertedAt: d.convertedAt instanceof Timestamp ? d.convertedAt.toDate().toISOString() : d.convertedAt,
+                lastPurchaseDate: d.lastPurchaseDate instanceof Timestamp ? d.lastPurchaseDate.toDate().toISOString() : d.lastPurchaseDate,
+                lastAppointmentDate: d.lastAppointmentDate instanceof Timestamp ? d.lastAppointmentDate.toDate().toISOString() : d.lastAppointmentDate,
+              } as ILead;
+            });
             return { data: leads };
           } catch (err) {
             return { error: err };
@@ -109,6 +127,18 @@ export const leadsSlice = firestoreApi
           }
         },
       }),
+
+      archiveLead: builder.mutation<void, { uid: string; leadId: string; isArchived: boolean }>({
+        invalidatesTags: ["Leads"],
+        queryFn: async ({ uid, leadId, isArchived }) => {
+          try {
+            await LeadsService(uid)?.updateOne(leadId, { isArchived });
+            return { data: undefined };
+          } catch (err) {
+            return { error: err };
+          }
+        },
+      }),
     }),
   });
 
@@ -127,4 +157,5 @@ export const {
   useAddLeadMutation,
   useUpdateLeadMutation,
   useDeleteLeadMutation,
+  useArchiveLeadMutation,
 } = leadsSlice;

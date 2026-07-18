@@ -916,16 +916,73 @@ export const debitDailyTimeCredits = onSchedule(
           batch.update(customerDoc.ref, {
             timeCredits: newCredits,
             creditExpiresAt: Timestamp.fromDate(nextExpiry),
+            isActive: true,
           });
         } else {
           batch.update(customerDoc.ref, {
             timeCredits: 0,
             creditExpiresAt: FieldValue.delete(),
+            isActive: false,
           });
         }
       }
 
       await batch.commit();
+    }
+  }
+);
+
+/**
+ * Shared logic: sets isActive based on lastConsultaDate (90-day threshold).
+ * Returns { updated, skipped } counts.
+ */
+export async function applyConsultaActivityCheck(userId: string): Promise<{ updated: number; skipped: number }> {
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+  const threshold = Timestamp.fromDate(ninetyDaysAgo);
+
+  const snapshot = await db.collection(`users/${userId}/customers`).get();
+  if (snapshot.empty) return { updated: 0, skipped: 0 };
+
+  const batch = db.batch();
+  let updated = 0;
+  let skipped = 0;
+
+  for (const doc of snapshot.docs) {
+    const data = doc.data();
+    const lastConsulta = data.lastConsultaDate as Timestamp | undefined;
+
+    if (!lastConsulta) {
+      skipped++;
+      continue;
+    }
+
+    const shouldBeActive = lastConsulta.toMillis() >= threshold.toMillis();
+    const currentlyActive = data.isActive !== false;
+
+    if (shouldBeActive !== currentlyActive) {
+      batch.update(doc.ref, { isActive: shouldBeActive });
+      updated++;
+    } else {
+      skipped++;
+    }
+  }
+
+  await batch.commit();
+  return { updated, skipped };
+}
+
+/**
+ * Runs daily at 6 AM São Paulo time.
+ * Sets isActive=false for customers whose lastConsultaDate is older than 90 days,
+ * and isActive=true for customers who have had a recent consulta.
+ */
+export const checkCustomerActivity = onSchedule(
+  { schedule: "0 6 * * *", timeZone: "America/Sao_Paulo" },
+  async () => {
+    const usersSnapshot = await db.collection("users").get();
+    for (const userDoc of usersSnapshot.docs) {
+      await applyConsultaActivityCheck(userDoc.id);
     }
   }
 );

@@ -7,11 +7,15 @@ import { customerFuzzyFilter } from "./customerFilter";
 import { CustomerSearchInput } from "./CustomerSearchInput";
 import { useFillCustomerTable } from "./hooks";
 
-const CustomersTable = () => {
+interface CustomersTableProps {
+  showInactive?: boolean;
+}
+
+const CustomersTable = ({ showInactive = false }: CustomersTableProps) => {
   const {
     customers,
     result: { isLoading },
-  } = useFillCustomerTable();
+  } = useFillCustomerTable(showInactive);
 
   return isLoading ? (
     <Loader2 className="mx-auto size-8 animate-spin items-center text-zinc-500" />

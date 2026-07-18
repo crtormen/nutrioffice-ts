@@ -136,6 +136,7 @@ export const customersSlice = firestoreApi
                   birthday: dateInString(data.birthday),
                   createdAt: dateInString(data.createdAt),
                   creditExpiresAt: data.creditExpiresAt ? data.creditExpiresAt.toDate().toISOString() : undefined,
+                  lastConsultaDate: data.lastConsultaDate ? data.lastConsultaDate.toDate().toISOString() : undefined,
                 };
               },
             });
@@ -153,7 +154,7 @@ export const customersSlice = firestoreApi
         queryFn: async ({ uid, customerId, customerData }) => {
           try {
             // Convert date fields to Firestore Timestamp
-            const { birthday, createdAt, creditExpiresAt, ...otherData } = customerData;
+            const { birthday, createdAt, creditExpiresAt, lastConsultaDate, ...otherData } = customerData;
             const updates: Partial<ICustomerFirebase> = { ...otherData };
 
             if (birthday) {
@@ -165,6 +166,9 @@ export const customersSlice = firestoreApi
               updates.creditExpiresAt = Timestamp.fromDate(new Date(creditExpiresAt));
             } else if (creditExpiresAt === null) {
               updates.creditExpiresAt = undefined;
+            }
+            if (lastConsultaDate) {
+              updates.lastConsultaDate = Timestamp.fromDate(new Date(lastConsultaDate));
             }
 
             await CustomersService(uid)?.updateOne(customerId, updates);

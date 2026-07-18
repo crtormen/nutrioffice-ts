@@ -81,36 +81,59 @@ export const chatwootWebhook = onRequest(
     try {
       const payload = req.body;
       const event: string = payload.event;
+      console.log("chatwootWebhook: received event", event, "userId:", req.query.userId);
 
-      if (!["conversation_created", "conversation_updated", "contact_created"].includes(event)) {
+      if (!["conversation_created", "contact_created"].includes(event)) {
+        console.log("chatwootWebhook: event ignored", event);
         res.status(200).json({ message: "Event ignored" });
         return;
       }
 
-      const contact = payload.contact;
-      const conversation = payload.conversation;
+      console.log("PAYLOAD: ", payload);
+      // contact_created: contact is at payload.contact
+      // conversation_created / conversation_updated: contact is at payload.meta.sender, conversation is the payload itself
+      const contact = payload.contact ?? payload.meta?.sender;
+      const conversation = payload.conversation ?? (payload.id ? payload : undefined);
 
       if (!contact?.id) {
+        console.log("chatwootWebhook: no contact found in payload");
         res.status(200).json({ message: "No contact in payload" });
         return;
       }
 
-      // Read CRM settings to get default funnel
+      // Read CRM settings to get default funnel and inbox filters
       const settingsDoc = await db
         .doc(`users/${userId}/settings/crm`)
         .get();
       const crmSettings = settingsDoc.data();
+
+      // Skip if this inbox is configured but not tracked
+      const inboxId: number | undefined = conversation?.inbox_id ?? payload.inbox_id;
+      if (inboxId != null && crmSettings?.inboxSettings) {
+        const inboxSetting = crmSettings.inboxSettings[inboxId];
+        if (inboxSetting && inboxSetting.tracked === false) {
+          console.log("chatwootWebhook: inbox", inboxId, "not tracked, skipping");
+          res.status(200).json({ message: "Inbox not tracked" });
+          return;
+        }
+      }
+
       const defaultFunnelId = crmSettings?.defaultFunnelId ?? "default";
+      const inboxFunnelId = inboxId != null
+        ? (crmSettings?.inboxSettings?.[inboxId]?.funnelId ?? defaultFunnelId)
+        : defaultFunnelId;
+
       const firstStageId = (() => {
-        const funnel = crmSettings?.funnels?.[defaultFunnelId];
+        const funnel = crmSettings?.funnels?.[inboxFunnelId];
         if (!funnel?.stages?.length) return "novo-lead";
         return [...funnel.stages].sort((a: any, b: any) => a.order - b.order)[0].id;
       })();
 
-      // Upsert lead: find by chatwootContactId
+      // Upsert lead: find by chatwootContactId scoped to this funnel
       const leadsRef = db.collection(`users/${userId}/leads`);
       const existing = await leadsRef
         .where("chatwootContactId", "==", contact.id)
+        .where("funnelId", "==", inboxFunnelId)
         .limit(1)
         .get();
 
@@ -123,7 +146,6 @@ export const chatwootWebhook = onRequest(
           ...(contact.email && { email: contact.email }),
         });
       } else {
-        // Check if this phone belongs to an existing customer
         const phone: string | undefined = contact.phone_number ?? undefined;
         let existingCustomerId: string | undefined;
         let isConverted = false;
@@ -135,13 +157,30 @@ export const chatwootWebhook = onRequest(
             .limit(1)
             .get();
           if (!customerSnap.empty) {
+            const customerData = customerSnap.docs[0].data();
+
+            // Rule 1: Active customers are never re-entered into a funnel.
+            // Only inactive customers (isActive === false) may re-enter.
+            if (customerData.isActive !== false) {
+              console.log("chatwootWebhook: active customer, skipping lead creation", contact.id);
+              const chatwoot = await getChatwootService(userId);
+              if (chatwoot) {
+                try {
+                  await chatwoot.updateContact(contact.id, buildCustomerContactPayload(customerData));
+                } catch (err) {
+                  console.error("chatwootWebhook: failed to enrich customer contact", err);
+                }
+              }
+              res.status(200).json({ ok: true, skipped: "active_customer" });
+              return;
+            }
+
+            // Inactive customer: re-enter funnel as a converted lead
             existingCustomerId = customerSnap.docs[0].id;
             isConverted = true;
 
-            // Enrich the Chatwoot contact with customer attributes
             const chatwoot = await getChatwootService(userId);
             if (chatwoot) {
-              const customerData = customerSnap.docs[0].data();
               try {
                 await chatwoot.updateContact(contact.id, buildCustomerContactPayload(customerData));
               } catch (err) {
@@ -151,7 +190,14 @@ export const chatwootWebhook = onRequest(
           }
         }
 
-        // Create lead (converted if customer match found)
+        // Rule: skip if the resolved funnel only accepts leads via stage transitions
+        const inboxFunnelConfig = crmSettings?.funnels?.[inboxFunnelId];
+        if (inboxFunnelConfig?.entryMode === "stage_trigger") {
+          console.log("chatwootWebhook: funnel", inboxFunnelId, "is stage_trigger only, skipping");
+          res.status(200).json({ ok: true, skipped: "stage_trigger_only_funnel" });
+          return;
+        }
+
         await leadsRef.add({
           name: contact.name ?? "Sem nome",
           phone: phone,
@@ -159,7 +205,7 @@ export const chatwootWebhook = onRequest(
           chatwootContactId: contact.id,
           chatwootConversationId: conversation?.id ?? undefined,
           chatwootInboxId: conversation?.inbox_id ?? undefined,
-          funnelId: defaultFunnelId,
+          funnelId: inboxFunnelId,
           stage: isConverted ? "convertido" : firstStageId,
           tags: isConverted ? ["cliente"] : [],
           source: "whatsapp",
@@ -188,67 +234,141 @@ export const onLeadWritten = onDocumentWritten(
     const before = event.data?.before.data();
     const after = event.data?.after.data();
 
-    // Lead deleted — nothing to sync
-    if (!after) return;
+    if (!after) return; // lead deleted
 
-    // Read CRM settings for Chatwoot credentials
     const userId = event.params.userId;
     const settingsSnap = await db.doc(`users/${userId}/settings/crm`).get();
     const settings = settingsSnap.data();
 
-    if (!settings?.chatwootApiUrl || !settings?.chatwootApiToken || !settings?.chatwootAccountId) {
-      return; // Integration not configured
+    // ── Section A: Chatwoot sync (runs only when integration is configured) ──
+
+    if (settings?.chatwootApiUrl && settings?.chatwootApiToken && settings?.chatwootAccountId) {
+      const chatwoot = new ChatwootService({
+        apiUrl: settings.chatwootApiUrl,
+        apiToken: settings.chatwootApiToken,
+        accountId: settings.chatwootAccountId,
+      });
+
+      const contactId: number | undefined = after.chatwootContactId;
+      const conversationId: number | undefined = after.chatwootConversationId;
+
+      if (contactId) {
+        try {
+          const attributes: Record<string, string | undefined> = {};
+
+          // Stage changed
+          if (!before || before.stage !== after.stage) {
+            attributes.funnel_stage = after.stage;
+            if (conversationId) {
+              await chatwoot.addLabelToConversation(conversationId, [after.stage]);
+            }
+          }
+
+          // Converted
+          if (after.isConverted && (!before || !before.isConverted)) {
+            attributes.funnel_stage = "convertido";
+            attributes.product_bought = after.interest ?? undefined;
+            if (after.convertedAt instanceof Timestamp) {
+              attributes.last_purchase_date = after.convertedAt.toDate().toISOString().split("T")[0];
+            }
+          }
+
+          // Last appointment date changed
+          if (after.lastAppointmentDate && (!before || before.lastAppointmentDate !== after.lastAppointmentDate)) {
+            const d = after.lastAppointmentDate instanceof Timestamp
+              ? after.lastAppointmentDate.toDate().toISOString().split("T")[0]
+              : String(after.lastAppointmentDate);
+            attributes.last_appointment_date = d;
+          }
+
+          if (Object.keys(attributes).length > 0) {
+            await chatwoot.updateContactAttributes(contactId, attributes);
+          }
+
+          // Name changed
+          if (!before || before.name !== after.name) {
+            await chatwoot.updateContactName(contactId, after.name);
+          }
+        } catch (err) {
+          console.error("onLeadWritten Chatwoot sync error:", err);
+        }
+      }
     }
 
-    const chatwoot = new ChatwootService({
-      apiUrl: settings.chatwootApiUrl,
-      apiToken: settings.chatwootApiToken,
-      accountId: settings.chatwootAccountId,
-    });
+    // ── Section B: Stage transition rules (runs regardless of Chatwoot config) ──
 
-    const contactId: number | undefined = after.chatwootContactId;
-    const conversationId: number | undefined = after.chatwootConversationId;
+    // Fire when an existing lead moves to a new stage, OR when a new "re-entry"
+    // lead is created already at a converted stage (inactive customer returning via webhook).
+    // The isConverted guard prevents newly trigger-created leads (isConverted=false) from
+    // cascading and causing an infinite loop.
+    const movedToStage = before && after.stage && before.stage !== after.stage;
+    const createdAtConvertedStage = !before && after.isConverted === true && after.stage;
 
-    if (!contactId) return;
+    if (!movedToStage && !createdAtConvertedStage) return;
 
-    try {
-      const attributes: Record<string, string | undefined> = {};
+    const funnelId: string = after.funnelId;
+    const stageRules: Array<{ stageId: string; targetFunnelId: string }> =
+      settings?.funnels?.[funnelId]?.stageRules ?? [];
+    const matchingRules = stageRules.filter((r) => r.stageId === after.stage);
+    if (matchingRules.length === 0) return;
 
-      // Stage changed
-      if (!before || before.stage !== after.stage) {
-        attributes.funnel_stage = after.stage;
-        if (conversationId) {
-          await chatwoot.addLabelToConversation(conversationId, [after.stage]);
+    const leadsRef = db.collection(`users/${userId}/leads`);
+
+    for (const rule of matchingRules) {
+      const targetFunnel = settings?.funnels?.[rule.targetFunnelId];
+      if (!targetFunnel) {
+        console.warn(`onLeadWritten: stageRule references unknown targetFunnelId ${rule.targetFunnelId}`);
+        continue;
+      }
+
+      // Duplicate check 1: by chatwootContactId in target funnel
+      if (after.chatwootContactId != null) {
+        const dup = await leadsRef
+          .where("chatwootContactId", "==", after.chatwootContactId)
+          .where("funnelId", "==", rule.targetFunnelId)
+          .limit(1)
+          .get();
+        if (!dup.empty) {
+          console.log(`onLeadWritten: duplicate by chatwootContactId in ${rule.targetFunnelId}, skipping`);
+          continue;
         }
       }
 
-      // Converted
-      if (after.isConverted && (!before || !before.isConverted)) {
-        attributes.funnel_stage = "convertido";
-        attributes.product_bought = after.interest ?? undefined;
-        if (after.convertedAt instanceof Timestamp) {
-          attributes.last_purchase_date = after.convertedAt.toDate().toISOString().split("T")[0];
+      // Duplicate check 2: by phone in target funnel (fallback for leads without chatwootContactId)
+      if (after.phone) {
+        const dup = await leadsRef
+          .where("phone", "==", after.phone)
+          .where("funnelId", "==", rule.targetFunnelId)
+          .limit(1)
+          .get();
+        if (!dup.empty) {
+          console.log(`onLeadWritten: duplicate by phone in ${rule.targetFunnelId}, skipping`);
+          continue;
         }
       }
 
-      // Last appointment date changed
-      if (after.lastAppointmentDate && (!before || before.lastAppointmentDate !== after.lastAppointmentDate)) {
-        const d = after.lastAppointmentDate instanceof Timestamp
-          ? after.lastAppointmentDate.toDate().toISOString().split("T")[0]
-          : String(after.lastAppointmentDate);
-        attributes.last_appointment_date = d;
-      }
+      const targetFirstStageId = [...(targetFunnel.stages ?? [])]
+        .sort((a: any, b: any) => a.order - b.order)[0]?.id ?? "novo-lead";
 
-      if (Object.keys(attributes).length > 0) {
-        await chatwoot.updateContactAttributes(contactId, attributes);
-      }
+      await leadsRef.add({
+        name: after.name ?? "Sem nome",
+        phone: after.phone ?? undefined,
+        email: after.email ?? undefined,
+        chatwootContactId: after.chatwootContactId ?? undefined,
+        chatwootConversationId: after.chatwootConversationId ?? undefined,
+        chatwootInboxId: after.chatwootInboxId ?? undefined,
+        funnelId: rule.targetFunnelId,
+        stage: targetFirstStageId,
+        tags: after.tags ?? [],
+        source: after.source ?? "outro",
+        interest: after.interest ?? undefined,
+        notes: after.notes ?? undefined,
+        isConverted: false,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
 
-      // Name changed
-      if (!before || before.name !== after.name) {
-        await chatwoot.updateContactName(contactId, after.name);
-      }
-    } catch (err) {
-      console.error("onLeadWritten Chatwoot sync error:", err);
+      console.log(`onLeadWritten: created triggered lead in ${rule.targetFunnelId} from ${event.params.leadId}`);
     }
   },
 );

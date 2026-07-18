@@ -14,6 +14,7 @@ import { AddLeadDialog } from "@/components/CRM/AddLeadDialog";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DEFAULT_FUNNEL } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
 
@@ -21,16 +22,27 @@ const CrmPage = () => {
   const { dbUid } = useAuth();
   const navigate = useNavigate();
   const [addLeadOpen, setAddLeadOpen] = useState(false);
+  const [selectedFunnelId, setSelectedFunnelId] = useState<string | null>(null);
 
   useFetchSettingsQuery(dbUid, { skip: !dbUid });
   const selectSettings = useMemo(() => selectCrmSettings(dbUid), [dbUid]);
   const crmSettings = useAppSelector(selectSettings);
 
-  const { data: leads = [] } = useFetchLeadsQuery(dbUid, { skip: !dbUid });
+  const { data: allLeads = [] } = useFetchLeadsQuery(dbUid, { skip: !dbUid });
 
   const defaultFunnelId = crmSettings?.defaultFunnelId ?? "default";
-  const funnel =
-    crmSettings?.funnels?.[defaultFunnelId] ?? DEFAULT_FUNNEL;
+  const activeFunnelId = selectedFunnelId ?? defaultFunnelId;
+  const funnel = crmSettings?.funnels?.[activeFunnelId] ?? DEFAULT_FUNNEL;
+
+  const funnelList = useMemo(
+    () =>
+      Object.values(crmSettings?.funnels ?? { default: DEFAULT_FUNNEL }).sort(
+        (a, b) => (a.isDefault ? -1 : b.isDefault ? 1 : a.name.localeCompare(b.name)),
+      ),
+    [crmSettings],
+  );
+
+  const leads = allLeads.filter((l) => !l.isArchived && l.funnelId === activeFunnelId);
 
   const breadcrumbs = [
     { label: "Dashboard", href: ROUTES.DASHBOARD },
@@ -71,6 +83,18 @@ const CrmPage = () => {
       </div>
 
       <Separator />
+
+      {funnelList.length > 1 && (
+        <Tabs value={activeFunnelId} onValueChange={setSelectedFunnelId}>
+          <TabsList>
+            {funnelList.map((f) => (
+              <TabsTrigger key={f.id} value={f.id}>
+                {f.name}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      )}
 
       <KanbanBoard funnel={funnel} leads={leads} />
 

@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Image as ImageIcon } from "lucide-react";
-import React, { useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { useFetchCustomerConsultasQuery } from "@/app/state/features/customerConsultasSlice";
@@ -22,6 +22,64 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/infra/firebase/hooks/useAuth";
+
+interface SyncedImagePairProps {
+  beforeSrc: string;
+  afterSrc: string;
+  beforeLabel: string;
+  afterLabel: string;
+  beforeMeta?: string;
+  afterMeta?: string;
+}
+
+const SyncedImagePair: React.FC<SyncedImagePairProps> = ({
+  beforeSrc,
+  afterSrc,
+  beforeLabel,
+  afterLabel,
+  beforeMeta,
+  afterMeta,
+}) => {
+  const [containerHeight, setContainerHeight] = useState<number | undefined>(undefined);
+  const loadedHeights = useRef<(number | null)[]>([null, null]);
+
+  const onLoad = useCallback((index: 0 | 1, img: HTMLImageElement) => {
+    const renderedHeight = img.getBoundingClientRect().height;
+    loadedHeights.current[index] = renderedHeight;
+    if (loadedHeights.current[0] !== null && loadedHeights.current[1] !== null) {
+      setContainerHeight(Math.min(loadedHeights.current[0], loadedHeights.current[1]));
+    }
+  }, []);
+
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <p className="text-center text-xs text-muted-foreground">{beforeLabel}</p>
+        <div className="overflow-hidden rounded-lg border" style={{ height: containerHeight }}>
+          <img
+            src={beforeSrc}
+            alt={beforeLabel}
+            className="h-auto w-full object-cover object-center"
+            onLoad={(e) => onLoad(0, e.currentTarget)}
+          />
+        </div>
+        {beforeMeta && <p className="text-center text-xs text-muted-foreground">{beforeMeta}</p>}
+      </div>
+      <div className="space-y-2">
+        <p className="text-center text-xs text-muted-foreground">{afterLabel}</p>
+        <div className="overflow-hidden rounded-lg border" style={{ height: containerHeight }}>
+          <img
+            src={afterSrc}
+            alt={afterLabel}
+            className="h-auto w-full object-cover object-center"
+            onLoad={(e) => onLoad(1, e.currentTarget)}
+          />
+        </div>
+        {afterMeta && <p className="text-center text-xs text-muted-foreground">{afterMeta}</p>}
+      </div>
+    </div>
+  );
+};
 
 const ConsultaPhotosTab: React.FC = () => {
   const { customerId, consultaId } = useParams<{
@@ -141,42 +199,14 @@ const ConsultaPhotosTab: React.FC = () => {
                 afterConsulta.images?.img_frente && (
                   <div className="space-y-2">
                     <h4 className="text-center text-sm font-medium">Frente</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <p className="text-center text-xs text-muted-foreground">
-                          Antes ({formatConsultaDate(beforeConsulta.date)})
-                        </p>
-                        <img
-                          src={beforeConsulta.images.img_frente.url}
-                          alt="Foto Frente - Antes"
-                          className="h-auto w-full rounded-lg border object-cover"
-                        />
-                        {beforeConsulta.peso && (
-                          <p className="text-center text-xs text-muted-foreground">
-                            Peso: {beforeConsulta.peso} kg
-                            {beforeConsulta.results?.fat &&
-                              ` | Gordura: ${beforeConsulta.results.fat}%`}
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-center text-xs text-muted-foreground">
-                          Depois ({formatConsultaDate(afterConsulta.date)})
-                        </p>
-                        <img
-                          src={afterConsulta.images.img_frente.url}
-                          alt="Foto Frente - Depois"
-                          className="h-auto w-full rounded-lg border object-cover"
-                        />
-                        {afterConsulta.peso && (
-                          <p className="text-center text-xs text-muted-foreground">
-                            Peso: {afterConsulta.peso} kg
-                            {afterConsulta.results?.fat &&
-                              ` | Gordura: ${afterConsulta.results.fat}%`}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                    <SyncedImagePair
+                      beforeSrc={beforeConsulta.images.img_frente.url}
+                      afterSrc={afterConsulta.images.img_frente.url}
+                      beforeLabel={`Antes (${formatConsultaDate(beforeConsulta.date)})`}
+                      afterLabel={`Depois (${formatConsultaDate(afterConsulta.date)})`}
+                      beforeMeta={beforeConsulta.peso ? `Peso: ${beforeConsulta.peso} kg${beforeConsulta.results?.fat ? ` | Gordura: ${beforeConsulta.results.fat}%` : ""}` : undefined}
+                      afterMeta={afterConsulta.peso ? `Peso: ${afterConsulta.peso} kg${afterConsulta.results?.fat ? ` | Gordura: ${afterConsulta.results.fat}%` : ""}` : undefined}
+                    />
                   </div>
                 )}
 
@@ -185,28 +215,12 @@ const ConsultaPhotosTab: React.FC = () => {
                 afterConsulta.images?.img_lado && (
                   <div className="space-y-2">
                     <h4 className="text-center text-sm font-medium">Lado</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <p className="text-center text-xs text-muted-foreground">
-                          Antes ({formatConsultaDate(beforeConsulta.date)})
-                        </p>
-                        <img
-                          src={beforeConsulta.images.img_lado.url}
-                          alt="Foto Lado - Antes"
-                          className="h-auto w-full rounded-lg border object-cover"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-center text-xs text-muted-foreground">
-                          Depois ({formatConsultaDate(afterConsulta.date)})
-                        </p>
-                        <img
-                          src={afterConsulta.images.img_lado.url}
-                          alt="Foto Lado - Depois"
-                          className="h-auto w-full rounded-lg border object-cover"
-                        />
-                      </div>
-                    </div>
+                    <SyncedImagePair
+                      beforeSrc={beforeConsulta.images.img_lado.url}
+                      afterSrc={afterConsulta.images.img_lado.url}
+                      beforeLabel={`Antes (${formatConsultaDate(beforeConsulta.date)})`}
+                      afterLabel={`Depois (${formatConsultaDate(afterConsulta.date)})`}
+                    />
                   </div>
                 )}
 
@@ -215,28 +229,12 @@ const ConsultaPhotosTab: React.FC = () => {
                 afterConsulta.images?.img_costas && (
                   <div className="space-y-2">
                     <h4 className="text-center text-sm font-medium">Costas</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <p className="text-center text-xs text-muted-foreground">
-                          Antes ({formatConsultaDate(beforeConsulta.date)})
-                        </p>
-                        <img
-                          src={beforeConsulta.images.img_costas.url}
-                          alt="Foto Costas - Antes"
-                          className="h-auto w-full rounded-lg border object-cover"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-center text-xs text-muted-foreground">
-                          Depois ({formatConsultaDate(afterConsulta.date)})
-                        </p>
-                        <img
-                          src={afterConsulta.images.img_costas.url}
-                          alt="Foto Costas - Depois"
-                          className="h-auto w-full rounded-lg border object-cover"
-                        />
-                      </div>
-                    </div>
+                    <SyncedImagePair
+                      beforeSrc={beforeConsulta.images.img_costas.url}
+                      afterSrc={afterConsulta.images.img_costas.url}
+                      beforeLabel={`Antes (${formatConsultaDate(beforeConsulta.date)})`}
+                      afterLabel={`Depois (${formatConsultaDate(afterConsulta.date)})`}
+                    />
                   </div>
                 )}
             </div>

@@ -18,7 +18,7 @@ import { IFunnel, ILead } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
 
 import { KanbanColumn } from "./KanbanColumn";
-import { LeadCard } from "./LeadCard";
+import { LeadCard, LeadCardOverlay } from "./LeadCard";
 
 interface KanbanBoardProps {
   funnel: IFunnel;
@@ -104,7 +104,7 @@ export function KanbanBoard({ funnel, leads }: KanbanBoardProps) {
       </div>
 
       <DragOverlay>
-        {activeLead ? <LeadCard lead={activeLead} /> : null}
+        {activeLead ? <LeadCardOverlay lead={activeLead} /> : null}
       </DragOverlay>
     </DndContext>
   );

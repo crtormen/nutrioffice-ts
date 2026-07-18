@@ -25,7 +25,7 @@ export function ConvertLeadDialog({ open, onOpenChange, lead }: ConvertLeadDialo
 
   async function handleConfirm() {
     if (!lead.id) return;
-    const success = await convertLead(lead.id);
+    const { success } = await convertLead(lead.id);
     if (success) onOpenChange(false);
   }
 
@@ -38,13 +38,17 @@ export function ConvertLeadDialog({ open, onOpenChange, lead }: ConvertLeadDialo
             Converter em Cliente
           </AlertDialogTitle>
           <AlertDialogDescription>
-            <strong>{lead.name}</strong> será registrado como cliente no sistema.
-            O lead permanecerá no funil na etapa "Convertido".
+            O lead <strong>{lead.name}</strong> será vinculado ao cliente já cadastrado com o mesmo telefone e movido para a etapa "Convertido".
             {lead.phone && (
               <span className="block mt-1 text-xs">Telefone: {lead.phone}</span>
             )}
             {lead.email && (
               <span className="block text-xs">E-mail: {lead.email}</span>
+            )}
+            {!lead.phone && (
+              <span className="block mt-1 text-xs text-destructive">
+                Este lead não tem telefone — o vínculo pode falhar se não houver cliente com o mesmo número.
+              </span>
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>

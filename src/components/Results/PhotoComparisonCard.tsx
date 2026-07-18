@@ -37,7 +37,7 @@ export const PhotoComparisonCard = ({
   };
 
   const PhotoPlaceholder = ({ label }: { label: string }) => (
-    <div className="flex h-full min-h-[200px] flex-col items-center justify-center rounded-md border-2 border-dashed border-muted bg-muted/20 p-4 text-muted-foreground">
+    <div className="flex h-48 w-full flex-col items-center justify-center rounded-md border-2 border-dashed border-muted bg-muted/20 p-4 text-muted-foreground">
       <ImageIcon className="mb-2 h-12 w-12 opacity-50" />
       <p className="text-sm">{label}</p>
     </div>
@@ -68,7 +68,7 @@ export const PhotoComparisonCard = ({
                 <img
                   src={frontalUrl}
                   alt="Frente"
-                  className="h-auto w-full rounded-md border object-cover"
+                  className="h-48 w-full rounded-md border object-cover"
                 />
                 <p className="text-center text-xs text-muted-foreground">Frente</p>
               </div>
@@ -83,7 +83,7 @@ export const PhotoComparisonCard = ({
                 <img
                   src={sideUrl}
                   alt="Lado"
-                  className="h-auto w-full rounded-md border object-cover"
+                  className="h-48 w-full rounded-md border object-cover"
                 />
                 <p className="text-center text-xs text-muted-foreground">Lado</p>
               </div>
@@ -98,7 +98,7 @@ export const PhotoComparisonCard = ({
                 <img
                   src={backUrl}
                   alt="Costas"
-                  className="h-auto w-full rounded-md border object-cover"
+                  className="h-48 w-full rounded-md border object-cover"
                 />
                 <p className="text-center text-xs text-muted-foreground">Costas</p>
               </div>

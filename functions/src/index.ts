@@ -44,6 +44,7 @@ export {
   triggerMonthlyAggregation,
   initializeAnalytics,
   debitDailyTimeCredits,
+  checkCustomerActivity,
 } from "./analytics.js";
 
 // Export subscription functions

@@ -30,6 +30,8 @@ export interface ICustomerFirebase {
   structure?: IStructure;
   instagram?: string;
   cameBy?: string;
+  isActive?: boolean;
+  lastConsultaDate?: Timestamp;
 }
 // adicionar estado civil
 
@@ -51,4 +53,6 @@ export interface ICustomer {
   structure?: IStructure;
   instagram?: string;
   cameBy?: string;
+  isActive?: boolean;
+  lastConsultaDate?: string;
 }

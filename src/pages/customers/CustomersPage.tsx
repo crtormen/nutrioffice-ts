@@ -1,4 +1,6 @@
 import { Lock, Plus, Users } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -28,6 +30,7 @@ const CustomersPage: React.FC = () => {
   const navigate = useNavigate();
   const { dbUid } = useAuth();
   const [showLimitDialog, setShowLimitDialog] = useState(false);
+  const [showInactive, setShowInactive] = useState(false);
 
   // Fetch current customers, subscription, and user data
   const { data: customers = [] } = useFetchCustomersQuery(dbUid || "", {
@@ -132,7 +135,18 @@ const CustomersPage: React.FC = () => {
         </Alert>
       )}
 
-      <CustomersTable />
+      <div className="flex items-center justify-end gap-2">
+        <Switch
+          id="show-inactive"
+          checked={showInactive}
+          onCheckedChange={setShowInactive}
+        />
+        <Label htmlFor="show-inactive" className="text-sm text-muted-foreground cursor-pointer">
+          Mostrar inativos
+        </Label>
+      </div>
+
+      <CustomersTable showInactive={showInactive} />
 
       {/* Limit reached dialog */}
       <Dialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>

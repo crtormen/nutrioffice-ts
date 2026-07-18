@@ -162,12 +162,10 @@ const EMPTY_SUBMISSIONS: IFormSubmission[] = [];
  * Selector to get all form submissions
  */
 export const selectFormSubmissions = (uid: string | undefined) =>
-  createSelector(
-    (state: any) => uid
+  (state: any) =>
+    (uid
       ? formSubmissionsSlice.endpoints.fetchFormSubmissions.select(uid)(state).data
-      : undefined,
-    (data) => data ?? EMPTY_SUBMISSIONS,
-  );
+      : undefined) ?? EMPTY_SUBMISSIONS;
 
 /**
  * Selector to get pending submissions count

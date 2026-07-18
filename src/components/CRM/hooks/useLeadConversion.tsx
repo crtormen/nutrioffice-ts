@@ -1,17 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
-import { ROUTES } from "@/app/router/routes";
 import { useAuth } from "@/infra/firebase";
 
 export function useLeadConversion() {
   const { dbUid, user } = useAuth();
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function convertLead(leadId: string): Promise<boolean> {
-    if (!dbUid || !user) return false;
+  async function convertLead(leadId: string): Promise<{ success: boolean; customerId?: string }> {
+    if (!dbUid || !user) return { success: false };
     setIsLoading(true);
     setError(null);
 
@@ -28,17 +25,20 @@ export function useLeadConversion() {
         },
       );
 
+      const data = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
+        // 400 = already converted — still a success for navigation purposes
+        if (response.status === 400 && data.customerId) {
+          return { success: true, customerId: data.customerId };
+        }
         throw new Error(data.error ?? "Erro ao converter lead");
       }
 
-      const { customerId } = await response.json();
-      navigate(ROUTES.CUSTOMERS.DETAILS(customerId));
-      return true;
+      return { success: true, customerId: data.customerId };
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Erro inesperado");
-      return false;
+      return { success: false };
     } finally {
       setIsLoading(false);
     }
