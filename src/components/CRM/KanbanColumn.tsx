@@ -2,7 +2,6 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
 import { IFunnelStage, ILead } from "@/domain/entities";
-import { Badge } from "@/components/ui/badge";
 
 import { LeadCard } from "./LeadCard";
 
@@ -16,16 +15,6 @@ export function KanbanColumn({ stage, leads }: KanbanColumnProps) {
 
   return (
     <div className="flex flex-col w-64 flex-shrink-0">
-      <div
-        className="flex items-center justify-between mb-3 px-1"
-        style={{ borderBottom: `2px solid ${stage.color}` }}
-      >
-        <span className="text-sm font-semibold truncate pb-1">{stage.label}</span>
-        <Badge variant="secondary" className="text-xs ml-2 mb-1">
-          {leads.length}
-        </Badge>
-      </div>
-
       <div
         ref={setNodeRef}
         className={`flex flex-col gap-2 min-h-[120px] rounded-lg p-1.5 transition-colors ${

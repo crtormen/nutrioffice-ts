@@ -11,11 +11,12 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useUpdateLeadMutation } from "@/app/state/features/leadsSlice";
 import { IFunnel, ILead } from "@/domain/entities";
 import { useAuth } from "@/infra/firebase";
+import { Badge } from "@/components/ui/badge";
 
 import { KanbanColumn } from "./KanbanColumn";
 import { LeadCard, LeadCardOverlay } from "./LeadCard";
@@ -36,6 +37,34 @@ export function KanbanBoard({ funnel, leads }: KanbanBoardProps) {
   );
 
   const sortedStages = [...funnel.stages].sort((a, b) => a.order - b.order);
+
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
+
+  // Keep the probe div width equal to the board's scroll width so the top
+  // scrollbar thumb is the correct size and travels the correct distance.
+  useEffect(() => {
+    const board = boardRef.current;
+    const probe = topScrollRef.current?.firstElementChild as HTMLElement | null;
+    if (!board || !probe) return;
+    const ro = new ResizeObserver(() => {
+      probe.style.width = `${board.scrollWidth}px`;
+    });
+    ro.observe(board);
+    return () => ro.disconnect();
+  }, [sortedStages.length]);
+
+  function syncFromTop() {
+    const x = topScrollRef.current?.scrollLeft ?? 0;
+    if (boardRef.current) boardRef.current.scrollLeft = x;
+    if (headerRef.current) headerRef.current.scrollLeft = x;
+  }
+  function syncFromBoard() {
+    const x = boardRef.current?.scrollLeft ?? 0;
+    if (topScrollRef.current) topScrollRef.current.scrollLeft = x;
+    if (headerRef.current) headerRef.current.scrollLeft = x;
+  }
 
   const leadsByStage = (stageId: string) =>
     leads.filter((l) => l.stage === stageId);
@@ -93,7 +122,39 @@ export function KanbanBoard({ funnel, leads }: KanbanBoardProps) {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      {/* Top scrollbar — mirrors the board scroll */}
+      <div
+        ref={topScrollRef}
+        className="overflow-x-auto"
+        onScroll={syncFromTop}
+      >
+        <div style={{ height: 1, visibility: "hidden" }} className="board-width-probe" />
+      </div>
+
+      {/* Sticky column headers — outside the vertical scroll so they stay visible */}
+      <div
+        ref={headerRef}
+        className="sticky top-0 z-20 overflow-x-hidden bg-background flex gap-4 pb-1"
+      >
+        {sortedStages.map((stage) => (
+          <div
+            key={stage.id}
+            className="w-64 flex-shrink-0 flex items-center justify-between px-1 py-2"
+            style={{ borderBottom: `2px solid ${stage.color}` }}
+          >
+            <span className="text-sm font-semibold truncate">{stage.label}</span>
+            <Badge variant="secondary" className="text-xs ml-2">
+              {leadsByStage(stage.id).length}
+            </Badge>
+          </div>
+        ))}
+      </div>
+
+      <div
+        ref={boardRef}
+        className="flex gap-4 overflow-x-auto pb-4"
+        onScroll={syncFromBoard}
+      >
         {sortedStages.map((stage) => (
           <KanbanColumn
             key={stage.id}
